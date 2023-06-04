@@ -1,13 +1,13 @@
 {
-	"callsign": "NOCALL-10",
-	"comment": "LoRa_APRS_iGate https://github.com/richonguzman/LoRa_APRS_iGate",
-	"beacon_interval": 15,
+	"callsign": "DC2MH-12",
+	"comment": "LoRa_iGate",
+	"beacon_interval": 45,
 	"wifi": {
 		"AP": [
-			{	"SSID": "WiFi_AP_1",
-				"Password": "password_WiFi_1",
-				"Latitude": 0.0000000,
-				"Longitude": 0.0000000
+			{	"SSID": "hade",
+				"Password": "785fue5r643748zrgeg3437iz4823z4hj3h24i8",
+				"Latitude": 48.917310,
+				"Longitude": 12.201840
 			},
 			{	"SSID": "WiFi_AP_2",
 				"Password": "password_WiFi_2",
@@ -17,15 +17,15 @@
 		]
 	},
 	"aprs_is": {
-		"passcode": "VWXYZ",
-		"server": "soam.aprs2.net",
+		"passcode": "19948",
+		"server": "germany.aprs2.net",
 		"port": 14580,
 		"software_name" : "ESP32_LoRa_iGate",
 		"software_version" : "0.1.1",
 		"reporting_distance" : 30
 	},
 	"lora": {
-		"frequency": 433775000,
+		"frequency": 433781000,
 		"spreading_factor": 12,
 		"signal_bandwidth": 125000,
 		"coding_rate4": 5,
@@ -33,6 +33,6 @@
 	},
 	"display": {
 		"always_on": true,
-		"timeout": 2
+		"timeout": 10
 	}
 }
