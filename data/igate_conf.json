@@ -1,38 +1,52 @@
 {
 	"callsign": "DC2MH-12",
-	"comment": "LoRa_iGate",
-	"beacon_interval": 45,
+	"stationMode": 2,
+	"iGateComment": "LoRa_APRS_iGate",
 	"wifi": {
 		"AP": [
-			{	"SSID": "hade",
-				"Password": "785fue5r643748zrgeg3437iz4823z4hj3h24i8",
-				"Latitude": 48.917310,
-				"Longitude": 12.201840
-			},
-			{	"SSID": "WiFi_AP_2",
-				"Password": "password_WiFi_2",
-				"Latitude": 0.0000000,
-				"Longitude": 0.0000000
+			{	"ssid": "hade",
+			    "password": "785fue5r643748zrgeg3437iz4823z4hj3h24i8",
+			    "latitude": 48.917310,
+			    "longitude": 12.201840
+	},
+			{	"ssid": "Jimenita",
+				"password": "mg6wyMhqRnxk",
+				"latitude": -33.0312492,
+				"longitude": -71.5796215
 			}
 		]
+	},
+	"digi": {
+		"comment": "LoRa_APRS_Digirepeater",
+		"latitude": 48.917310,
+		"longitude": 12.201840
 	},
 	"aprs_is": {
 		"passcode": "19948",
 		"server": "germany.aprs2.net",
 		"port": 14580,
-		"software_name" : "ESP32_LoRa_iGate",
-		"software_version" : "0.1.1",
-		"reporting_distance" : 30
+		"reportingDistance": 30
 	},
 	"lora": {
-		"frequency": 433781000,
-		"spreading_factor": 12,
-		"signal_bandwidth": 125000,
-		"coding_rate4": 5,
+		"iGateFreq": 433781000,
+		"digirepeaterTxFreq": 433906000,
+		"digirepeaterRxFreq": 433781000,
+		"spreadingFactor": 12,
+		"signalBandwidth": 125000,
+		"codingRate4": 5,
 		"power": 20
 	},
 	"display": {
-		"always_on": true,
-		"timeout": 10
+		"alwaysOn": true,
+		"timeout": 4
+	},
+	"syslog": {
+		"active": true,
+		"server": "172.16.0.123",
+		"port": 514
+	},
+	"other": {
+		"beaconInterval": 45,
+		"rememberStationTime": 30
 	}
 }
