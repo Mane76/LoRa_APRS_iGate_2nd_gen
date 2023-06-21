@@ -38,7 +38,8 @@
 	},
 	"display": {
 		"alwaysOn": true,
-		"timeout": 4
+		"timeout": 4,
+		"turn180" : false
 	},
 	"syslog": {
 		"active": true,

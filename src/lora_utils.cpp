@@ -7,6 +7,9 @@
 extern Configuration  Config;
 extern int            stationMode;
 
+int rssi, freqError;
+float snr;
+
 namespace LoRa_Utils {
 
 void setup() {
@@ -30,7 +33,7 @@ void setup() {
   LoRa.setCodingRate4(Config.loramodule.codingRate4);
   LoRa.enableCrc();
   LoRa.setTxPower(Config.loramodule.power);
-  Serial.println("LoRa init done!");  
+  Serial.print("init : LoRa Module    ...     done!");
 }
 
 void sendNewPacket(const String &typeOfMessage, const String &newPacket) {
@@ -67,8 +70,11 @@ String receivePacket() {
       int inChar = LoRa.read();
       loraPacket += (char)inChar;
     }
+    rssi      = LoRa.packetRssi();
+    snr       = LoRa.packetSnr();
+    freqError = LoRa.packetFrequencyError();
     if (Config.syslog.active && (stationMode==1 || stationMode==2)) {
-      SYSLOG_Utils::log("LoRa Rx", loraPacket, LoRa.packetRssi(), LoRa.packetSnr(), LoRa.packetFrequencyError());
+      SYSLOG_Utils::log("LoRa Rx", loraPacket, rssi, snr, freqError);
     }
   }
   return loraPacket;

@@ -4,29 +4,40 @@
 #include <SPIFFS.h>
 #include <WiFi.h>
 #include "configuration.h"
+#include "station_utils.h"
 #include "syslog_utils.h"
 #include "pins_config.h"
 #include "wifi_utils.h"
 #include "lora_utils.h"
+#include "gps_utils.h"
+#include "bme_utils.h"
 #include "display.h"
 #include "utils.h"
 
 
 AsyncWebServer  server(80);
 
-extern WiFiClient       espClient;
-extern Configuration    Config;
-extern String           versionDate;
-extern bool             statusAfterBoot;
-extern String           firstLine;
-extern String           secondLine;
-extern String           thirdLine;
-extern String           fourthLine;
-extern uint32_t         lastBeaconTx;
-extern uint32_t         lastScreenOn;
-extern bool             beacon_update;
-extern int              stationMode;
-extern String           iGateBeaconPacket;
+extern WiFiClient           espClient;
+extern Configuration        Config;
+extern String               versionDate;
+extern bool                 statusAfterBoot;
+extern String               firstLine;
+extern String               secondLine;
+extern String               thirdLine;
+extern String               fourthLine;
+extern String               fifthLine;
+extern String               sixthLine;
+extern String               seventhLine;
+extern uint32_t             lastBeaconTx;
+extern uint32_t             lastScreenOn;
+extern bool                 beacon_update;
+extern int                  stationMode;
+extern String               iGateBeaconPacket;
+extern std::vector<String>  lastHeardStation;
+extern int                  rssi;
+extern float                snr;
+extern int                  freqError;
+extern String               distance;
 
 namespace Utils {
 
@@ -51,24 +62,29 @@ void processStatus() {
     statusAfterBoot = false;
 }
 
-void setupDiplay() {
+String getLocalIP() {
+    return "IP :  " + String(WiFi.localIP()[0]) + "." + String(WiFi.localIP()[1]) + "." + String(WiFi.localIP()[2]) + "." + String(WiFi.localIP()[3]);
+}
+
+void setupDisplay() {
     setup_display();
     digitalWrite(greenLed,HIGH);
     Serial.println("\nStarting iGate: " + Config.callsign + "   Version: " + versionDate);
-    show_display("   LoRa APRS iGate", "    Richonguzman", "    -- CD2RXU --", "     " + versionDate, 4000);
+    show_display(" LoRa APRS", "      ( iGate )", "", "     Richonguzman", "     -- CD2RXU --", "", "      " + versionDate, 4000);
     digitalWrite(greenLed,LOW);
-    firstLine   = "LoRa iGate: " + Config.callsign;
+    firstLine   = Config.callsign;
     if (stationMode==3 || stationMode==4) {
-        secondLine = "<DigiRepeater Active>";
-    } else {
-        secondLine  = "";
-    }    
-    thirdLine   = "";
-    fourthLine  = "     listening...";
+        thirdLine = "<<   DigiRepeater  >>";
+    }
+    seventhLine = "     listening...";
 }
 
-String getLocalIP() {
-    return "IP : " + String(WiFi.localIP()[0]) + "." + String(WiFi.localIP()[1]) + "." + String(WiFi.localIP()[2]) + "." + String(WiFi.localIP()[3]);
+void activeStations() {
+    fourthLine = "Stations (" + String(Config.rememberStationTime) + "min) = ";
+    if (lastHeardStation.size() < 10) {
+        fourthLine += " ";
+    }
+    fourthLine += String(lastHeardStation.size());            
 }
 
 void checkBeaconInterval() {
@@ -78,21 +94,44 @@ void checkBeaconInterval() {
     }
     if (beacon_update) {
         display_toggle(true);
-        //thirdLine = getLocalIP();
         Serial.println("---- Sending iGate Beacon ----");
+        STATION_Utils::deleteNotHeard();
+        activeStations();
         if (stationMode==1 || stationMode==2) {
-            show_display(firstLine, secondLine, thirdLine, "SENDING iGate BEACON", 1000);
             thirdLine = getLocalIP();
-            fourthLine = "     listening...";
-            espClient.write((iGateBeaconPacket + "\n").c_str());
-            show_display(firstLine, secondLine, thirdLine, fourthLine, 0);
+            if (!Config.bme.active) {
+                fifthLine = "";
+            }
+            sixthLine = "";
+            show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 1000);         
+            seventhLine = "     listening...";
+            if (Config.bme.active) {
+                espClient.write((iGateBeaconPacket.substring(0,iGateBeaconPacket.indexOf(":=")+20) + "_" + BME_Utils::readDataSensor() + iGateBeaconPacket.substring(iGateBeaconPacket.indexOf(":=")+21) + " + WX" + "\n").c_str());
+            } else {
+                espClient.write((iGateBeaconPacket + "\n").c_str());
+            }
+            show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
         } else if (stationMode==3 || stationMode==4) {
-            show_display(firstLine, secondLine, thirdLine, "SENDING iGate BEACON", 0);
-            fourthLine = "     listening...";
+            String Rx = String(Config.loramodule.digirepeaterRxFreq);
+            String Tx = String(Config.loramodule.digirepeaterTxFreq);
+            if (stationMode==3) {
+                secondLine = "Rx:" + String(Tx.substring(0,3)) + "." + String(Tx.substring(3,6));
+            } else {
+                secondLine = "Rx:" + String(Rx.substring(0,3)) + "." + String(Rx.substring(3,6));
+            }
+            secondLine += " Tx:" + String(Tx.substring(0,3)) + "." + String(Tx.substring(3,6));
+            fifthLine = "";
+            sixthLine = "";
+            show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 0);
+            seventhLine = "     listening...";
             if (stationMode == 4) {
                 LoRa_Utils::changeFreqTx();
             }
-            LoRa_Utils::sendNewPacket("APRS",iGateBeaconPacket);
+            if (Config.bme.active) {
+                LoRa_Utils::sendNewPacket("APRS",iGateBeaconPacket.substring(0,iGateBeaconPacket.indexOf(":=")+20) + "_" + BME_Utils::readDataSensor() + iGateBeaconPacket.substring(iGateBeaconPacket.indexOf(":=")+21) + " + WX");
+            } else {
+                LoRa_Utils::sendNewPacket("APRS",iGateBeaconPacket);
+            }
             if (stationMode == 4) {
                 LoRa_Utils::changeFreqRx();
             }           
@@ -100,6 +139,7 @@ void checkBeaconInterval() {
         lastBeaconTx = millis();
         lastScreenOn = millis();
         beacon_update = false;
+        
     }
     if (statusAfterBoot) {
         processStatus();
@@ -125,20 +165,51 @@ void validateDigiFreqs() {
     }
 }
 
-void typeOfPacket(String packet) {
+void typeOfPacket(String packet, String packetType) {
+    String sender;
     if (stationMode==1 || stationMode==2) {
-        thirdLine = "Callsign = " + packet.substring(0,packet.indexOf(">"));
+        if (packetType == "LoRa-APRS") {
+            fifthLine = "LoRa Rx ----> APRS-IS";
+        } else if (packetType == "APRS-LoRa") {
+            fifthLine = "APRS-IS ----> LoRa Tx";
+        }
+        sender = packet.substring(0,packet.indexOf(">"));
     } else {
-        thirdLine = "Callsign = " + packet.substring(3,packet.indexOf(">"));
+        fifthLine = "LoRa Rx ----> LoRa Tx";
+        sender = packet.substring(3,packet.indexOf(">"));
+    }
+    for (int i=sender.length();i<9;i++) {
+        sender += " ";
     }
     if (packet.indexOf("::") >= 10) {
-        fourthLine = "TYPE ----> MESSAGE";
+        if (packetType == "APRS-LoRa") {
+            String addresseeAndMessage = packet.substring(packet.indexOf("::")+2);
+            String addressee = addresseeAndMessage.substring(0, addresseeAndMessage.indexOf(":"));
+            addressee.trim();
+            sixthLine = sender + " > " + addressee;
+        } else {
+            sixthLine = sender + "> MESSAGE";
+        }
+        seventhLine = "RSSI:" + String(rssi) + "dBm SNR: " + String(snr) + "dBm";
     } else if (packet.indexOf(":>") >= 10) {
-        fourthLine = "TYPE ----> NEW STATUS";
+        sixthLine = sender + "> NEW STATUS";
+        seventhLine = "RSSI:" + String(rssi) + "dBm SNR: " + String(snr) + "dBm";
     } else if (packet.indexOf(":!") >= 10 || packet.indexOf(":=") >= 10) {
-        fourthLine = "TYPE ----> GPS BEACON";
+        sixthLine = sender + "> GPS BEACON";
+        GPS_Utils::getDistance(packet);
+        seventhLine = "RSSI:" + String(rssi) + "dBm";
+        if (rssi <= -100) {
+            seventhLine += " ";
+        } else {
+            seventhLine += "  ";
+        }
+        if (distance.indexOf(".") == 1) {
+            seventhLine += " ";
+        }
+        seventhLine += "D:" + distance + "km";
     } else {
-        fourthLine = "TYPE ----> ??????????";
+        sixthLine = sender + "> ??????????";
+        seventhLine = "RSSI:" + String(rssi) + "dBm SNR: " + String(snr) + "dBm";
     }
 }
 
@@ -149,7 +220,7 @@ void startOTAServer() {
         });
         AsyncElegantOTA.begin(&server);
         server.begin();
-        Serial.println("HTTP server started (OTA Firmware Updates)!\n");
+        Serial.println("init : OTA Server     ...     done!");
     }
 }
 

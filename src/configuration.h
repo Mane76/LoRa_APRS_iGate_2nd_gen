@@ -43,6 +43,7 @@ class Display {
 public:
   bool    alwaysOn;
   int     timeout;
+  bool    turn180;
 };
 
 class SYSLOG {
@@ -50,6 +51,11 @@ public:
   bool    active;
   String  server;
   int     port;
+};
+
+class BME {
+public:
+  bool    active;
 };
 
 class Configuration {
@@ -66,6 +72,7 @@ public:
   LoraModule            loramodule;
   Display               display;
   SYSLOG                syslog;
+  BME                   bme;
   
 
   Configuration();
