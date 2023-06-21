@@ -11,7 +11,7 @@ namespace QUERY_Utils {
 
 String process(String query, String station, String queryOrigin) {
   String answer;
-  if (query=="?APRS?" || query=="?aprs?" || query=="?Aprs?" || query=="H" || query=="h" || query=="Help" || query=="help" || query=="?") {
+  if (query=="?APRS?" || query=="?aprs?" || query=="?Aprs?" || query=="H" || query=="h" || query=="HELP" || query=="Help" || query=="help" || query=="?") {
     answer = "?APRSV ?APRSP ?APRSL ?APRSH ?WHERE callsign";
   } else if (query=="?APRSV" || query=="?aprsv" || query=="?Aprsv") {
     answer = "CD2RXU_LoRa_iGate 1.2 v" + versionDate;
@@ -26,7 +26,7 @@ String process(String query, String station, String queryOrigin) {
       }
       answer.trim();
     }
-  } else if (query.indexOf("?APRSH") == 0 || query.indexOf("?aprsv") == 0 || query.indexOf("?Aprsv") == 0) {
+  } else if (query.indexOf("?APRSH") == 0 || query.indexOf("?aprsh") == 0 || query.indexOf("?Aprsh") == 0) {
      // sacar callsign despues de ?APRSH
     Serial.println("escuchaste a X estacion? en las ultimas 24 o 8 horas?");
     answer = "APRSH on development 73!";
