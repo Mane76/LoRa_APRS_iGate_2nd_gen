@@ -2,6 +2,8 @@
 
 ## If you have the 2023.06.12 or 13 firmware you can update to 2023.06.25 with <a href="https://github.com/richonguzman/LoRa_APRS_iGate/blob/add-Rssi-and-Distance-to-screen/firmware/LoRa_APRS_iGate_Richonguzman-2023-06-25.bin" target="_blank">this</a> file over OTA (without needing Filesystem update or connecting with VSCODE)
 
+### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
+
 This next generation LoRa iGate can work as:
 - pure RX-iGate, 
 - Rx+Tx-iGate and distribute messages and weather forecasts to heard trackers, and 
