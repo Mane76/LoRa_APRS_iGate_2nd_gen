@@ -1,6 +1,6 @@
 # Richonguzman / CD2RXU LoRa APRS iGate/Digirepeater
 
-## If you have the 2023.06.12 or 13 firmware you can update to 2023.06.25 with <a href="https://github.com/richonguzman/LoRa_APRS_iGate/blob/add-Rssi-and-Distance-to-screen/firmware/LoRa_APRS_iGate_Richonguzman-2023-06-25.bin" target="_blank">this</a> file over OTA (without needing Filesystem update or connecting with VSCODE)
+## If you have the 2023.06.12 or later firmware you can update to 2023.06.30 with <a href="https://github.com/Mane76/LoRa_APRS_iGate_2nd_gen/blob/main/firmware/LoRa_APRS_iGate_Richonguzman-2023-06-30.bin" target="_blank">this</a> file over OTA (without needing Filesystem update or connecting with VSCODE)
 
 ### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
 
@@ -94,6 +94,8 @@ Versions:
 - 2023.06.17 Support for BME280 Module (Temperature, Humidity, Pressure) added.
 - 2023.06.18 Info on Oled Screen mayor update, added RSSI and Distance to Listened Station.
 - 2023.06.19 Failsafe mods to configuration to ensure correct OTA updates.
+- 2023.06.25 Minor Fix on Display
+- 2023.06.30 Improvement on syslog
 __________________________________________
 
 Special Thanks to the help in testing and developing to Manfred (DC2MH) , for showing me the "way of good coding" to Tihomir (CA3TSK) and much more Ham Licence Ops all over the world.
