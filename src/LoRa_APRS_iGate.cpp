@@ -20,17 +20,19 @@ Configuration   Config;
 WiFiClient      espClient;
 
 
-String          versionDate         = "2023.06.30";
+String          versionDate         = "2023.07.06";
 int             myWiFiAPIndex       = 0;
 int             myWiFiAPSize        = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi        = &Config.wifiAPs[myWiFiAPIndex];
 
 int             stationMode         = Config.stationMode;
 bool            statusAfterBoot     = true;
-bool            beacon_update       = true;
+bool            beaconUpdate       = true;
 uint32_t        lastBeaconTx        = 0;
 uint32_t        previousWiFiMillis  = 0;
 uint32_t        lastScreenOn        = millis();
+
+String          batteryVoltage;
 
 std::vector<String> lastHeardStation;
 std::vector<String> lastHeardStation_temp;
@@ -39,6 +41,7 @@ String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seven
 
 void setup() {
   Serial.begin(115200);
+  pinMode(batteryPin, INPUT);
   pinMode(greenLed, OUTPUT);
   delay(1000);
   Utils::setupDisplay();
