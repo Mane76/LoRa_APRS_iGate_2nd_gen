@@ -38,7 +38,7 @@
 	},
 	"display": {
 		"alwaysOn": true,
-		"timeout": 4,
+		"timeout": 20,
 		"turn180" : false
 	},
 	"syslog": {
