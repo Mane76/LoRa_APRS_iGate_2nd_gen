@@ -79,6 +79,8 @@ LoRa APRS iGATE/Digirepeater working on this boards:
 - LILYGO ESP32 LoRa32 v2-1-1.6  and T3
 - ESP32 Wroom +  SX1278 LoRa Module for a DIY Version.
 - HELTEC_WIFI_LORA_32_V2 (check "pins_config.h" and "display.cpp" for aditional configuration).
+
+Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a href="https://web.archive.org/web/20210125073301/https://www.thethingsnetwork.org/community/berlin/post/warning-attention-users-of-ttgo21-v16-boards-labeled-t3_v16-on-pcb-battery-exploded-and-got-on-fire" target="_blank">this</a> if you plan to use a LI-PO battery attached to the connector
 __________________________________________
 Versions:
 - 2023.02.10 First Beta (receiving LoRa Beacon/Packets and uploading to APRS-IS).
