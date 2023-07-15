@@ -1,6 +1,7 @@
 # Richonguzman / CD2RXU LoRa APRS iGate/Digirepeater
 
 ## If you have the 2023.06.12 firmware (or later) you can update newer <a href="https://github.com/richonguzman/LoRa_APRS_iGate/tree/main/firmware" target="_blank">in here</a> , look for newest an upload over OTA (without needing VSCODE)
+## If you have the 2023.06.12 firmware (or later) you can update newer <a href="https://github.com/richonguzman/LoRa_APRS_iGate/tree/main/firmware" target="_blank">in here</a> , look for newest an upload over OTA (without needing VSCODE)
 
 ### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
 
