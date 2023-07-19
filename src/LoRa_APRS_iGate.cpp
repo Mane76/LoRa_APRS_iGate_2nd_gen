@@ -16,11 +16,11 @@
 #include "display.h"
 #include "utils.h"
 
+
 Configuration   Config;
 WiFiClient      espClient;
 
-
-String          versionDate         = "2023.07.12";
+String          versionDate         = "2023.07.17";
 int             myWiFiAPIndex       = 0;
 int             myWiFiAPSize        = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi        = &Config.wifiAPs[myWiFiAPIndex];
