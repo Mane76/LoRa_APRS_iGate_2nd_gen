@@ -115,6 +115,9 @@ void checkBeaconInterval() {
             }
             sixthLine = "";
             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 1000);         
+            if (Config.sendBatteryVoltage) { 
+                sixthLine = "     (Batt=" + String(BATTERY_Utils::checkVoltages(),2) + "V)";
+            }
             seventhLine = "     listening...";
             espClient.write((beaconPacket + "\n").c_str());
             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
@@ -130,6 +133,9 @@ void checkBeaconInterval() {
             fifthLine = "";
             sixthLine = "";
             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 0);
+            if (Config.sendBatteryVoltage) { 
+                sixthLine = "     (Batt=" + String(BATTERY_Utils::checkVoltages(),2) + "V)";
+            }
             seventhLine = "     listening...";
             if (stationMode == 4) {
                 LoRa_Utils::changeFreqTx();
@@ -222,7 +228,7 @@ void typeOfPacket(String packet, String packetType) {
 void startOTAServer() {
     if (stationMode==1 || stationMode==2) {
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "text/plain", "Hi " + Config.callsign + ", this is your (Richonguzman/CD2RXU) LoRa iGate in Version " + versionDate +".\n\nTo update your firmware or filesystem go to: http://" + getLocalIP().substring(getLocalIP().indexOf(":")+2) + "/update\n\n\n73!");
+        request->send(200, "text/plain", "Hi " + Config.callsign + ", \n\nthis is your (Richonguzman/CD2RXU) LoRa iGate , version " + versionDate + ".\n\nTo update your firmware or filesystem go to: http://" + getLocalIP().substring(getLocalIP().indexOf(":")+3) + "/update\n\n\n73!");
         });
         AsyncElegantOTA.begin(&server);
         server.begin();

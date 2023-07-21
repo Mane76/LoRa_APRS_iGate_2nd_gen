@@ -101,8 +101,11 @@ Versions:
 - 2023.06.30 Improvement on syslog
 - 2023.07.05 Adding monitor info of Battery connected *)
 - 2023.07.12 Adding Versioninfo
+- 2023.07.16 Small OTA, BME module update.
+
 
 *) if you want to use this new feature an update of the config is neccessary. Otherwise just update the firmware.
+
 __________________________________________
 
 Special Thanks to the help in testing and developing to Manfred (DC2MH) , for showing me the "way of good coding" to Tihomir (CA3TSK) and much more Ham Licence Ops all over the world.
