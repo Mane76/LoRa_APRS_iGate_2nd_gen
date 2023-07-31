@@ -18,8 +18,8 @@
 	},
 	"digi": {
 		"comment": "LoRa_APRS_Digirepeater",
-		"latitude": 49.04315,
-		"longitude": 12.01484
+		"latitude": 48.917310,
+		"longitude": 12.201840
 	},
 	"aprs_is": {
 		"passcode": "19948",
@@ -29,7 +29,7 @@
 	},
 	"lora": {
 		"iGateFreq": 433781000,
-		"digirepeaterTxFreq": 433906000,
+		"digirepeaterTxFreq": 433781000,
 		"digirepeaterRxFreq": 433781000,
 		"spreadingFactor": 12,
 		"signalBandwidth": 125000,
