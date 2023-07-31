@@ -6,6 +6,7 @@
 #include "configuration.h"
 #include "station_utils.h"
 #include "battery_utils.h"
+#include "aprs_is_utils.h"
 #include "syslog_utils.h"
 #include "pins_config.h"
 #include "wifi_utils.h"
@@ -40,12 +41,14 @@ extern float                snr;
 extern int                  freqError;
 extern String               distance;
 extern String               versionDate;
+extern uint32_t             lastWiFiCheck;
+extern bool                 WiFiConnect;
 
 namespace Utils {
 
 void processStatus() {
     String status = Config.callsign + ">APLRG1";
-    if (stationMode==1 || stationMode==2) {
+    if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED)) {
         delay(1000);
         status += ",qAC:>https://github.com/richonguzman/LoRa_APRS_iGate " + versionDate ;
         espClient.write((status + "\n").c_str());
@@ -75,9 +78,6 @@ void setupDisplay() {
     show_display(" LoRa APRS", "      ( iGate )", "", "     Richonguzman", "     -- CD2RXU --", "", "      " + versionDate, 4000);
     digitalWrite(greenLed,LOW);
     firstLine   = Config.callsign;
-    if (stationMode==3 || stationMode==4) {
-        thirdLine = "<<   DigiRepeater  >>";
-    }
     seventhLine = "     listening...";
 }
 
@@ -130,6 +130,7 @@ void checkBeaconInterval() {
                 secondLine = "Rx:" + String(Rx.substring(0,3)) + "." + String(Rx.substring(3,6));
             }
             secondLine += " Tx:" + String(Tx.substring(0,3)) + "." + String(Tx.substring(3,6));
+            thirdLine = "<<   DigiRepeater  >>";
             fifthLine = "";
             sixthLine = "";
             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 0);
@@ -137,18 +138,40 @@ void checkBeaconInterval() {
                 sixthLine = "     (Batt=" + String(BATTERY_Utils::checkVoltages(),2) + "V)";
             }
             seventhLine = "     listening...";
-            if (stationMode == 4) {
+            if (stationMode==4) {
                 LoRa_Utils::changeFreqTx();
             }
             LoRa_Utils::sendNewPacket("APRS", beaconPacket);
-            if (stationMode == 4) {
+            if (stationMode==4) {
                 LoRa_Utils::changeFreqRx();
-            }           
+            }
+        } else if (stationMode==5) {
+            if (!Config.bme.active) {
+                fifthLine = "";
+            }
+            sixthLine = "";
+            if (WiFi.status() == WL_CONNECTED && espClient.connected()) {
+                APRS_IS_Utils::checkStatus();
+                thirdLine = getLocalIP();
+                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 1000);         
+                if (Config.sendBatteryVoltage) { 
+                    sixthLine = "     (Batt=" + String(BATTERY_Utils::checkVoltages(),2) + "V)";
+                }
+                seventhLine = "     listening...";
+                espClient.write((beaconPacket + "\n").c_str());
+                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+            } else {
+                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING iGate BEACON", 0);
+                if (Config.sendBatteryVoltage) { 
+                    sixthLine = "     (Batt=" + String(BATTERY_Utils::checkVoltages(),2) + "V)";
+                }
+                seventhLine = "     listening...";
+                LoRa_Utils::sendNewPacket("APRS", beaconPacket);
+            }
         }
         lastBeaconTx = millis();
         lastScreenOn = millis();
         beaconUpdate = false;
-        
     }
     if (statusAfterBoot) {
         processStatus();
@@ -164,6 +187,19 @@ void checkDisplayInterval() {
     }
 }
 
+void checkWiFiInterval() {
+    uint32_t WiFiCheck = millis() - lastWiFiCheck;
+    if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15*60*1000) {
+      WiFiConnect = true;
+    }
+    if (WiFiConnect) {
+      Serial.println("\nConnecting to WiFi ...");
+      WIFI_Utils::startWiFi();
+      lastWiFiCheck = millis();
+      WiFiConnect = false;
+    }
+}
+
 void validateDigiFreqs() {
     if (stationMode == 4) {
         if (abs(Config.loramodule.digirepeaterTxFreq - Config.loramodule.digirepeaterRxFreq) < 125000) {
@@ -176,7 +212,7 @@ void validateDigiFreqs() {
 
 void typeOfPacket(String packet, String packetType) {
     String sender;
-    if (stationMode==1 || stationMode==2) {
+    if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED)) {
         if (packetType == "LoRa-APRS") {
             fifthLine = "LoRa Rx ----> APRS-IS";
         } else if (packetType == "APRS-LoRa") {
@@ -226,7 +262,7 @@ void typeOfPacket(String packet, String packetType) {
 }
 
 void startOTAServer() {
-    if (stationMode==1 || stationMode==2) {
+    if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED)) {
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
         request->send(200, "text/plain", "Hi " + Config.callsign + ", \n\nthis is your (Richonguzman/CD2RXU) LoRa iGate , version " + versionDate + ".\n\nTo update your firmware or filesystem go to: http://" + getLocalIP().substring(getLocalIP().indexOf(":")+3) + "/update\n\n\n73!");
         });

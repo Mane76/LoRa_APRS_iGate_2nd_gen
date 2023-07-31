@@ -1,9 +1,11 @@
 #include <TinyGPS++.h>
+#include <WiFi.h>
 #include "configuration.h"
 #include "gps_utils.h"
 
 extern Configuration  Config;
 extern WiFi_AP        *currentWiFi;
+extern WiFiClient     espClient;
 extern int            stationMode;
 String                distance;
 
@@ -78,7 +80,7 @@ String processLongitudeAPRS(double lon) {
 
 String generateBeacon() {
   String stationLatitude, stationLongitude, beaconPacket;
-  if (stationMode==1 || stationMode==2) {
+  if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED && espClient.connected())) {
     stationLatitude = processLatitudeAPRS(currentWiFi->latitude);
     stationLongitude = processLongitudeAPRS(currentWiFi->longitude);
     beaconPacket = Config.callsign + ">APLRG1,qAC:=" + stationLatitude + "L" + stationLongitude;
@@ -88,9 +90,14 @@ String generateBeacon() {
       beaconPacket += "a";
     }
     beaconPacket += Config.iGateComment;
-  } else { //stationMode 3 y 4
-    stationLatitude = processLatitudeAPRS(Config.digi.latitude);
-    stationLongitude = processLongitudeAPRS(Config.digi.longitude);
+  } else { //stationMode 3, 4 and 5
+    if (stationMode==5) {
+      stationLatitude = processLatitudeAPRS(currentWiFi->latitude);
+      stationLongitude = processLongitudeAPRS(currentWiFi->longitude);
+    } else {
+      stationLatitude = processLatitudeAPRS(Config.digi.latitude);
+      stationLongitude = processLongitudeAPRS(Config.digi.longitude);
+    }
     beaconPacket = Config.callsign + ">APLRG1:=" + stationLatitude + "L" + stationLongitude + "#" + Config.digi.comment;
   }
   return beaconPacket;
