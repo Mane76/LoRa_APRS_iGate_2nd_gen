@@ -109,6 +109,7 @@ Versions:
 - 2023.08.29 OTA Security Password added, change from SPIFFS to LittleFS **)
 
 *) if you want to use this new feature an update of the config is neccessary. Otherwise just update the firmware.
+
 **) MAJOR UPDATE - not possible via OTA - you need to phyiscally connect the device to VSCODE
 
 
