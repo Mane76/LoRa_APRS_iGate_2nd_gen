@@ -3,8 +3,13 @@
 #include "gps_utils.h"
 #include "display.h"
 
+#define SEALEVELPRESSURE_HPA (1013.25)
+#define HEIGHT_CORRECTION 0             // in meters
+#define CORRECTION_FACTOR (8.2296)      // for meters
+
 extern Configuration  Config;
 extern String         fifthLine;
+
 
 namespace BME_Utils {
 
@@ -22,7 +27,7 @@ void setup() {
       Serial.println("init : BME280 Module  ...     done!");
     }
   } else {
-    Serial.println("(BME not 'active' in 'igate_config.json')");
+    Serial.println("(BME not 'active' in 'igate_conf.json')");
   }
 }
 
@@ -96,8 +101,7 @@ String readDataSensor() {
   float newHum    = bme.readHumidity();
   float newPress  = (bme.readPressure() / 100.0F);
   
-  //float bat       = analogRead(battery);
-  //bme.readAltitude(SEALEVELPRESSURE_HPA)
+  //bme.readAltitude(SEALEVELPRESSURE_HPA) // this is for approximate Altitude Calculation.
   
   if (isnan(newTemp) || isnan(newHum) || isnan(newPress)) {
     Serial.println("BME280 Module data failed");
@@ -107,7 +111,7 @@ String readDataSensor() {
   } else {
     tempStr = generateTempString((newTemp * 1.8) + 32);
     humStr  = generateHumString(newHum);
-    presStr = generatePresString(newPress);
+    presStr = generatePresString(newPress + (HEIGHT_CORRECTION/CORRECTION_FACTOR));
     fifthLine = "BME-> " + String(int(newTemp))+"C " + humStr + "% " + presStr.substring(0,4) + "hPa";
     wx = ".../...g...t" + tempStr + "r...p...P...h" + humStr + "b" + presStr;
     return wx;

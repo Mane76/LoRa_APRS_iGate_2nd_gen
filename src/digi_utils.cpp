@@ -2,12 +2,22 @@
 #include "station_utils.h"
 #include "lora_utils.h"
 #include "digi_utils.h"
+#include "gps_utils.h"
 #include "display.h"
 #include "utils.h"
 
 extern Configuration    Config;
 extern int              stationMode;
 extern uint32_t         lastScreenOn;
+extern int              lastStationModeState;
+extern String           iGateBeaconPacket;
+extern String           firstLine;
+extern String           secondLine;
+extern String           thirdLine;
+extern String           fourthLine;
+extern String           fifthLine;
+extern String           sixthLine;
+extern String           seventhLine;
 
 namespace DIGI_Utils {
 
@@ -20,7 +30,7 @@ void processPacket(String packet) {
             String sender = packet.substring(3,packet.indexOf(">"));
             STATION_Utils::updateLastHeard(sender);
             Utils::typeOfPacket(packet, "Digi");
-            if ((stationMode==3) && (packet.indexOf("WIDE1-1") > 10)) {
+            if ((stationMode==3 || stationMode==5) && (packet.indexOf("WIDE1-1") > 10)) {
                 loraPacket = packet.substring(3);
                 loraPacket.replace("WIDE1-1", Config.callsign + "*");
                 delay(500);
@@ -48,6 +58,21 @@ void processPacket(String packet) {
             Serial.println("   ---> LoRa Packet Ignored (first 3 bytes or NOGATE)\n");
         }
     }
+}
+
+void loop() {
+    if (lastStationModeState==0 && stationMode==5) {
+        iGateBeaconPacket = GPS_Utils::generateBeacon();
+        lastStationModeState = 1;
+        String Tx = String(Config.loramodule.digirepeaterTxFreq);
+        secondLine = "Rx:" + String(Tx.substring(0,3)) + "." + String(Tx.substring(3,6));
+        secondLine += " Tx:" + String(Tx.substring(0,3)) + "." + String(Tx.substring(3,6));
+        thirdLine = "<<   DigiRepeater  >>";
+    }
+    Utils::checkDisplayInterval();
+    Utils::checkBeaconInterval();
+    show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+    DIGI_Utils::processPacket(LoRa_Utils::receivePacket());
 }
 
 }

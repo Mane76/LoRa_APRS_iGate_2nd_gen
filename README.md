@@ -1,8 +1,9 @@
 # Richonguzman / CD2RXU LoRa APRS iGate/Digirepeater
 
-## If you have the 2023.06.12 or later firmware you can update to 2023.07.06 with <a href="https://github.com/Mane76/LoRa_APRS_iGate_2nd_gen/blob/main/firmware/LoRa_APRS_iGate_Richonguzman-2023-07-06.bin" target="_blank">this</a> file over OTA (without needing Filesystem update or connecting with VSCODE)
+## If you have the 2023.06.12 firmware (or later) you can update newer <a href="https://github.com/richonguzman/LoRa_APRS_iGate/tree/main/firmware" target="_blank">in here</a> , look for newest an upload over OTA (without needing VSCODE)
 
 ### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
+
 
 This next generation LoRa iGate can work as:
 - pure RX-iGate, 
@@ -97,8 +98,16 @@ Versions:
 - 2023.06.25 Minor Fix on Display
 - 2023.06.30 Improvement on syslog
 - 2023.07.05 Adding monitor info of Battery connected *)
+- 2023.07.16 Small OTA, BME module update.
+- 2023.07.31 StationMode5 added: iGate when WiFi and APRS available, DigiRepeater when not.
+- 2023.08.05 Ground Height Correction for Pressure readings added
+- 2023.08.29 OTA Security Password added, change from SPIFFS to LittleFS **)
 
 *) if you want to use this new feature an update of the config is neccessary. Otherwise just update the firmware.
+**) MAJOR UPDATE - not possible via OTA - you need to phyiscally connect the device to VSCODE
+
+
+
 __________________________________________
 
 Special Thanks to the help in testing and developing to Manfred (DC2MH) , for showing me the "way of good coding" to Tihomir (CA3TSK) and much more Ham Licence Ops all over the world.

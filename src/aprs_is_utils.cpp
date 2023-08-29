@@ -181,7 +181,7 @@ void processAPRSISPacket(String packet) {
         }
       } else {
         Serial.print("Received from APRS-IS  : " + packet);
-        if (stationMode == 2 && STATION_Utils::wasHeard(Addressee)) {
+        if ((stationMode==2 || stationMode==5) && STATION_Utils::wasHeard(Addressee)) {
           LoRa_Utils::sendNewPacket("APRS", LoRa_Utils::generatePacket(packet));
           display_toggle(true);
           lastScreenOn = millis();
@@ -190,6 +190,21 @@ void processAPRSISPacket(String packet) {
       }
       show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
     }        
+  }
+}
+
+void loop() {
+  checkStatus();
+  show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);    
+  while (espClient.connected()) {
+    Utils::checkDisplayInterval();
+    Utils::checkBeaconInterval();
+    processLoRaPacket(LoRa_Utils::receivePacket());            
+    if (espClient.available()) {
+      String aprsisPacket;
+      aprsisPacket.concat(espClient.readStringUntil('\r'));
+      processAPRSISPacket(aprsisPacket);
+    }
   }
 }
 
