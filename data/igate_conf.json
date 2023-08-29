@@ -46,12 +46,16 @@
 		"server": "172.16.0.123",
 		"port": 514
 	},
+	"bme": {
+		"active": false
+	},
+	"ota": {
+		"username":"",
+		"password": ""
+	},
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
 		"sendBatteryVoltage": false
-	},
-	"bme": {
-		"active": false
-	}
+	}	
 }

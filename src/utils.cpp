@@ -1,7 +1,7 @@
 #include <ESPAsyncWebServer.h>
 #include <AsyncElegantOTA.h>
 #include <AsyncTCP.h>
-#include <SPIFFS.h>
+#include <LittleFS.h>
 #include <WiFi.h>
 #include "configuration.h"
 #include "station_utils.h"
@@ -15,7 +15,6 @@
 #include "bme_utils.h"
 #include "display.h"
 #include "utils.h"
-
 
 AsyncWebServer  server(80);
 
@@ -43,6 +42,8 @@ extern String               distance;
 extern String               versionDate;
 extern uint32_t             lastWiFiCheck;
 extern bool                 WiFiConnect;
+
+
 
 namespace Utils {
 
@@ -261,12 +262,29 @@ void typeOfPacket(String packet, String packetType) {
     }
 }
 
-void startOTAServer() {
+void startServer() {
     if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED)) {
         server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(200, "text/plain", "Hi " + Config.callsign + ", \n\nthis is your (Richonguzman/CD2RXU) LoRa iGate , version " + versionDate + ".\n\nTo update your firmware or filesystem go to: http://" + getLocalIP().substring(getLocalIP().indexOf(":")+3) + "/update\n\n\n73!");
+            request->send(200, "text/plain", "Hi " + Config.callsign + ", \n\nthis is your (Richonguzman/CD2RXU) LoRa iGate , version " + versionDate + ".\n\nTo update your firmware or filesystem go to: http://" + getLocalIP().substring(getLocalIP().indexOf(":")+3) + "/update\n\n\n73!");
         });
-        AsyncElegantOTA.begin(&server);
+
+        server.on("/test1", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(LittleFS, "/index.html", "text/html");
+        });
+
+        server.on("/test2", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(LittleFS, "/index2.html", "text/html");
+        });
+
+        server.on("/testx", HTTP_GET, [](AsyncWebServerRequest *request) {
+            request->send(LittleFS, "/testx.html", "text/html");//"application/json");
+        });
+
+        if (Config.ota.username != ""  && Config.ota.password != "") {
+            AsyncElegantOTA.begin(&server, Config.ota.username.c_str(), Config.ota.password.c_str());
+        } else {
+            AsyncElegantOTA.begin(&server);
+        }
         server.begin();
         Serial.println("init : OTA Server     ...     done!");
     }
