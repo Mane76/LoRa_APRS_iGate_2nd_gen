@@ -1,19 +1,19 @@
 {
 	"callsign": "NOCALL-10",
-	"stationMode": 1,
-	"iGateComment": "LoRa_APRS_iGate",
-	"wifi": {
-		"AP": [
-			{	"ssid": "WIFI_1",
-				"password": "password_1",
-				"latitude": 0.0000000,
-				"longitude": 0.0000000
-			},
-			{	"ssid": "WIFI_2",
-				"password": "password_2",
-				"latitude": 0.0000000,
-				"longitude": 0.0000000
-			}
+    "stationMode": 1,
+    "iGateComment": "LoRa_APRS_iGate",
+    "wifi": {
+        "AP": [
+            {   "ssid": "Wifi_1",
+                "password": "wifi_1_password",
+                "latitude": 0.0000000,
+                "longitude": 0.0000000
+            },
+            {   "ssid": "Wifi_2",
+                "password": "wifi_2_password",
+                "latitude": 0.0000000,
+                "longitude": 0.0000000
+            }
 		]
 	},
 	"digi": {
@@ -46,12 +46,16 @@
 		"server": "192.168.0.100",
 		"port": 514
 	},
+	"bme": {
+		"active": false
+	},
+	"ota": {
+		"username":"",
+		"password": ""
+	},
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
 		"sendBatteryVoltage": false
-	},
-	"bme": {
-		"active": false
 	}
 }

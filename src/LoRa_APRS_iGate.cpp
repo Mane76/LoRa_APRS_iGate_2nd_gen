@@ -20,17 +20,21 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate         = "2023.07.17";
-int             myWiFiAPIndex       = 0;
-int             myWiFiAPSize        = Config.wifiAPs.size();
-WiFi_AP         *currentWiFi        = &Config.wifiAPs[myWiFiAPIndex];
+String          versionDate           = "2023.08.29";
+int             myWiFiAPIndex         = 0;
+int             myWiFiAPSize          = Config.wifiAPs.size();
+WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
 
-int             stationMode         = Config.stationMode;
-bool            statusAfterBoot     = true;
-bool            beaconUpdate       = true;
-uint32_t        lastBeaconTx        = 0;
-uint32_t        previousWiFiMillis  = 0;
-uint32_t        lastScreenOn        = millis();
+int             stationMode           = Config.stationMode;
+bool            statusAfterBoot       = true;
+bool            beaconUpdate          = true;
+uint32_t        lastBeaconTx          = 0;
+uint32_t        previousWiFiMillis    = 0;
+uint32_t        lastScreenOn          = millis();
+
+uint32_t        lastWiFiCheck         = 0;
+bool            WiFiConnect           = true;
+int             lastStationModeState  = 1;
 
 String          batteryVoltage;
 
@@ -49,7 +53,7 @@ void setup() {
   LoRa_Utils::setup();
   Utils::validateDigiFreqs();
   iGateBeaconPacket = GPS_Utils::generateBeacon();
-  Utils::startOTAServer();
+  Utils::startServer();
   SYSLOG_Utils::setup();
   BME_Utils::setup();
 }
@@ -60,22 +64,24 @@ void loop() {
     if (!espClient.connected()) {
       APRS_IS_Utils::connect();
     }
-    APRS_IS_Utils::checkStatus();
-    show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);    
-    while (espClient.connected()) {
-      Utils::checkDisplayInterval();
-      Utils::checkBeaconInterval();
-      APRS_IS_Utils::processLoRaPacket(LoRa_Utils::receivePacket());            
-      if (espClient.available()) {
-        String aprsisPacket;
-        aprsisPacket.concat(espClient.readStringUntil('\r'));
-        APRS_IS_Utils::processAPRSISPacket(aprsisPacket);
-      }
-    }
+    APRS_IS_Utils::loop();
   } else if (stationMode==3 || stationMode==4) {    // DigiRepeater (3 RxFreq=TxFreq / 4 RxFreq!=TxFreq)
-    Utils::checkDisplayInterval();
-    Utils::checkBeaconInterval();
-    show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
-    DIGI_Utils::processPacket(LoRa_Utils::receivePacket());
+    DIGI_Utils::loop();
+  } else if (stationMode==5) {                      // iGate when WiFi and APRS available , DigiRepeater when not (RxFreq=TxFreq)
+    Utils::checkWiFiInterval();
+    if (WiFi.status() == WL_CONNECTED) {  // iGate Mode
+      thirdLine = Utils::getLocalIP();
+      if (!espClient.connected()) {
+        APRS_IS_Utils::connect();
+      }
+      if (lastStationModeState == 1) {
+        iGateBeaconPacket = GPS_Utils::generateBeacon();
+        lastStationModeState = 0;
+        Utils::startServer();
+      }
+      APRS_IS_Utils::loop();
+    } else {                              // DigiRepeater Mode
+      DIGI_Utils::loop();
+    }
   }
 }

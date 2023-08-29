@@ -102,9 +102,14 @@ Versions:
 - 2023.07.05 Adding monitor info of Battery connected *)
 - 2023.07.12 Adding Versioninfo
 - 2023.07.16 Small OTA, BME module update.
-
+- 2023.07.31 StationMode5 added: iGate when WiFi available, DigiRepeater when not.
+- 2023.08.05 Ground Height Correction for Pressure readings added
+- 2023.08.29 OTA Security Password added, change from SPIFFS to LittleFS **)
 
 *) if you want to use this new feature an update of the config is neccessary. Otherwise just update the firmware.
+**) MAJOR UPDATE - not possible via OTA - you need to phyiscally connect the device to VSCODE
+
+
 
 __________________________________________
 
