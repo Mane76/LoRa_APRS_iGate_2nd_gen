@@ -1,6 +1,6 @@
 # Richonguzman / CD2RXU LoRa APRS iGate/Digirepeater
 
-## If you have the 2023.08.29 firmware (or later) you can update newer <a href="https://github.com/Mane76/LoRa_APRS_iGate_2nd_gen/tree/main/firmware" target="_blank">in here</a> , look for newest an upload over OTA (without needing VSCODE)
+## If you have the 2023.06.12 firmware (or later) you can update newer <a href="https://github.com/Mane76/LoRa_APRS_iGate_2nd_gen/tree/main/firmware" target="_blank">in here</a> , look for newest an upload over OTA (without needing VSCODE)
 
 ### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
 
@@ -106,7 +106,7 @@ Versions:
 - 2023.07.16 Small OTA, BME module update.
 - 2023.07.31 StationMode5 added: iGate when WiFi available, DigiRepeater when not.
 - 2023.08.05 Ground Height Correction for Pressure readings added
-- 2023.08.29 OTA Security Password added, change from SPIFFS to LittleFS **)
+- 2023.08.29 OTA Security Password added, adding mode 5 *)
 
 *) if you want to use this new feature an update of the config is neccessary. Otherwise just update the firmware.
 
