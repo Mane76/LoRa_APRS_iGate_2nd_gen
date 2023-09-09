@@ -42,7 +42,7 @@
 		"turn180" : false
 	},
 	"syslog": {
-		"active": true,
+		"active": false,
 		"server": "172.16.0.123",
 		"port": 514
 	},
