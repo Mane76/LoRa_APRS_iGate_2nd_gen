@@ -1,15 +1,15 @@
 {
-	"callsign": "NOCALL-10",
+    "callsign": "NOCALL-10",
     "stationMode": 1,
     "iGateComment": "LoRa_APRS_iGate",
     "wifi": {
         "AP": [
-            {   "ssid": "Wifi_1",
+            {   "ssid": "WIFI_1",
                 "password": "wifi_1_password",
                 "latitude": 0.0000000,
                 "longitude": 0.0000000
             },
-            {   "ssid": "Wifi_2",
+            {   "ssid": "WIFI_2",
                 "password": "wifi_2_password",
                 "latitude": 0.0000000,
                 "longitude": 0.0000000
@@ -56,6 +56,8 @@
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
-		"sendBatteryVoltage": false
+		"sendBatteryVoltage": false,
+        "externalVoltageMeasurement" : false,
+        "externalVoltagePin": 34
 	}	
 }

@@ -20,7 +20,7 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2023.08.29";
+String          versionDate           = "2023.10.08";
 int             myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
@@ -40,6 +40,8 @@ String          batteryVoltage;
 
 std::vector<String> lastHeardStation;
 std::vector<String> lastHeardStation_temp;
+std::vector<String> packetBuffer;
+std::vector<String> packetBuffer_temp;
 
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, iGateBeaconPacket;
 
@@ -47,6 +49,9 @@ void setup() {
   Serial.begin(115200);
   pinMode(batteryPin, INPUT);
   pinMode(greenLed, OUTPUT);
+  if (Config.externalVoltageMeasurement) {
+    pinMode(Config.externalVoltagePin, INPUT);
+  }
   delay(1000);
   Utils::setupDisplay();
   WIFI_Utils::setup();
@@ -65,7 +70,7 @@ void loop() {
       APRS_IS_Utils::connect();
     }
     APRS_IS_Utils::loop();
-  } else if (stationMode==3 || stationMode==4) {    // DigiRepeater (3 RxFreq=TxFreq / 4 RxFreq!=TxFreq)
+  } else if (stationMode==3 || stationMode==4 || stationMode==6) {    // DigiRepeater (3 RxFreq=TxFreq / 4 RxFreq!=TxFreq)
     DIGI_Utils::loop();
   } else if (stationMode==5) {                      // iGate when WiFi and APRS available , DigiRepeater when not (RxFreq=TxFreq)
     Utils::checkWiFiInterval();
