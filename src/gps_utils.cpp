@@ -80,10 +80,14 @@ String processLongitudeAPRS(double lon) {
 
 String generateBeacon() {
   String stationLatitude, stationLongitude, beaconPacket;
-  if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED && espClient.connected())) {
+  if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED && espClient.connected()) || stationMode==6) {
     stationLatitude = processLatitudeAPRS(currentWiFi->latitude);
     stationLongitude = processLongitudeAPRS(currentWiFi->longitude);
-    beaconPacket = Config.callsign + ">APLRG1,qAC:=" + stationLatitude + "L" + stationLongitude;
+    beaconPacket = Config.callsign + ">APLRG1,WIDE1-1";
+    if (stationMode!=6) {
+      beaconPacket += ",qAC";
+    }
+    beaconPacket += ":=" + stationLatitude + "L" + stationLongitude;
     if (stationMode == 1) {
       beaconPacket += "&";
     } else {
@@ -98,7 +102,7 @@ String generateBeacon() {
       stationLatitude = processLatitudeAPRS(Config.digi.latitude);
       stationLongitude = processLongitudeAPRS(Config.digi.longitude);
     }
-    beaconPacket = Config.callsign + ">APLRG1:=" + stationLatitude + "L" + stationLongitude + "#" + Config.digi.comment;
+    beaconPacket = Config.callsign + ">APLRG1,WIDE1-1:=" + stationLatitude + "L" + stationLongitude + "#" + Config.digi.comment;
   }
   return beaconPacket;
 }
@@ -124,7 +128,7 @@ String decodeEncodedGPS(String packet) {
   int X4 = int(encodedLongtitude[3]);
   float decodedLongitude = -180.0 + ((((X1-33) * pow(91,3)) + ((X2-33) * pow(91,2)) + ((X3-33) * 91) + X4-33) / 190463.0);
   distance = String(calculateDistanceTo(decodedLatitude, decodedLongitude),1);
-  return String(decodedLatitude) + "N / " + String(decodedLongitude) + "E / " + distance + "km";
+  return String(decodedLatitude,5) + "N / " + String(decodedLongitude,5) + "E / " + distance + "km";
 }
 
 String getReceivedGPS(String packet) {
@@ -156,7 +160,7 @@ String getReceivedGPS(String packet) {
     convertedLongitude = -convertedLongitude;
   }
   distance = String(calculateDistanceTo(convertedLatitude, convertedLongitude),1);
-  return String(convertedLatitude) + "N / " + String(convertedLongitude) + "E / " + distance + "km";
+  return String(convertedLatitude,5) + "N / " + String(convertedLongitude,5) + "E / " + distance + "km";
 }
 
 String getDistance(String packet) {
@@ -168,7 +172,7 @@ String getDistance(String packet) {
     encodedBytePosition = packet.indexOf(":=") + 14;
   }
   if (encodedBytePosition != 0) {
-    if (String(packet[encodedBytePosition]) == "G" || String(packet[encodedBytePosition]) == "Q") {
+    if (String(packet[encodedBytePosition]) == "G" || String(packet[encodedBytePosition]) == "Q" || String(packet[encodedBytePosition]) == "[" || String(packet[encodedBytePosition]) == "H") {
       return decodeEncodedGPS(packet);
     } else {
       return getReceivedGPS(packet);
