@@ -38,26 +38,21 @@ ____________________________________________________
 
 # WIKI
 
-really soon!
+### 1. Installation Guide --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/1.-Installation-Guide" target="_blank">here</a>.
 
+### 2. iGate Configuration and Explanation for each setting --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/2.-iGate-Configuration" target="_blank">here</a>.
 
-### 1. Installation Guide --> 
+### 3. Supported Boards and Environment Selection --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/3.-Supported-Boards-and-Environment-Selection" target="_blank">here</a>.
 
-### 2. iGate Configuration and Explanation for each setting --> 
+### 4. Upload Firmware and Filesystem --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/4.-Upload-Firmware-and-Filesystem" target="_blank">here</a>.
 
-### 3. Supported Boards and Environment Selection --> 
-LoRa APRS iGATE/Digirepeater working on this boards:
-- LILYGO ESP32 LoRa32 v2-1-1.6  and T3
-- ESP32 Wroom +  SX1278 LoRa Module for a DIY Version.
-- HELTEC_WIFI_LORA_32_V2 (check "pins_config.h" and "display.cpp" for aditional configuration).
-
-### 4. Upload Firmware and Filesystem --> 
-
-### 5. Adding BME280 Modules --> 
+### 5. Adding BME280 Module --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/5.-Adding-BME280-Module" target="_blank">here</a>.
 
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2023.10.09 Added "WIDE1-1" to Tx packets from iGate to be *repeated* by Digirepeaters.
+- 2023.10.09 Added Support also for BMP280 module.
 - 2023.10.08 Added Serial Comunication with PinPoint APRS app (https://www.pinpointaprs.com)
 - 2023.08.20 Added External Voltage Measurement (Max 15V!)
 - 2023.08.05 Ground Height Correction for Pressure readings added
