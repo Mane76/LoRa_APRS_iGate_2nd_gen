@@ -1,4 +1,5 @@
 #include <LoRa.h>
+#include <WiFi.h>
 #include "configuration.h"
 #include "aprs_is_utils.h"
 #include "syslog_utils.h"
@@ -17,7 +18,7 @@ namespace LoRa_Utils {
     SPI.begin(LORA_SCK, LORA_MISO, LORA_MOSI, LORA_CS);
     LoRa.setPins(LORA_CS, LORA_RST, LORA_IRQ);
     long freq;
-    if (stationMode == 1 || stationMode == 2) {
+    if (stationMode==1 || stationMode==2) {
       freq = Config.loramodule.iGateFreq;
     } else {
       freq = Config.loramodule.digirepeaterTxFreq;
@@ -77,7 +78,7 @@ namespace LoRa_Utils {
       #ifndef PinPointApp
       Serial.println("(RSSI:" +String(rssi) + " / SNR:" + String(snr) +  " / FreqErr:" + String(freqError) + ")");
       #endif
-      if (Config.syslog.active && (stationMode==1 || stationMode==2)) {
+      if (Config.syslog.active && (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED))) {
         SYSLOG_Utils::log("LoRa Rx", loraPacket, rssi, snr, freqError);
       }
     }

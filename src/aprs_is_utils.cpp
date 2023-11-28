@@ -41,7 +41,7 @@ namespace APRS_IS_Utils {
       Serial.println("Tried: " + String(count) + " FAILED!");
     } else {
       Serial.println("Connected!\n(Server: " + String(Config.aprs_is.server) + " / Port: " + String(Config.aprs_is.port) +")");
-      aprsauth = "user " + Config.callsign + " pass " + Config.aprs_is.passcode + " vers CD2RXU_LoRa_iGate 1.2 filter t/m/" + Config.callsign + "/" + (String)Config.aprs_is.reportingDistance + "\n\r"; 
+      aprsauth = "user " + Config.callsign + " pass " + Config.aprs_is.passcode + " vers CA2RXU_LoRa_iGate 1.2 filter t/m/" + Config.callsign + "/" + (String)Config.aprs_is.reportingDistance + "\n\r"; 
       espClient.write(aprsauth.c_str());
       delay(200);
     }
@@ -71,7 +71,7 @@ namespace APRS_IS_Utils {
   }
 
   String createPacket(String packet) {
-    if (stationMode > 1) {
+    if (stationMode>1) {
       return packet.substring(3, packet.indexOf(':')) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(':')) + "\n";
     } else {
       return packet.substring(3, packet.indexOf(':')) + ",qAO," + Config.callsign + packet.substring(packet.indexOf(':')) + "\n";
@@ -93,7 +93,7 @@ namespace APRS_IS_Utils {
         #endif
         Sender = packet.substring(3,packet.indexOf(">"));
         if (Sender != Config.callsign) {   // avoid listening yourself by digirepeating
-          if (stationMode == 2 || stationMode == 5) {
+          if (stationMode==2 || stationMode==5) {
             if (packet.indexOf("::") > 10) {    // its a Message!
               AddresseeAndMessage = packet.substring(packet.indexOf("::")+2);  
               Addressee = AddresseeAndMessage.substring(0,AddresseeAndMessage.indexOf(":"));
