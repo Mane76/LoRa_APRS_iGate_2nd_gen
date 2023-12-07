@@ -6,6 +6,22 @@ This firmware is for using ESP32 based boards with LoRa Modules and GPS to live 
 
 __(NOTE: This iGate Firmware was develop to work with all LoRa APRS Trackers and specially with this firmware <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker</a>)__
 
+
+
+___________________________________________________
+
+
+PLEASE WATCH THIS MOD NECESARY TO COMPILE AND UPLOAD:
+AsyncElegantOTA is deprecated and we need to add "//" to the warning it shows to enable the use of it
+
+SOON will be updated to ElegantOTA V3 to avoid this mod:
+
+what here where to look for the mod in code:
+https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/asyncElegantOtaMod.png
+
+
+
+
 ___________________________________________________
 
 ## You can support this project to continue to grow:
