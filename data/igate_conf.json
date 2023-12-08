@@ -11,8 +11,8 @@
 	},
 			{	"ssid": "s10AP",
 				"password": "muwr67#!",
-				"latitude": 49.04315,
-				"longitude": 12.01484
+				"latitude": 49.004480,
+				"longitude": 12.11212
 			}
 		]
 	},
@@ -29,8 +29,8 @@
 	},
 	"lora": {
 		"iGateFreq": 433781000,
-		"digirepeaterTxFreq": 433781000,
-		"digirepeaterRxFreq": 433781000,
+		"digirepeaterTxFreq": 433779700,
+		"digirepeaterRxFreq": 433779700,
 		"spreadingFactor": 12,
 		"signalBandwidth": 125000,
 		"codingRate4": 5,
@@ -42,7 +42,7 @@
 		"turn180" : false
 	},
 	"syslog": {
-		"active": false,
+		"active": true,
 		"server": "172.16.0.123",
 		"port": 514
 	},
