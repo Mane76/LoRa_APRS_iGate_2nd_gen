@@ -72,6 +72,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2023.12.09 Minor Enhancements
 - 2023.12.07 MIC-E process and syslog added
 - 2023.12.06 Heltec V2 support added
 - 2023.11.26 Small correction to enable Syslog in stationMode5.
