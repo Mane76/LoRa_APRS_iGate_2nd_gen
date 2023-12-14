@@ -115,7 +115,7 @@ String readDataSensor() {
   newHum    = bme.readHumidity();
   #else
   newHum = 0;
-  #endif  
+  #endif
   float newPress  = (bme.readPressure() / 100.0F);
   
   //bme.readAltitude(SEALEVELPRESSURE_HPA) // this is for approximate Altitude Calculation.
@@ -130,7 +130,7 @@ String readDataSensor() {
     #ifndef BMPSensor
     humStr  = generateHumString(newHum);
     #else
-    humStr  = "-99";
+    humStr  = "..";
     #endif
     presStr = generatePresString(newPress + (HEIGHT_CORRECTION/CORRECTION_FACTOR));
     fifthLine = "BME-> " + String(int(newTemp))+"C " + humStr + "% " + presStr.substring(0,4) + "hPa";
