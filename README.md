@@ -8,22 +8,6 @@ Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a 
 
 __(NOTE: This iGate Firmware was develop to work with all LoRa APRS Trackers and specially with this firmware <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker</a>)__
 
-
-
-___________________________________________________
-
-
-PLEASE WATCH THIS MOD NECESARY TO COMPILE AND UPLOAD:
-AsyncElegantOTA is deprecated and we need to add "//" to the warning it shows to enable the use of it
-
-SOON will be updated to ElegantOTA V3 to avoid this mod:
-
-what here where to look for the mod in code:
-https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/asyncElegantOtaMod.png
-
-
-
-
 ___________________________________________________
 
 ## You can support this project to continue to grow:
@@ -72,15 +56,15 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
-- 2023.12.09 Minor Enhancements
-- 2023.12.07 MIC-E process and syslog added
-- 2023.12.06 Heltec V2 support added
+- 2023.12.20 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
+- 2023.12.07 MIC-E process and syslog added.
+- 2023.12.06 Heltec V2 support added.
 - 2023.11.26 Small correction to enable Syslog in stationMode5.
 - 2023.10.09 Added "WIDE1-1" to Tx packets from iGate to be *repeated* by Digirepeaters.
 - 2023.10.09 Added Support also for BMP280 module.
 - 2023.10.08 Added Serial Comunication with PinPoint APRS app (https://www.pinpointaprs.com)
 - 2023.08.20 Added External Voltage Measurement (Max 15V!)
-- 2023.08.05 Ground Height Correction for Pressure readings added
+- 2023.08.05 Ground Height Correction for Pressure readings added.
 - 2023.07.31 StationMode5 added: iGate when WiFi and APRS available, DigiRepeater when not.
 - 2023.07.16 Small OTA, BME module update.
 - 2023.07.05 Adding monitor info of Battery connected.
