@@ -56,6 +56,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2023.12.27 Workaround to fix broken OTA
 - 2023.12.20 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
 - 2023.12.07 MIC-E process and syslog added.
 - 2023.12.06 Heltec V2 support added.
