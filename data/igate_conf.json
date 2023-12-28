@@ -50,8 +50,8 @@
 		"active": false
 	},
 	"ota": {
-		"username":"",
-		"password": ""
+		"username":"test",
+		"password": "test"
 	},
 	"other": {
 		"beaconInterval": 45,
