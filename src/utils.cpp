@@ -58,12 +58,12 @@ namespace Utils {
         String status = Config.callsign + ">APLRG1,WIDE1-1";
         if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status() == WL_CONNECTED)) {
             delay(1000);
-            status += ",qAC:>https://github.com/richonguzman/LoRa_APRS_iGate " + versionDate;
+            status += ",qAC:>https://github.com/mane76/LoRa_APRS_iGate_2nd_gen " + versionDate;
             espClient.write((status + "\n").c_str());
             SYSLOG_Utils::log("APRSIS Tx", status,0,0,0);
         } else {
             delay(5000);
-            status += ":>https://github.com/richonguzman/LoRa_APRS_iGate " + versionDate;
+            status += ":>https://github.com/mane76/LoRa_APRS_iGate_2nd_gen " + versionDate;
             if (stationMode==4) {
                 LoRa_Utils::changeFreqTx();
             }
@@ -358,7 +358,7 @@ namespace Utils {
             });
 
             if (Config.ota.username != ""  && Config.ota.password != "") {
-                ElegantOTA.begin(&server, Config.ota.username.c_str(), Config.ota.password.c_str());
+                ElegantOTA.begin(&server);
             } else {
                 ElegantOTA.begin(&server);
             }
