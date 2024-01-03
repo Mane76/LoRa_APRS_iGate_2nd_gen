@@ -1,5 +1,14 @@
 # Richonguzman / CA2RXU LoRa APRS iGate/Digirepeater
 
+___________________________________________________
+NO OTA FOR NOW!!!!
+
+
+BAD NEWS : AsyncTCP library has a bug and gets this new and old firmware as NOT COMPILING STATUE, SO PLEASE WAIT, as soon as I can I will have it running again!
+___________________________________________________
+
+
+
 This firmware is for using ESP32 based boards with LoRa Modules and GPS to live in the APRS world.
 
 Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a href="https://web.archive.org/web/20210125073301/https://www.thethingsnetwork.org/community/berlin/post/warning-attention-users-of-ttgo21-v16-boards-labeled-t3_v16-on-pcb-battery-exploded-and-got-on-fire" target="_blank">this</a> if you plan to use a LI-PO battery attached to the connector
@@ -33,7 +42,7 @@ But under the hood is much more:
 - RX first, TX will only be done if there is no traffic on the frequency.
 - automatic update of the Lora symbol at APRS-IS, black "L" for pure RX, red "L" for TX capability, green star "L" for digipeater and blue round "L" for WX iGate.
 - support for multiple WLAN with corresponding coordinates.
-- support for BME280 sensors, sending to WX data to APRS-IS.
+- support for BME/BMP280 and BME680 sensors, sending to WX data to APRS-IS.
 
 and more will come:
 - Web-UI
@@ -56,11 +65,14 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.01.03 Minor Bugfix on Syslog
 - 2023.12.28 Disable of OTA Username/Password for as workaround for compatibility
 - 2023.12.27 Workaround to fix broken OTA
+- 2023.12.27 HELTEC V3 board support added.
+- 2023.12.26 Added BME680 module to BME/BMP280 modules supported.
 - 2023.12.20 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
 - 2023.12.07 MIC-E process and syslog added.
-- 2023.12.06 Heltec V2 support added.
+- 2023.12.06 HELTEC V2 board support added.
 - 2023.11.26 Small correction to enable Syslog in stationMode5.
 - 2023.10.09 Added "WIDE1-1" to Tx packets from iGate to be *repeated* by Digirepeaters.
 - 2023.10.09 Added Support also for BMP280 module.
