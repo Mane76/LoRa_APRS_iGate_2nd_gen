@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <LoRa.h>
 #include <WiFi.h>
 #include <vector>
 #include "configuration.h"
@@ -20,7 +19,7 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2023.12.20";
+String          versionDate           = "2023.12.27";
 int             myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
@@ -47,7 +46,9 @@ String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seven
 
 void setup() {
   Serial.begin(115200);
+  #ifndef HELTEC_V3
   pinMode(batteryPin, INPUT);
+  #endif
   pinMode(greenLed, OUTPUT);
   if (Config.externalVoltageMeasurement) {
     pinMode(Config.externalVoltagePin, INPUT);
@@ -58,7 +59,7 @@ void setup() {
   LoRa_Utils::setup();
   Utils::validateDigiFreqs();
   iGateBeaconPacket = GPS_Utils::generateBeacon();
-  Utils::startServer();
+  //Utils::startServer();
   SYSLOG_Utils::setup();
   BME_Utils::setup();
 }
@@ -82,7 +83,7 @@ void loop() {
       if (lastStationModeState == 1) {
         iGateBeaconPacket = GPS_Utils::generateBeacon();
         lastStationModeState = 0;
-        Utils::startServer();
+        //Utils::startServer();
       }
       APRS_IS_Utils::loop();
     } else {                              // DigiRepeater Mode
