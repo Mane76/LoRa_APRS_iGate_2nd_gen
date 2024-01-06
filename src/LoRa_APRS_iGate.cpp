@@ -20,7 +20,7 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2024.01.05m";
+String          versionDate           = "2024.01.06m";
 int             myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
@@ -89,7 +89,7 @@ void loop() {
       if (lastStationModeState == 1) {
         iGateBeaconPacket = GPS_Utils::generateBeacon();
         lastStationModeState = 0;
-        //Utils::startServer();
+        Utils::startServer();
       }
       APRS_IS_Utils::loop();
     } else {                              // DigiRepeater Mode
