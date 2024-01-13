@@ -65,7 +65,8 @@ void setup() {
   LoRa_Utils::setup();
   Utils::validateDigiFreqs();
   iGateBeaconPacket = GPS_Utils::generateBeacon();
-  Utils::startServer();
+  iGateLoRaBeaconPacket = GPS_Utils::generateiGateLoRaBeacon();
+  //Utils::startServer();
   SYSLOG_Utils::setup();
   BME_Utils::setup();
 }
