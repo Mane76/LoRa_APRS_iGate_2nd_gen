@@ -80,7 +80,7 @@ namespace GPS_Utils {
 
   String generateBeacon() {
     String stationLatitude, stationLongitude, beaconPacket;
-    if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED && espClient.connected()) || stationMode==6) {
+    if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED && espClient.connected())) {
       stationLatitude = processLatitudeAPRS(currentWiFi->latitude);
       stationLongitude = processLongitudeAPRS(currentWiFi->longitude);
       beaconPacket = Config.callsign + ">APLRG1,WIDE1-1";
@@ -103,6 +103,19 @@ namespace GPS_Utils {
         stationLongitude = processLongitudeAPRS(Config.digi.longitude);
       }
       beaconPacket = Config.callsign + ">APLRG1,WIDE1-1:=" + stationLatitude + "L" + stationLongitude + "#" + Config.digi.comment;
+    }
+    return beaconPacket;
+  }
+
+  String generateiGateLoRaBeacon() {
+    String stationLatitude, stationLongitude, beaconPacket;
+    stationLatitude = processLatitudeAPRS(currentWiFi->latitude);
+    stationLongitude = processLongitudeAPRS(currentWiFi->longitude);
+    beaconPacket = Config.callsign + ">APLRG1,RFONLY:=" + stationLatitude + "L" + stationLongitude;
+    if (Config.bme.active) {
+      beaconPacket += "_";
+    } else {
+      beaconPacket += "a";
     }
     return beaconPacket;
   }
