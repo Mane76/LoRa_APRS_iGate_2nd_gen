@@ -56,6 +56,8 @@
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
+        "igateSendsLoRaBeacons": false,
+        "igateRepeatsLoRaPackets": false,
 		"sendBatteryVoltage": false,
 		"externalVoltageMeasurement" : false,
         "externalVoltagePin": 34
