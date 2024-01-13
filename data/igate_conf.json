@@ -29,8 +29,8 @@
 	},
 	"lora": {
 		"iGateFreq": 433781000,
-		"digirepeaterTxFreq": 433779700,
-		"digirepeaterRxFreq": 433779700,
+		"digirepeaterTxFreq": 433778100,
+		"digirepeaterRxFreq": 433778100,
 		"spreadingFactor": 12,
 		"signalBandwidth": 125000,
 		"codingRate4": 5,
@@ -56,7 +56,7 @@
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
-        "igateSendsLoRaBeacons": false,
+        "igateSendsLoRaBeacons": true,
         "igateRepeatsLoRaPackets": false,
 		"sendBatteryVoltage": false,
 		"externalVoltageMeasurement" : false,
