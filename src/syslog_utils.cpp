@@ -12,7 +12,7 @@ WiFiUDP udpClient;
 namespace SYSLOG_Utils {
 
     void log(String type, String packet, int rssi, float snr, int freqError) {
-        String syslogPacket = Config.callsign + " LoRa / ";
+        String syslogPacket = "<165>1 - " + Config.callsign + " LoRa" + " - - - "; //RFC5424 The Syslog Protocol
         if (Config.syslog.active && (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED))) {
             if (type == "APRSIS Tx") {
                 if (packet.indexOf(":>") > 10) {
@@ -48,14 +48,14 @@ namespace SYSLOG_Utils {
                 }
             } else if (type == "LoRa Tx") {
                 if (packet.indexOf("RFONLY") > 10) {
-                    syslogPacket += type + " / RFONLY / " + packet.substring(packet.indexOf("::")+2);
+                    syslogPacket += type + " / RFONLY / " + packet;
                 } else if (packet.indexOf("::") > 10) {
                     syslogPacket += type + " / MESSAGE / " + packet.substring(0,packet.indexOf(">")) + " ---> " + packet.substring(packet.indexOf("::")+2);
                 } else {
                     syslogPacket += type + " / " + packet;
                 }
             } else {
-                syslogPacket = "ERROR / Error in Syslog Packet";
+                syslogPacket = "<165>1 - ERROR LoRa - - - ERROR / Error in Syslog Packet"; //RFC5424 The Syslog Protocol
             }
             udpClient.beginPacket(Config.syslog.server.c_str(), Config.syslog.port);
             udpClient.write((const uint8_t*)syslogPacket.c_str(), syslogPacket.length());

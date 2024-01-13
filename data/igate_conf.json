@@ -5,12 +5,12 @@
     "wifi": {
         "AP": [
             {   "ssid": "WIFI_1",
-                "password": "wifi_1_password",
+                "password": "WIFI_1_password",
                 "latitude": 0.0000000,
                 "longitude": 0.0000000
             },
             {   "ssid": "WIFI_2",
-                "password": "wifi_2_password",
+                "password": "WIFI_2_password",
                 "latitude": 0.0000000,
                 "longitude": 0.0000000
             }
@@ -56,6 +56,8 @@
 	"other": {
 		"beaconInterval": 45,
 		"rememberStationTime": 30,
+        "igateSendsLoRaBeacons": false,
+        "igateRepeatsLoRaPackets": false,
 		"sendBatteryVoltage": false,
         "externalVoltageMeasurement" : false,
         "externalVoltagePin": 34
