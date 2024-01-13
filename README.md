@@ -1,10 +1,6 @@
 # Richonguzman / CA2RXU LoRa APRS iGate/Digirepeater
 
-___________________________________________________
-NO OTA FOR NOW!!!!
 
-
-BAD NEWS : AsyncTCP library has a bug and gets this new and old firmware as NOT COMPILING STATUE, SO PLEASE WAIT, as soon as I can I will have it running again!
 ___________________________________________________
 
 
@@ -65,8 +61,8 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
-- 2024.01.12 Added iGate Mode to also repeat packets (like a iGate+DigiRepeater) in stationMode 2 and 5.
-- 2024.01.11 Added iGate Mode to enable APRS-IS and LoRa beacon report at the same time.
+- 2024.01.12 Added iGate Mode to also repeat packets (like a iGate+DigiRepeater) in stationMode 2 and 5. *)
+- 2024.01.11 Added iGate Mode to enable APRS-IS and LoRa beacon report at the same time. *)
 - 2024.01.05 Added support for Lilygo TTGO T-Beam V1, V1.2, V1 + SX1268, V1.2 + SX1262.
 - 2024.01.03 Minor Bugfix on Syslog
 - 2024.01.02 Added support for EByte 400M30S 1Watt LoRa module for DIY ESP32 iGate.
