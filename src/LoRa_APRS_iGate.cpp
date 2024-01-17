@@ -20,7 +20,7 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2024.01.12m";
+String          versionDate           = "2024.01.17m";
 int             myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
@@ -66,7 +66,7 @@ void setup() {
   Utils::validateDigiFreqs();
   iGateBeaconPacket = GPS_Utils::generateBeacon();
   iGateLoRaBeaconPacket = GPS_Utils::generateiGateLoRaBeacon();
-  //Utils::startServer();
+  Utils::startServer();
   SYSLOG_Utils::setup();
   BME_Utils::setup();
 }
