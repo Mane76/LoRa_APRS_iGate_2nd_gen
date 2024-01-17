@@ -61,6 +61,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.01.17 Service Release, bugfixing
 - 2024.01.12 Added iGate Mode to also repeat packets (like a iGate+DigiRepeater) in stationMode 2 and 5. *)
 - 2024.01.11 Added iGate Mode to enable APRS-IS and LoRa beacon report at the same time. *)
 - 2024.01.05 Added support for Lilygo TTGO T-Beam V1, V1.2, V1 + SX1268, V1.2 + SX1262.
