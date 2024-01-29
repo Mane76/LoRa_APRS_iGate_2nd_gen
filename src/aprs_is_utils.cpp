@@ -26,6 +26,10 @@ extern String         seventhLine;
 
 namespace APRS_IS_Utils {
 
+  void upload(String line) {
+    espClient.print(line + "\r\n");
+  }
+
   void connect(){
     int count = 0;
     String aprsauth;
@@ -44,8 +48,8 @@ namespace APRS_IS_Utils {
       Serial.println("Tried: " + String(count) + " FAILED!");
     } else {
       Serial.println("Connected!\n(Server: " + String(Config.aprs_is.server) + " / Port: " + String(Config.aprs_is.port) +")");
-      aprsauth = "user " + Config.callsign + " pass " + Config.aprs_is.passcode + " vers CA2RXU_LoRa_iGate 1.2 filter t/m/" + Config.callsign + "/" + (String)Config.aprs_is.reportingDistance + "\n\r"; 
-      espClient.write(aprsauth.c_str());
+      aprsauth = "user " + Config.callsign + " pass " + Config.aprs_is.passcode + " vers CA2RXU_LoRa_iGate 1.2 filter t/m/" + Config.callsign + "/" + (String)Config.aprs_is.reportingDistance;// + "\r\n"; 
+      upload(aprsauth);
       delay(200);
     }
   }
@@ -75,9 +79,9 @@ namespace APRS_IS_Utils {
 
   String createPacket(String packet) {
     if (stationMode>1) {
-      return packet.substring(3, packet.indexOf(":")) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(":")) + "\n";
+      return packet.substring(3, packet.indexOf(":")) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(":"));// + "\n";
     } else {
-      return packet.substring(3, packet.indexOf(":")) + ",qAO," + Config.callsign + packet.substring(packet.indexOf(":")) + "\n";
+      return packet.substring(3, packet.indexOf(":")) + ",qAO," + Config.callsign + packet.substring(packet.indexOf(":"));// + "\n";
     }
   }
 
@@ -139,7 +143,7 @@ namespace APRS_IS_Utils {
               display_toggle(true);
             }
             lastScreenOn = millis();
-            espClient.write(aprsPacket.c_str());
+            upload(aprsPacket);
             #ifndef TextSerialOutputForApp
             Serial.println("   ---> Uploaded to APRS-IS");
             #endif
@@ -173,8 +177,8 @@ namespace APRS_IS_Utils {
             for(int i = Sender.length(); i < 9; i++) {
               Sender += ' ';
             }
-            String ackPacket = Config.callsign + ">APLRG1,TCPIP,qAC::" + Sender + ":" + ackMessage + "\n";
-            espClient.write(ackPacket.c_str());
+            String ackPacket = Config.callsign + ">APLRG1,TCPIP,qAC::" + Sender + ":" + ackMessage;// + "\n";
+            upload(ackPacket);
             receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":")+1, AddresseeAndMessage.indexOf("{"));
           } else {
             receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":")+1);
@@ -190,7 +194,7 @@ namespace APRS_IS_Utils {
             }
             lastScreenOn = millis();
             delay(500);
-            espClient.write(queryAnswer.c_str());
+            upload(queryAnswer);
             SYSLOG_Utils::log("APRSIS Tx", queryAnswer,0,0,0);
             fifthLine = "APRS-IS ----> APRS-IS";
             sixthLine = Config.callsign;
