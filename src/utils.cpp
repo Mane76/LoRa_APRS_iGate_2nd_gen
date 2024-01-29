@@ -346,11 +346,7 @@ namespace Utils {
             show_display("", "", " OTA update fail!", "", "", "", "", 4000);
         }
     }
-<<<<<<< HEAD
-
-=======
-    
->>>>>>> 2866218cbe0d18a00154b89f85ff648846636445
+   
     void startServer() {
         if (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED)) {
             server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
