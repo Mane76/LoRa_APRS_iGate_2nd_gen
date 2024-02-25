@@ -3,12 +3,14 @@
 
 #include <Arduino.h>
 
+
 namespace WIFI_Utils {
 
     void checkWiFi();
     void startWiFi();
+    void checkIfAutoAPShouldPowerOff();
     void setup();
-
+    
 }
 
 #endif
