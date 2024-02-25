@@ -84,13 +84,13 @@ void loop()
 
     WIFI_Utils::checkIfAutoAPShouldPowerOff();
 
-    if (!WiFiConnected)
-    {
-        thirdLine = Utils::getLocalIP();
-    }
-
     if (stationMode == 1 || stationMode == 2)
     { // iGate (1 Only Rx / 2 Rx+Tx)
+        if (!WiFiConnected)
+        {
+            thirdLine = Utils::getLocalIP();
+        }
+
         WIFI_Utils::checkWiFi();
         if (!espClient.connected())
         {
@@ -105,9 +105,9 @@ void loop()
     else if (stationMode == 5)
     { // iGate when WiFi and APRS available , DigiRepeater when not (RxFreq=TxFreq)
         Utils::checkWiFiInterval();
+        thirdLine = Utils::getLocalIP();
         if (WiFi.status() == WL_CONNECTED)
         { // iGate Mode
-            thirdLine = Utils::getLocalIP();
             if (!espClient.connected())
             {
                 APRS_IS_Utils::connect();
