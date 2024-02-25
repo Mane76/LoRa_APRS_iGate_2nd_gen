@@ -24,6 +24,7 @@ bool enableInterrupt = true;
 int rssi, freqError;
 float snr;
 
+
 namespace LoRa_Utils {
 
     void setFlag(void) {
@@ -70,6 +71,7 @@ namespace LoRa_Utils {
         radio.setSpreadingFactor(Config.loramodule.spreadingFactor);
         radio.setBandwidth(Config.loramodule.signalBandwidth);
         radio.setCodingRate(Config.loramodule.codingRate4);
+        radio.setCRC(true);
         #if defined(ESP32_DIY_1W_LoRa)
         radio.setRfSwitchPins(RADIO_RXEN, RADIO_TXEN);
         #endif
@@ -181,16 +183,17 @@ namespace LoRa_Utils {
             }
         }
         #endif
-        // // // // // //
+
         if ((loraPacket.indexOf("\0")!=-1) || (loraPacket.indexOf("\r")!=-1) || (loraPacket.indexOf("\n")!=-1)) {
             loraPacket = packetSanitization(loraPacket);
         }
-        // // // // // //
+
         #ifndef TextSerialOutputForApp
         if (loraPacket!="") {
             Serial.println("(RSSI:" +String(rssi) + " / SNR:" + String(snr) +  " / FreqErr:" + String(freqError) + ")");
         }
         #endif
+        
         if (Config.syslog.active && (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED)) && loraPacket!="") {
             SYSLOG_Utils::log("Rx", loraPacket, rssi, snr, freqError);
         }
