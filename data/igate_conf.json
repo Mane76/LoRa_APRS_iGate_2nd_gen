@@ -3,6 +3,10 @@
     "stationMode": 5,
     "iGateComment": "LoRa_APRS_iGate",
     "wifi": {
+        "autoAP": {
+            "password": "1234567890",
+            "powerOff": 10
+        },
         "AP": [
             {
                 "ssid": "hade",
