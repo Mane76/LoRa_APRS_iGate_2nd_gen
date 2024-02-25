@@ -1,6 +1,6 @@
 {
     "callsign": "DC2MH-12",
-    "stationMode": 5,
+    "stationMode": 2,
     "iGateComment": "LoRa_APRS_iGate",
     "wifi": {
         "autoAP": {
