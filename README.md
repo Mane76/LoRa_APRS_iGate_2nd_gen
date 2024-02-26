@@ -61,7 +61,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
-- 2024.02.25 New Web Configuration UI with WiFi AP (thanks Damian SQ2CPA).
+- 2024.02.25 New Web Configuration UI with WiFi AP (thanks Damian SQ2CPA). *)
 - 2023.01.28 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
 - 2024.01.19 TextSerialOutputForApp added to get text from Serial-Output over USB into PC for PinPoint App (https://www.pinpointaprs.com) and APRSIS32 App (http://aprsisce.wikidot.com)
 - 2024.01.12 Added iGate Mode to also repeat packets (like a iGate+DigiRepeater) in stationMode 2 and 5.*)
@@ -104,7 +104,7 @@ ____________________________________________________
 ____________________________________________________
 
 
-Instructions (add your information into the '/data/igate_conf.json'):
+Instructions (add your information into the '/data/igate_conf.json' OR  flash firmware and filesystem untouched and use the WLan Acesspoint feature and WebConfig):
 
 a) Change _callsign_ from "NOCALL-10" to your CALLSIGN + SSID.
 
