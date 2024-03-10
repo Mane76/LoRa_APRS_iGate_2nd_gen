@@ -11,11 +11,11 @@
         "latitude": 0.0,
         "longitude": 0.0,
         "comment": "LoRa APRS",
-        "interval": 15,
+        "interval": 45,
         "overlay": "L",
-        "symbol": "a",
+        "symbol": "&",
         "path": "WIDE1-1",
-        "sendViaAPRSIS": false,
+        "sendViaAPRSIS": true,
         "sendViaRF": false
     },
     "digi": {
@@ -26,7 +26,7 @@
         "passcode": "XYZVW",
         "server": "rotate.aprs2.net",
         "port": 14580,
-        "filter": "m/10",
+        "filter": "m/30",
         "toRF": false
     },
     "lora": {
