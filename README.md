@@ -85,48 +85,35 @@ ____________________________________________________
 ____________________________________________________
 
 
-Instructions (add your information into the '/data/igate_conf.json'):
+Instructions for the configuration in WebUI in order to match the "old" stationModes: 
 
-a) Change _callsign_ from "NOCALL-10" to your CALLSIGN + SSID.
+a) Change _callsign_ from "NOCALL-10" to your CALLSIGN + SSID as well as _beacon path_ to WIDE1-1
 
 b) Choose _stationMode_:
 
     1 = RX iGate, black "L" as symbol
+    Section "Station", Symbol, set to "Black Diamond with L"
+    Section "WiFi Access", set SSID and Passphrase
+    Section "APRS-IS", enable "Enable APRS-IS connection" and "Send our beacon to APRS-IS"
+    Section "LoRa", enable "Enable LoRa-RX", set RX Frequency (e.g. 433775000
 
     2 = Rx + TX iGate, red "L" as symbol, HAM only. RX will be sent to APRS-IS, Messages will be sent via Lora. Same frequency for RX and TX. By using this feature you have comply with the regulations of your country.
+    Section "Station", Symbol, set to "Red Diamond with L"
+    Section "WiFi Access", set SSID and Passphrase
+    Section "APRS-IS", enable "Enable APRS-IS connection" and "Send our beacon to APRS-IS"
+    Section "LoRa", enable "Enable LoRa-TX" and "Enable LoRa-RX", set Frequencies to same frequency (e.g. 433775000, TX 433775000)
 
     3 = Digipeater simplex, green "L" as symbol, HAM only. Received packets containing WIDEx-x in path will be digipeated on the same frequency. By using this feature you have comply with the regulations of your country.
+    Section "Station", Symbol, set to "Green Star with L"
+    Section "Digipeating", choose "WIDE1"
+    Section "Beaconing", enable "Send beacon via RF"
+    Section "LoRa", enable "Enable LoRa-TX" and "Enable LoRa-RX", set Frequencies to same frequency (e.g. 433775000, TX 433775000)
 
     4 = Digipeater split frequency, green "L" as symbol, HAM only. Received packets will be digipeated on a different frequency. Frequency separation must be 125kHz or more. By using this feature you have comply with the regulations of your country.
-
-    IgateComment and DigirepeaterComment will be sent to APRS-IS or via RF, depending on your stationmode
-
-c) WiFi section: 
-
-    adjust SSID and Password to you WiFi, add the GPS to "Latitude" and "Longitude" (info from GoogleMaps) of your new LoRa iGate. (If stationMode 3 or 4 selected, add also GPS info to Digirepeater Section).
-
-d) APRS_IS section: 
-
-    change "passcode" from "VWXYZ" to yours (remember that is 5 digits integer) and choose a server close to your location (see https://www.aprs2.net/)
-
-e) LORA section:
-
-    adjust TX frequency and RX frequency matching your stationmode and country. Remember,
-
-        at stationmode 1, 2, and 3, RX and TX frequency shall be set to 433775000 (443.775MHz, deviations possible, depending on your country) 
-
-        at stationmode 4, RX frequency shall be set to 433775000, TX frequency shall be set to 433900000 (deviations possible, depending on your country). There must be a frequency separation of 125kHz or more. 
-    
-    adjust power to your need, valid values are from 1 to 20
-
-f) Syslog section:
-    
-    adjust server and port to a suitable value if needed.
-
-g) BME section:
-
-    adjust to "active" if BME280 sensor connected through I2C pins
-
+    Section "Station", Symbol, set to "Green Star with L"
+    Section "Digipeating", choose "WIDE1"
+    Section "Beaconing", enable "Send beacon via RF"
+    Section "LoRa", enable "Enable LoRa-TX" and "Enable LoRa-RX", set Frequencies to split frequency (e.g. RX 433775000, TX 433900000, offset > 125kHz)
 
 __________________________________________
 
