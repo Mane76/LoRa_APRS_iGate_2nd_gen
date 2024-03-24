@@ -5,20 +5,22 @@
 #include "gps_utils.h"
 
 extern Configuration    Config;
-extern int              stationMode;
 
 WiFiUDP udpClient;
+
 
 namespace SYSLOG_Utils {
 
     void log(String type, String packet, int rssi, float snr, int freqError) {
-        String syslogPacket = "<165>1 - " + Config.callsign + " LoRa" + " - - - "; //RFC5424 The Syslog Protocol
-        if (Config.syslog.active && (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED))) {
+        String syslogPacket = "<165>1 - " + Config.callsign + " CA2RXU_LoRa_iGate_1.3" + " - - - "; //RFC5424 The Syslog Protocol
+        if (Config.syslog.active && WiFi.status() == WL_CONNECTED) {
             if (type == "APRSIS Tx") {
                 if (packet.indexOf(":>") > 10) {
-                    syslogPacket += type + " / StartUp STATUS / " + packet.substring(packet.indexOf(":>")+2);
+                    syslogPacket += type + " / StartUp_Status / " + packet.substring(packet.indexOf(":>")+2);
+                } else {
+                    syslogPacket += type + " / QUERY / " + packet;
                 }
-            } else if (type == "LoRa Rx") {
+            } else if (type == "Rx") {
                 if (packet.indexOf("::") > 10) {
                     syslogPacket += type + " / MESSAGE / " + packet.substring(3,packet.indexOf(">")) + " ---> " + packet.substring(packet.indexOf("::")+2);
                     syslogPacket += " / " + String(rssi) + "dBm / " + String(snr) + "dB / " + String(freqError) + "Hz";
@@ -27,7 +29,7 @@ namespace SYSLOG_Utils {
                     if (packet.indexOf("WIDE1-1") > 10) {
                         syslogPacket += packet.substring(packet.indexOf(">")+1,packet.indexOf(",")) + " / WIDE1-1 / ";
                     } else {
-                        syslogPacket += packet.substring(packet.indexOf(">")+1,packet.indexOf(":")) + " / _ / ";
+                        syslogPacket += packet.substring(packet.indexOf(">")+1,packet.indexOf(":")) + " / - / ";
                     }
                     syslogPacket += String(rssi) + "dBm / " + String(snr) + "dB / " + String(freqError) + "Hz / " +  GPS_Utils::getDistance(packet);
                 } else if (packet.indexOf(":>") > 10) {
@@ -46,7 +48,7 @@ namespace SYSLOG_Utils {
                     syslogPacket += type + " / " + packet;
                     syslogPacket += " / " + String(rssi) + "dBm / " + String(snr) + "dB / " + String(freqError) + "Hz";
                 }
-            } else if (type == "LoRa Tx") {
+            } else if (type == "Tx") {
                 if (packet.indexOf("RFONLY") > 10) {
                     syslogPacket += type + " / RFONLY / " + packet;
                 } else if (packet.indexOf("::") > 10) {
@@ -64,7 +66,7 @@ namespace SYSLOG_Utils {
     }
 
     void setup() {
-        if (Config.syslog.active && (stationMode==1 || stationMode==2 || (stationMode==5 && WiFi.status()==WL_CONNECTED))) {
+        if (Config.syslog.active && WiFi.status() == WL_CONNECTED) {
             udpClient.begin(WiFi.localIP(), 0);
             Serial.println("init : Syslog Server  ...     done!    (at " + Config.syslog.server + ")");
         }

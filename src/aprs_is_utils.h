@@ -3,16 +3,17 @@
 
 #include <Arduino.h>
 
-//#define PinPointApp //uncomment this line when using PinPoint App ( https://www.pinpointaprs.com )
 
 namespace APRS_IS_Utils {
 
+    void upload(String line);
     void connect();
     void checkStatus();
     String createPacket(String unprocessedPacket);
+    bool processReceivedLoRaMessage(String sender, String packet);
     void processLoRaPacket(String packet);
     void processAPRSISPacket(String packet);
-    void loop();
+    void loop(String packet);
 
 }
 

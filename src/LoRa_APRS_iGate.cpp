@@ -13,19 +13,22 @@
 #include "digi_utils.h"
 #include "gps_utils.h"
 #include "bme_utils.h"
+#include "web_utils.h"
+#include "tnc_utils.h"
 #include "display.h"
 #include "utils.h"
-
+#include <ElegantOTA.h>
+#include "battery_utils.h"
 
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2024.01.12";
+String          versionDate           = "2024.03.24";
 int             myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
 
-int             stationMode           = Config.stationMode;
+bool            isUpdatingOTA         = false;
 bool            statusAfterBoot       = true;
 bool            beaconUpdate          = true;
 uint32_t        lastBeaconTx          = 0;
@@ -34,7 +37,14 @@ uint32_t        lastScreenOn          = millis();
 
 uint32_t        lastWiFiCheck         = 0;
 bool            WiFiConnect           = true;
-int             lastStationModeState  = 1;
+bool            WiFiConnected         = false;
+
+bool            WiFiAutoAPStarted     = false;
+long            WiFiAutoAPTime        = false;
+
+uint32_t        lastBatteryCheck      = 0;
+
+uint32_t        bmeLastReading        = -60000;
 
 String          batteryVoltage;
 
@@ -46,55 +56,89 @@ std::vector<String> packetBuffer_temp;
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, iGateBeaconPacket, iGateLoRaBeaconPacket;
 
 void setup() {
-  Serial.begin(115200);
-  #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2)
-  pinMode(batteryPin, INPUT);
-  #endif
-  #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2) || defined(HELTEC_V3) || defined(ESP32_DIY_LoRa) || defined(ESP32_DIY_1W_LoRa)
-  pinMode(internalLedPin, OUTPUT);
-  #endif
-  if (Config.externalVoltageMeasurement) {
-    pinMode(Config.externalVoltagePin, INPUT);
-  }
-  #if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_0_SX1268) || defined(TTGO_T_Beam_V1_2) || defined(TTGO_T_Beam_V1_2_SX1262)
-  POWER_Utils::setup();
-  #endif
-  delay(1000);
-  Utils::setupDisplay();
-  WIFI_Utils::setup();
-  LoRa_Utils::setup();
-  Utils::validateDigiFreqs();
-  iGateBeaconPacket = GPS_Utils::generateBeacon();
-  iGateLoRaBeaconPacket = GPS_Utils::generateiGateLoRaBeacon();
-  //Utils::startServer();
-  SYSLOG_Utils::setup();
-  BME_Utils::setup();
+    Serial.begin(115200);
+
+    #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2) || defined(HELTEC_WSL)
+    pinMode(batteryPin, INPUT);
+    #endif
+    #ifdef HAS_INTERNAL_LED
+    pinMode(internalLedPin, OUTPUT);
+    #endif
+    if (Config.externalVoltageMeasurement) {
+        pinMode(Config.externalVoltagePin, INPUT);
+    }
+    #if defined(TTGO_T_Beam_V1_0) || defined(TTGO_T_Beam_V1_0_SX1268) || defined(TTGO_T_Beam_V1_2) || defined(TTGO_T_Beam_V1_2_SX1262)
+    POWER_Utils::setup();
+    #endif
+    delay(1000);
+    Utils::setupDisplay();
+
+    Config.check();
+
+    WIFI_Utils::setup();
+    LoRa_Utils::setup();
+    Utils::validateFreqs();
+
+    iGateBeaconPacket = GPS_Utils::generateBeacon();
+    iGateLoRaBeaconPacket = GPS_Utils::generateiGateLoRaBeacon();
+
+    SYSLOG_Utils::setup();
+    BME_Utils::setup();
+    WEB_Utils::setup();
+    TNC_Utils::setup();
 }
 
 void loop() {
-  if (stationMode==1 || stationMode==2 ) {          // iGate (1 Only Rx / 2 Rx+Tx)
-    WIFI_Utils::checkWiFi();
-    if (!espClient.connected()) {
-      APRS_IS_Utils::connect();
+    WIFI_Utils::checkIfAutoAPShouldPowerOff();
+
+    if (isUpdatingOTA) {
+        ElegantOTA.loop();
+        return; // Don't process IGate and Digi during OTA update
     }
-    APRS_IS_Utils::loop();
-  } else if (stationMode==3 || stationMode==4) {    // DigiRepeater (3 RxFreq=TxFreq / 4 RxFreq!=TxFreq)
-    DIGI_Utils::loop();
-  } else if (stationMode==5) {                      // iGate when WiFi and APRS available , DigiRepeater when not (RxFreq=TxFreq)
-    Utils::checkWiFiInterval();
-    if (WiFi.status() == WL_CONNECTED) {  // iGate Mode
-      thirdLine = Utils::getLocalIP();
-      if (!espClient.connected()) {
+
+    if (BATTERY_Utils::checkIfShouldSleep()) {
+        ESP.deepSleep(1800000000); // 30 min sleep (60s = 60e6)
+    }
+
+    thirdLine = Utils::getLocalIP();
+
+    WIFI_Utils::checkWiFi(); // Always use WiFi, not related to IGate/Digi mode
+    // Utils::checkWiFiInterval();
+
+    if (Config.aprs_is.active && !espClient.connected()) {
         APRS_IS_Utils::connect();
-      }
-      if (lastStationModeState == 1) {
-        iGateBeaconPacket = GPS_Utils::generateBeacon();
-        lastStationModeState = 0;
-        //Utils::startServer();
-      }
-      APRS_IS_Utils::loop();
-    } else {                              // DigiRepeater Mode
-      DIGI_Utils::loop();
     }
-  }
+
+    TNC_Utils::loop();
+
+    Utils::checkDisplayInterval();
+    Utils::checkBeaconInterval();
+
+    String packet;
+    
+    if (Config.loramodule.rxActive) {
+        packet = LoRa_Utils::receivePacket(); // We need to fetch LoRa packet above APRSIS and Digi
+    }
+
+    APRS_IS_Utils::checkStatus(); // Need that to update display, maybe split this and send APRSIS status to display func?
+
+    if (packet != "") {
+        if (Config.aprs_is.active) { // If APRSIS enabled
+            APRS_IS_Utils::loop(packet); // Send received packet to APRSIS
+        }
+
+        if (Config.digi.mode == 2) { // If Digi enabled
+            DIGI_Utils::loop(packet); // Send received packet to Digi
+        }
+
+        if (Config.tnc.enableServer) { // If TNC server enabled
+            TNC_Utils::sendToClients(packet); // Send received packet to TNC KISS
+        }
+
+        if (Config.tnc.enableSerial) { // If Serial KISS enabled
+            TNC_Utils::sendToSerial(packet); // Send received packet to Serial KISS
+        }
+    }
+
+    show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
 }

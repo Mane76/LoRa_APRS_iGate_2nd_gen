@@ -1,14 +1,5 @@
 # Richonguzman / CA2RXU LoRa APRS iGate/Digirepeater
 
-___________________________________________________
-NO OTA FOR NOW!!!!
-
-
-BAD NEWS : AsyncTCP library has a bug and gets this new and old firmware as NOT COMPILING STATUE, SO PLEASE WAIT, as soon as I can I will have it running again!
-___________________________________________________
-
-
-
 This firmware is for using ESP32 based boards with LoRa Modules and GPS to live in the APRS world.
 
 Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a href="https://web.archive.org/web/20210125073301/https://www.thethingsnetwork.org/community/berlin/post/warning-attention-users-of-ttgo21-v16-boards-labeled-t3_v16-on-pcb-battery-exploded-and-got-on-fire" target="_blank">this</a> if you plan to use a LI-PO battery attached to the connector
@@ -37,6 +28,7 @@ In all configurations the display shows the current stationMode, heard packets a
 
 But under the hood is much more:
 
+- Web Configuration UI.
 - Sending events to remote syslog server.
 - OTA update capability (for Firmware and Filesystem).
 - RX first, TX will only be done if there is no traffic on the frequency.
@@ -45,39 +37,34 @@ But under the hood is much more:
 - support for BME/BMP280 and BME680 sensors, sending to WX data to APRS-IS.
 
 and more will come:
-- Web-UI
-- ...
+- More Web UI Station Information
 
 ____________________________________________________
 
 # WIKI
 
-### 1. Installation Guide --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/1.-Installation-Guide" target="_blank">here</a>.
+### Installation Guide --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/01.-Installation-Guide" target="_blank">here</a>.
 
-### 2. iGate Configuration and Explanation for each setting --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/2.-iGate-Configuration" target="_blank">here</a>.
-
-### 3. Supported Boards and Environment Selection --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/3.-Supported-Boards-and-Environment-Selection" target="_blank">here</a>.
-
-### 4. Upload Firmware and Filesystem --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/4.-Upload-Firmware-and-Filesystem" target="_blank">here</a>.
-
-### 5. Adding BME280 Module --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/5.-Adding-BME280-Module" target="_blank">here</a>.
+### Wiki has all configuration explanation, supported boards list, adding BME/BMP Wx modules and more.
 
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.03.18 OE5HWN MeshCom board support added.
+- 2024.02.25 New Web Configuration UI with WiFi AP (thanks Damian SQ2CPA).
+- 2023.01.28 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
+- 2024.01.19 TextSerialOutputForApp added to get text from Serial-Output over USB into PC for PinPoint App (https://www.pinpointaprs.com) and APRSIS32 App (http://aprsisce.wikidot.com)
 - 2024.01.12 Added iGate Mode to also repeat packets (like a iGate+DigiRepeater) in stationMode 2 and 5.
 - 2024.01.11 Added iGate Mode to enable APRS-IS and LoRa beacon report at the same time.
 - 2024.01.05 Added support for Lilygo TTGO T-Beam V1, V1.2, V1 + SX1268, V1.2 + SX1262.
 - 2024.01.02 Added support for EByte 400M30S 1Watt LoRa module for DIY ESP32 iGate.
 - 2023.12.27 HELTEC V3 board support added. Thanks Luc ON2ON.
 - 2023.12.26 Added BME680 module to BME/BMP280 modules supported.
-- 2023.12.20 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
 - 2023.12.07 MIC-E process and syslog added.
 - 2023.12.06 HELTEC V2 board support added.
 - 2023.11.26 Small correction to enable Syslog in stationMode5.
 - 2023.10.09 Added "WIDE1-1" to Tx packets from iGate to be *repeated* by Digirepeaters.
 - 2023.10.09 Added Support also for BMP280 module.
-- 2023.10.08 Added Serial Comunication with PinPoint APRS app (https://www.pinpointaprs.com)
 - 2023.08.20 Added External Voltage Measurement (Max 15V!)
 - 2023.08.05 Ground Height Correction for Pressure readings added.
 - 2023.07.31 StationMode5 added: iGate when WiFi and APRS available, DigiRepeater when not.
@@ -96,54 +83,6 @@ ____________________________________________________
 - 2023.02.17 Receiving Feed from APRS-IS.
 - 2023.02.10 First Beta (receiving LoRa Beacon/Packets and uploading to APRS-IS).
 
-____________________________________________________
-
-
-Instructions (add your information into the '/data/igate_conf.json'):
-
-a) Change _callsign_ from "NOCALL-10" to your CALLSIGN + SSID.
-
-b) Choose _stationMode_:
-
-    1 = RX iGate, black "L" as symbol
-
-    2 = Rx + TX iGate, red "L" as symbol, HAM only. RX will be sent to APRS-IS, Messages will be sent via Lora. Same frequency for RX and TX. By using this feature you have comply with the regulations of your country.
-
-    3 = Digipeater simplex, green "L" as symbol, HAM only. Received packets containing WIDEx-x in path will be digipeated on the same frequency. By using this feature you have comply with the regulations of your country.
-
-    4 = Digipeater split frequency, green "L" as symbol, HAM only. Received packets will be digipeated on a different frequency. Frequency separation must be 125kHz or more. By using this feature you have comply with the regulations of your country.
-
-    IgateComment and DigirepeaterComment will be sent to APRS-IS or via RF, depending on your stationmode
-
-c) WiFi section: 
-
-    adjust SSID and Password to you WiFi, add the GPS to "Latitude" and "Longitude" (info from GoogleMaps) of your new LoRa iGate. (If stationMode 3 or 4 selected, add also GPS info to Digirepeater Section).
-
-d) APRS_IS section: 
-
-    change "passcode" from "VWXYZ" to yours (remember that is 5 digits integer) and choose a server close to your location (see https://www.aprs2.net/)
-
-e) LORA section:
-
-    adjust TX frequency and RX frequency matching your stationmode and country. Remember,
-
-        at stationmode 1, 2, and 3, RX and TX frequency shall be set to 433775000 (443.775MHz, deviations possible, depending on your country) 
-
-        at stationmode 4, RX frequency shall be set to 433775000, TX frequency shall be set to 433900000 (deviations possible, depending on your country). There must be a frequency separation of 125kHz or more. 
-    
-    adjust power to your need, valid values are from 1 to 20
-
-f) Syslog section:
-    
-    adjust server and port to a suitable value if needed.
-
-g) BME section:
-
-    adjust to "active" if BME280 sensor connected through I2C pins
-
-
 __________________________________________
-
-Special Thanks to the help in testing and developing to Manfred (DC2MH) , for showing me the "way of good coding" to Tihomir (CA3TSK) and much more Ham Licence Ops all over the world.
 
 # Hope You Enjoy this, 73 !!  CA2RXU , Valparaiso, Chile
