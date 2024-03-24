@@ -18,6 +18,9 @@ ___________________________________________________
 
 ____________________________________________________
 
+### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
+
+
 This next generation LoRa iGate can work as:
 - pure RX-iGate, 
 - Rx+Tx-iGate and distribute messages and weather forecasts to heard trackers, and 
@@ -49,7 +52,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
-- 2024.03.09 Update in UI
+- 2024.03.18 OE5HWN MeshCom board support added.
 - 2024.02.25 New Web Configuration UI with WiFi AP (thanks Damian SQ2CPA).
 - 2023.01.28 Updated to ElegantOTA v.3 (AsyncElegantOTA was deprecated).
 - 2024.01.19 TextSerialOutputForApp added to get text from Serial-Output over USB into PC for PinPoint App (https://www.pinpointaprs.com) and APRSIS32 App (http://aprsisce.wikidot.com)
@@ -95,7 +98,7 @@ b) Choose _stationMode_:
     Section "Station", Symbol, set to "Black Diamond with L"
     Section "WiFi Access", set SSID and Passphrase
     Section "APRS-IS", enable "Enable APRS-IS connection" and "Send our beacon to APRS-IS"
-    Section "LoRa", enable "Enable LoRa-RX", set RX Frequency (e.g. 433775000
+    Section "LoRa", enable "Enable LoRa-RX", set RX Frequency (e.g. 433775000)
 
     2 = Rx + TX iGate, red "L" as symbol, HAM only. RX will be sent to APRS-IS, Messages will be sent via Lora. Same frequency for RX and TX. By using this feature you have comply with the regulations of your country.
     Section "Station", Symbol, set to "Red Diamond with L"
