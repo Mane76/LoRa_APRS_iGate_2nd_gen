@@ -2,11 +2,6 @@
 #include "configuration.h"
 #include "pins_config.h"
 
-// Uncomment if you want to monitor voltage and sleep if voltage is too low (<3.1V)
-#define LOW_VOLTAGE_CUTOFF
-
-float cutOffVoltage = 3.1;
-
 extern Configuration    Config;
 extern uint32_t         lastBatteryCheck;
 
@@ -29,8 +24,8 @@ namespace BATTERY_Utils {
     float checkBattery() { 
         int sample;
         int sampleSum = 0;
-        for (int i=0; i<100; i++) {
-            #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2) || defined(HELTEC_WSL)
+        for (int i = 0; i < 100; i++) {
+            #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2) || defined(HELTEC_HTCT62)
             sample = analogRead(batteryPin);
             #endif
             #if defined(HELTEC_V3) || defined(ESP32_DIY_LoRa) || defined(ESP32_DIY_1W_LoRa)
@@ -50,7 +45,7 @@ namespace BATTERY_Utils {
     float checkExternalVoltage() {
         int sample;
         int sampleSum = 0;
-        for (int i=0; i<100; i++) {
+        for (int i = 0; i < 100; i++) {
             sample = analogRead(Config.externalVoltagePin);
             sampleSum += sample;
             delayMicroseconds(50); 
@@ -63,20 +58,16 @@ namespace BATTERY_Utils {
         // return mapVoltage(voltage, 5.05, 6.32, 4.5, 5.5); // mapped voltage
     }
 
-    bool checkIfShouldSleep() {
-        #ifdef LOW_VOLTAGE_CUTOFF
+    void checkIfShouldSleep() {
         if (lastBatteryCheck == 0 || millis() - lastBatteryCheck >= 15 * 60 * 1000) {
             lastBatteryCheck = millis();
 
             float voltage = checkBattery();
             
-            if (voltage < cutOffVoltage) {
-                return true;
+            if (voltage < Config.lowVoltageCutOff) {
+                ESP.deepSleep(1800000000); // 30 min sleep (60s = 60e6)
             }
         }
-        #endif
-
-        return false;
     }
 
 }

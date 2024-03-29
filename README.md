@@ -4,7 +4,7 @@ This firmware is for using ESP32 based boards with LoRa Modules and GPS to live 
 
 Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a href="https://web.archive.org/web/20210125073301/https://www.thethingsnetwork.org/community/berlin/post/warning-attention-users-of-ttgo21-v16-boards-labeled-t3_v16-on-pcb-battery-exploded-and-got-on-fire" target="_blank">this</a> if you plan to use a LI-PO battery attached to the connector
 
-![Screenshot](https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/OledScreen.jpeg)
+![Screenshot](https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/iGateOledScreen.jpeg)
 
 __(NOTE: This iGate Firmware was develop to work with all LoRa APRS Trackers and specially with this firmware <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker</a>)__
 
