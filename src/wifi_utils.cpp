@@ -7,7 +7,7 @@
 
 extern Configuration  Config;
 extern WiFi_AP        *currentWiFi;
-extern int            myWiFiAPIndex;
+extern uint8_t        myWiFiAPIndex;
 extern int            myWiFiAPSize;
 extern uint32_t       previousWiFiMillis;
 extern bool           WiFiConnected;
@@ -42,7 +42,7 @@ namespace WIFI_Utils {
         if (currentWiFi->ssid == "") {
             startAP = true;
         } else {
-            int wifiCounter = 0;
+            uint8_t wifiCounter = 0;
             WiFi.mode(WIFI_STA);
             WiFi.disconnect();
             delay(500);
@@ -62,7 +62,7 @@ namespace WIFI_Utils {
                 #endif
                 if ((millis() - start) > 10000){
                     delay(1000);
-                    if(myWiFiAPIndex >= (myWiFiAPSize-1)) {
+                    if(myWiFiAPIndex >= (myWiFiAPSize - 1)) {
                         myWiFiAPIndex = 0;
                         wifiCounter++;
                     } else {
