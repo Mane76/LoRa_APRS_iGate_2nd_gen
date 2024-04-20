@@ -23,7 +23,7 @@
 Configuration   Config;
 WiFiClient      espClient;
 
-String          versionDate           = "2024.04.09m";
+String          versionDate           = "2024.04.20m";
 uint8_t         myWiFiAPIndex         = 0;
 int             myWiFiAPSize          = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi          = &Config.wifiAPs[myWiFiAPIndex];
@@ -53,13 +53,15 @@ std::vector<String> lastHeardStation_temp;
 std::vector<String> packetBuffer;
 std::vector<String> packetBuffer_temp;
 
+std::vector<ReceivedPacket> receivedPackets;
+
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, iGateBeaconPacket, iGateLoRaBeaconPacket;
 
 void setup() {
     Serial.begin(115200);
 
-    #if defined(TTGO_T_LORA32_V2_1) || defined(HELTEC_V2) || defined(HELTEC_HTCT62)
-    pinMode(batteryPin, INPUT);
+    #ifdef BATTERY_PIN
+    pinMode(BATTERY_PIN, INPUT);
     #endif
     #ifdef HAS_INTERNAL_LED
     pinMode(internalLedPin, OUTPUT);

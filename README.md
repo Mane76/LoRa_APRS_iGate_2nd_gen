@@ -52,6 +52,8 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.04.20 CRC with additional information shown in Syslog
+- 2024.04.13 Received Packets added on WebUI.
 - 2024.04.09 iGate/Digirepeater own GPS beacon is encoded (Base91) now.
 - 2024.03.18 OE5HWN MeshCom board support added.
 - 2024.02.25 New Web Configuration UI with WiFi AP (thanks Damian SQ2CPA).
