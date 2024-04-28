@@ -4,21 +4,30 @@
 #include "station_utils.h"
 #include "syslog_utils.h"
 #include "query_utils.h"
-#include "lora_utils.h"
+#include "A7670_utils.h"
 #include "digi_utils.h"
 #include "display.h"
 #include "utils.h"
 
-extern Configuration  Config;
-extern WiFiClient     espClient;
-extern uint32_t       lastScreenOn;
-extern String         firstLine;
-extern String         secondLine;
-extern String         thirdLine;
-extern String         fourthLine;
-extern String         fifthLine;
-extern String         sixthLine;
-extern String         seventhLine;
+extern Configuration        Config;
+extern WiFiClient           espClient;
+extern uint32_t             lastScreenOn;
+extern String               firstLine;
+extern String               secondLine;
+extern String               thirdLine;
+extern String               fourthLine;
+extern String               fifthLine;
+extern String               sixthLine;
+extern String               seventhLine;
+
+extern std::vector<String>  outputPacketBuffer;
+extern uint32_t             lastRxTime;
+
+extern bool                 modemLoggedToAPRSIS;
+
+#ifdef ESP32_DIY_LoRa_A7670
+extern bool                 stationBeacon;
+#endif
 
 
 namespace APRS_IS_Utils {
@@ -59,37 +68,39 @@ namespace APRS_IS_Utils {
         String wifiState, aprsisState;
         if (WiFi.status() == WL_CONNECTED) {
             wifiState = "OK";
-        }
-        else {
+        } else {
             wifiState = "AP";
-
             if (!Config.display.alwaysOn) {
                 display_toggle(true);
             }
-
             lastScreenOn = millis();
         }
 
         if (!Config.aprs_is.active) {
             aprsisState = "OFF";
-        }
-        else if (espClient.connected()) {
-            aprsisState = "OK";
-        }
-        else {
-            aprsisState = "--";
-
-            if (!Config.display.alwaysOn) {
-                display_toggle(true);
+        } else {
+            #ifdef ESP32_DIY_LoRa_A7670
+            if (modemLoggedToAPRSIS) {
+                aprsisState = "OK";
+            } else {
+                aprsisState = "--";
             }
-
-            lastScreenOn = millis();
+            #else
+            if (espClient.connected()) {
+                aprsisState = "OK";
+            } else {
+                aprsisState = "--";
+            }
+            #endif
+            if(aprsisState == "--" && !Config.display.alwaysOn) {
+                display_toggle(true);
+                lastScreenOn = millis();
+            }            
         }
-
         secondLine = "WiFi: " + wifiState + " APRS-IS: " + aprsisState;
     }
 
-    String createPacket(String packet) {
+    String buildPacketToUpload(String packet) {
         if (!(Config.aprs_is.active && Config.digi.mode == 0)) { // Check if NOT only IGate
             return packet.substring(3, packet.indexOf(":")) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(":"));
         }
@@ -98,24 +109,31 @@ namespace APRS_IS_Utils {
         }
     }
 
+    String buildPacketToTx(String aprsisPacket) {
+        String firstPart, messagePart;
+        aprsisPacket.trim();
+        firstPart = aprsisPacket.substring(0, aprsisPacket.indexOf(","));
+        messagePart = aprsisPacket.substring(aprsisPacket.indexOf("::") + 2);
+        return firstPart + ",TCPIP,WIDE1-1," + Config.callsign + "::" + messagePart;
+    }
+
     bool processReceivedLoRaMessage(String sender, String packet) {
         String ackMessage, receivedMessage;
         if (packet.indexOf("{") > 0) {     // ack?
             ackMessage = "ack" + packet.substring(packet.indexOf("{") + 1);
             ackMessage.trim();
-            delay(4000);
             //Serial.println(ackMessage);
             for (int i = sender.length(); i < 9; i++) {
                 sender += ' ';
             }
             if (Config.beacon.path == "") {
-                LoRa_Utils::sendNewPacket("APRS", Config.callsign + ">APLRG1,RFONLY::" + sender + ":" + ackMessage);
+                STATION_Utils::addToOutputPacketBuffer(Config.callsign + ">APLRG1,RFONLY::" + sender + ":" + ackMessage);
             } else {
-                LoRa_Utils::sendNewPacket("APRS", Config.callsign + ">APLRG1,RFONLY," + Config.beacon.path + "::" + sender + ":" + ackMessage);
+                STATION_Utils::addToOutputPacketBuffer(Config.callsign + ">APLRG1,RFONLY," + Config.beacon.path + "::" + sender + ":" + ackMessage);
             }
+
             receivedMessage = packet.substring(packet.indexOf(":") + 1, packet.indexOf("{"));
-        }
-        else {
+        } else {
             receivedMessage = packet.substring(packet.indexOf(":") + 1);
         }
         if (receivedMessage.indexOf("?") == 0) {
@@ -123,7 +141,7 @@ namespace APRS_IS_Utils {
             if (!Config.display.alwaysOn) {
                 display_toggle(true);
             }
-            LoRa_Utils::sendNewPacket("APRS", QUERY_Utils::process(receivedMessage, sender, "LoRa"));
+            STATION_Utils::addToOutputPacketBuffer(QUERY_Utils::process(receivedMessage, sender, "LoRa"));
             lastScreenOn = millis();
             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, "Callsign = " + sender, "TYPE --> QUERY", 0);
             return true;
@@ -134,14 +152,13 @@ namespace APRS_IS_Utils {
     }
 
     void processLoRaPacket(String packet) {
-        if (espClient.connected()) {
+        if (espClient.connected() || modemLoggedToAPRSIS) {
             bool queryMessage = false;
             String aprsPacket, Sender, AddresseeAndMessage, Addressee;
             if (packet != "") {
                 if ((packet.substring(0, 3) == "\x3c\xff\x01") && (packet.indexOf("TCPIP") == -1) && (packet.indexOf("NOGATE") == -1) && (packet.indexOf("RFONLY") == -1)) {
                     Sender = packet.substring(3, packet.indexOf(">"));
                     STATION_Utils::updateLastHeard(Sender);
-                    //STATION_Utils::updatePacketBuffer(packet);
                     Utils::typeOfPacket(aprsPacket, "LoRa-APRS");
                     if (Sender != Config.callsign) {   // avoid listening yourself by digirepeating
                         AddresseeAndMessage = packet.substring(packet.indexOf("::") + 2);
@@ -152,12 +169,18 @@ namespace APRS_IS_Utils {
                             queryMessage = processReceivedLoRaMessage(Sender, AddresseeAndMessage);
                         }
                         if (!queryMessage) {
-                            aprsPacket = createPacket(packet);
+                            aprsPacket = buildPacketToUpload(packet);
                             if (!Config.display.alwaysOn) {
                                 display_toggle(true);
                             }
                             lastScreenOn = millis();
+                            #ifdef ESP32_DIY_LoRa_A7670
+                            stationBeacon = true;
+                            A7670_Utils::uploadToAPRSIS(aprsPacket);
+                            stationBeacon = false;
+                            #else
                             upload(aprsPacket);
+                            #endif
                             Utils::println("---> Uploaded to APRS-IS");
                             STATION_Utils::updateLastHeard(Sender);
                             Utils::typeOfPacket(aprsPacket, "LoRa-APRS");
@@ -185,8 +208,12 @@ namespace APRS_IS_Utils {
                         for (int i = Sender.length(); i < 9; i++) {
                             Sender += ' ';
                         }
-                        String ackPacket = Config.callsign + ">APLRG1,TCPIP,qAC::" + Sender + ":" + ackMessage;// + "\n";
+                        String ackPacket = Config.callsign + ">APLRG1,TCPIP,qAC::" + Sender + ":" + ackMessage;
+                        #ifdef ESP32_DIY_LoRa_A7670
+                        A7670_Utils::uploadToAPRSIS(ackPacket);
+                        #else
                         upload(ackPacket);
+                        #endif                        
                         receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":") + 1, AddresseeAndMessage.indexOf("{"));
                     } else {
                         receivedMessage = AddresseeAndMessage.substring(AddresseeAndMessage.indexOf(":") + 1);
@@ -200,7 +227,11 @@ namespace APRS_IS_Utils {
                         }
                         lastScreenOn = millis();
                         delay(500);
+                        #ifdef ESP32_DIY_LoRa_A7670
+                        A7670_Utils::uploadToAPRSIS(queryAnswer);
+                        #else
                         upload(queryAnswer);
+                        #endif                        
                         SYSLOG_Utils::log("APRSIS Tx", queryAnswer, 0, 0, 0);
                         fifthLine = "APRS-IS ----> APRS-IS";
                         sixthLine = Config.callsign;
@@ -214,7 +245,7 @@ namespace APRS_IS_Utils {
                     Utils::print("Received from APRS-IS  : " + packet);
 
                     if (Config.aprs_is.toRF && STATION_Utils::wasHeard(Addressee)) {
-                        LoRa_Utils::sendNewPacket("APRS", LoRa_Utils::generatePacket(packet));
+                        STATION_Utils::addToOutputPacketBuffer(buildPacketToTx(packet));
                         display_toggle(true);
                         lastScreenOn = millis();
                         Utils::typeOfPacket(packet, "APRS-LoRa");
@@ -226,13 +257,18 @@ namespace APRS_IS_Utils {
     }
 
     void listenAPRSIS() {
+        #ifdef ESP32_DIY_LoRa_A7670
+        A7670_Utils::listenAPRSIS();
+        #else
         if (espClient.connected()) {
             if (espClient.available()) {
                 String aprsisPacket = espClient.readStringUntil('\r');
                 // Serial.println(aprsisPacket);
                 processAPRSISPacket(aprsisPacket);
+                lastRxTime = millis();
             }
         }
+        #endif
     }
 
 }
