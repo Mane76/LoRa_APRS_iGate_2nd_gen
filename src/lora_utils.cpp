@@ -7,13 +7,15 @@
 #include "display.h"
 #include "utils.h"
 
-extern Configuration  Config;
+extern Configuration    Config;
+extern uint32_t         lastRxTime;
+
 
 extern std::vector<ReceivedPacket> receivedPackets;
 
-bool transmissionFlag = true;
-bool ignorePacket = false;
-bool operationDone = true;
+bool transmissionFlag   = true;
+bool ignorePacket       = false;
+bool operationDone      = true;
 
 #ifdef HAS_SX1262
 SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
@@ -25,6 +27,10 @@ SX1268 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUS
 
 #ifdef HAS_SX1278
 SX1278 radio = new Module(RADIO_CS_PIN, RADIO_BUSY_PIN, RADIO_RST_PIN);
+#endif
+
+#ifdef HAS_SX1276
+SX1276 radio = new Module(RADIO_CS_PIN, RADIO_BUSY_PIN, RADIO_RST_PIN);
 #endif
 
 int rssi, freqError;
@@ -46,10 +52,10 @@ namespace LoRa_Utils {
             Utils::println("Starting LoRa failed!");
             while (true);
         }
-        #ifdef HAS_SX127X        
+        #if defined(HAS_SX1278) || defined(HAS_SX1276)
         radio.setDio0Action(setFlag, RISING);
         #endif
-        #ifdef HAS_SX126X
+        #if defined(HAS_SX1262) || defined(HAS_SX1268)
         if (!Config.lowPowerMode) {
             radio.setDio1Action(setFlag);
         } else {
@@ -66,7 +72,7 @@ namespace LoRa_Utils {
         radio.setRfSwitchPins(RADIO_RXEN, RADIO_TXEN);
         #endif
 
-        #if defined(HAS_SX127X) || ESP32_DIY_1W_LoRa
+        #if defined(HAS_SX1278) || defined(HAS_SX1276) || ESP32_DIY_1W_LoRa
         state = radio.setOutputPower(Config.loramodule.power); // max value 20dB for 400M30S as it has Low Noise Amp
         #endif   
         #if defined(HELTEC_V3)  || defined(HELTEC_WS) || defined(TTGO_T_Beam_V1_0_SX1268) || defined(TTGO_T_Beam_V1_2_SX1262)
@@ -92,15 +98,15 @@ namespace LoRa_Utils {
         radio.setFrequency(freq);
     }
 
-    void sendNewPacket(const String& typeOfMessage, const String& newPacket) {
+    void sendNewPacket(const String& newPacket) {
         if (!Config.loramodule.txActive) return;
 
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq) {
             changeFreqTx();
         }
 
-        #ifdef HAS_INTERNAL_LED
-        digitalWrite(internalLedPin, HIGH);
+        #ifdef INTERNAL_LED_PIN
+        digitalWrite(INTERNAL_LED_PIN, HIGH);
         #endif
         int state = radio.transmit("\x3c\xff\x01" + newPacket);
         transmissionFlag = true;
@@ -118,21 +124,13 @@ namespace LoRa_Utils {
             Utils::print(F("failed, code "));
             Utils::println(String(state));
         }
-        #ifdef HAS_INTERNAL_LED
-        digitalWrite(internalLedPin, LOW);
+        #ifdef INTERNAL_LED_PIN
+        digitalWrite(INTERNAL_LED_PIN, LOW);
         #endif
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq) {
             changeFreqRx();
         }
         //ignorePacket = true;
-    }
-
-    String generatePacket(String aprsisPacket) {
-        String firstPart, messagePart;
-        aprsisPacket.trim();
-        firstPart = aprsisPacket.substring(0, aprsisPacket.indexOf(","));
-        messagePart = aprsisPacket.substring(aprsisPacket.indexOf("::") + 2);
-        return firstPart + ",TCPIP,WIDE1-1," + Config.callsign + "::" + messagePart;
     }
 
     String packetSanitization(String packet) {
@@ -189,6 +187,7 @@ namespace LoRa_Utils {
                     if (Config.syslog.active && WiFi.status() == WL_CONNECTED) {
                         SYSLOG_Utils::log("Rx", loraPacket, rssi, snr, freqError);
                     }
+                    lastRxTime = millis();
                     return loraPacket;
                 }                
             } else if (state == RADIOLIB_ERR_RX_TIMEOUT) {
