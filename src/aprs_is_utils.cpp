@@ -70,7 +70,7 @@ namespace APRS_IS_Utils {
             wifiState = "OK";
         } else {
             wifiState = "AP";
-            if (!Config.display.alwaysOn) {
+            if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                 display_toggle(true);
             }
             lastScreenOn = millis();
@@ -92,7 +92,7 @@ namespace APRS_IS_Utils {
                 aprsisState = "--";
             }
             #endif
-            if(aprsisState == "--" && !Config.display.alwaysOn) {
+            if(aprsisState == "--" && !Config.display.alwaysOn && Config.display.timeout != 0) {
                 display_toggle(true);
                 lastScreenOn = millis();
             }            
@@ -138,7 +138,7 @@ namespace APRS_IS_Utils {
         }
         if (receivedMessage.indexOf("?") == 0) {
             delay(2000);
-            if (!Config.display.alwaysOn) {
+            if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                 display_toggle(true);
             }
             STATION_Utils::addToOutputPacketBuffer(QUERY_Utils::process(receivedMessage, sender, "LoRa"));
@@ -158,19 +158,18 @@ namespace APRS_IS_Utils {
             if (packet != "") {
                 if ((packet.substring(0, 3) == "\x3c\xff\x01") && (packet.indexOf("TCPIP") == -1) && (packet.indexOf("NOGATE") == -1) && (packet.indexOf("RFONLY") == -1)) {
                     Sender = packet.substring(3, packet.indexOf(">"));
-                    STATION_Utils::updateLastHeard(Sender);
-                    Utils::typeOfPacket(aprsPacket, "LoRa-APRS");
                     if (Sender != Config.callsign) {   // avoid listening yourself by digirepeating
+                        STATION_Utils::updateLastHeard(Sender);
+                        Utils::typeOfPacket(aprsPacket, "LoRa-APRS");
                         AddresseeAndMessage = packet.substring(packet.indexOf("::") + 2);
                         Addressee = AddresseeAndMessage.substring(0, AddresseeAndMessage.indexOf(":"));
                         Addressee.trim();
-
                         if (packet.indexOf("::") > 10 && Addressee == Config.callsign) {      // its a message for me!
                             queryMessage = processReceivedLoRaMessage(Sender, AddresseeAndMessage);
                         }
                         if (!queryMessage) {
                             aprsPacket = buildPacketToUpload(packet);
-                            if (!Config.display.alwaysOn) {
+                            if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                                 display_toggle(true);
                             }
                             lastScreenOn = millis();
@@ -182,8 +181,6 @@ namespace APRS_IS_Utils {
                             upload(aprsPacket);
                             #endif
                             Utils::println("---> Uploaded to APRS-IS");
-                            STATION_Utils::updateLastHeard(Sender);
-                            Utils::typeOfPacket(aprsPacket, "LoRa-APRS");
                             show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
                         }
                     }
@@ -222,7 +219,7 @@ namespace APRS_IS_Utils {
                         Utils::println("Received Query APRS-IS : " + packet);
                         String queryAnswer = QUERY_Utils::process(receivedMessage, Sender, "APRSIS");
                         //Serial.println("---> QUERY Answer : " + queryAnswer.substring(0,queryAnswer.indexOf("\n")));
-                        if (!Config.display.alwaysOn) {
+                        if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                             display_toggle(true);
                         }
                         lastScreenOn = millis();

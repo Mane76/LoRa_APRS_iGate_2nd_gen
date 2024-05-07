@@ -58,7 +58,7 @@ namespace SYSLOG_Utils {
                 }
             } else if (type == "CRC") {
                 syslogPacket += type + " / CRC-ERROR / " + packet;
-                syslogPacket += " / " + String(rssi) + "dBm / " + String(snr) + "dB / " + String(freqError) + "Hz";
+                syslogPacket += " / " + String(rssi) + "dBm / " + String(snr) + "dB / " + String(freqError) + "Hz";            
             } else {
                 syslogPacket = "<165>1 - ERROR LoRa - - - ERROR / Error in Syslog Packet"; //RFC5424 The Syslog Protocol
             }
