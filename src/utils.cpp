@@ -36,6 +36,7 @@ extern String               distance;
 extern uint32_t             lastWiFiCheck;
 extern bool                 WiFiConnect;
 extern bool                 WiFiConnected;
+extern bool                 bmeSensorFound;
 
 
 namespace Utils {
@@ -69,12 +70,12 @@ namespace Utils {
     void setupDisplay() {
         setup_display();
         #ifdef INTERNAL_LED_PIN
-        digitalWrite(INTERNAL_LED_PIN,HIGH);
+            digitalWrite(INTERNAL_LED_PIN,HIGH);
         #endif
         Serial.println("\nStarting Station: " + Config.callsign + "   Version: " + versionDate);
         show_display(" LoRa APRS", "", "   ( iGATE & DIGI )", "", "", "Richonguzman / CA2RXU", "      " + versionDate, 4000);
         #ifdef INTERNAL_LED_PIN
-        digitalWrite(INTERNAL_LED_PIN,LOW);
+            digitalWrite(INTERNAL_LED_PIN,LOW);
         #endif
         firstLine   = Config.callsign;
         seventhLine = "     listening...";
@@ -107,20 +108,24 @@ namespace Utils {
 
             activeStations();
 
-            if (Config.bme.active) {
+            if (Config.bme.active && bmeSensorFound) {
                 String sensorData = BME_Utils::readDataSensor();
                 beaconPacket += sensorData;
                 secondaryBeaconPacket += sensorData;
+            } else if (Config.bme.active && !bmeSensorFound) {
+                beaconPacket += ".../...g...t...r...p...P...h..b.....BME MODULE NOT FOUND! ";
+                secondaryBeaconPacket += ".../...g...t...r...p...P...h..b.....BME MODULE NOT FOUND! ";
             }
             beaconPacket += Config.beacon.comment;
             secondaryBeaconPacket += Config.beacon.comment;
 
             #ifdef BATTERY_PIN
-            if (Config.sendBatteryVoltage) {
-                beaconPacket += " Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V";
-                secondaryBeaconPacket += " Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V";
-                sixthLine = "     (Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V)";
-            }
+                if (Config.sendBatteryVoltage) {
+                    String batteryInfo = "Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V";
+                    beaconPacket += (" " + batteryInfo);
+                    secondaryBeaconPacket += (" " + batteryInfo);
+                    sixthLine = "     ( " + batteryInfo + ")";
+                }
             #endif
 
             if (Config.externalVoltageMeasurement) { 
@@ -133,9 +138,9 @@ namespace Utils {
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
                 seventhLine = "     listening...";
                 #ifdef ESP32_DIY_LoRa_A7670
-                A7670_Utils::uploadToAPRSIS(beaconPacket);
+                    A7670_Utils::uploadToAPRSIS(beaconPacket);
                 #else
-                APRS_IS_Utils::upload(beaconPacket);
+                    APRS_IS_Utils::upload(beaconPacket);
                 #endif
             }
 
