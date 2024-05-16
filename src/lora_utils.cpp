@@ -10,7 +10,6 @@
 extern Configuration    Config;
 extern uint32_t         lastRxTime;
 
-
 extern std::vector<ReceivedPacket> receivedPackets;
 
 bool transmissionFlag   = true;
@@ -119,10 +118,6 @@ namespace LoRa_Utils {
             }
             Utils::print("---> LoRa Packet Tx    : ");
             Utils::println(newPacket);
-        } else if (state == RADIOLIB_ERR_PACKET_TOO_LONG) {
-            Utils::println(F("too long!"));
-        } else if (state == RADIOLIB_ERR_TX_TIMEOUT) {
-            Utils::println(F("timeout!"));
         } else {
             Utils::print(F("failed, code "));
             Utils::println(String(state));
@@ -193,8 +188,6 @@ namespace LoRa_Utils {
                     lastRxTime = millis();
                     return loraPacket;
                 }                
-            } else if (state == RADIOLIB_ERR_RX_TIMEOUT) {
-                // timeout occurred while waiting for a packet
             } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
                 rssi = radio.getRSSI();
                 snr = radio.getSNR();

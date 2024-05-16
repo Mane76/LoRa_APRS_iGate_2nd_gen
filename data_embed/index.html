@@ -345,9 +345,7 @@
                                     WiFi Access
                                 </h5>
                                 <small
-                                    >Add all Wi-Fi Networks intended to be used,
-                                    and their respective coordinates to
-                                    georeference the iGate location.</small
+                                    >Add all Wi-Fi Networks intended to be used.</small
                                 >
                             </div>
                             <div class="col-lg-9 col-sm-12">
@@ -836,6 +834,47 @@
                                                     BME680 sensor
                                                     installed</small
                                                 ></label
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <label for="bme.heightCorrection" class="form-label"
+                                            >Height Correction (Above Sea-Level)</label
+                                        >
+                                        <div class="input-group">
+                                            <input
+                                                type="number"
+                                                name="bme.heightCorrection"
+                                                id="bme.heightCorrection"
+                                                placeholder="0"
+                                                class="form-control"
+                                                step="1"
+                                                min="0"
+                                            />
+                                            <span class="input-group-text"
+                                                >meters</span
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="bme.temperatureCorrection" class="form-label"
+                                            >Temperature Correction</label
+                                        >
+                                        <div class="input-group">
+                                            <input
+                                                type="number"
+                                                name="bme.temperatureCorrection"
+                                                id="bme.temperatureCorrection"
+                                                placeholder="0.0"
+                                                class="form-control"
+                                                step="0.1"
+                                                min="-5"
+                                                max="5"
+                                            />
+                                            <span class="input-group-text"
+                                                >C°</span
                                             >
                                         </div>
                                     </div>

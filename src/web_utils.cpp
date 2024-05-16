@@ -5,7 +5,6 @@
 #include "utils.h"
 
 extern Configuration               Config;
-
 extern uint32_t                    lastBeaconTx;
 extern std::vector<ReceivedPacket> receivedPackets;
 
@@ -151,6 +150,8 @@ namespace WEB_Utils {
         }
 
         Config.bme.active = request->hasParam("bme.active", true);
+        Config.bme.heightCorrection = request->getParam("bme.heightCorrection", true)->value().toInt();
+        Config.bme.temperatureCorrection = request->getParam("bme.temperatureCorrection", true)->value().toFloat();
 
         Config.ota.username = request->getParam("ota.username", true)->value();
         Config.ota.password = request->getParam("ota.password", true)->value();

@@ -3,6 +3,7 @@
 #include "configuration.h"
 #include "display.h"
 
+
 void Configuration::check() {
     if (reload) {
         show_display("------- UPDATE ------", "config is old", "device will update", "and then reboot", 1000);
@@ -92,6 +93,8 @@ void Configuration::writeFile() {
     data["syslog"]["port"] = syslog.port;
 
     data["bme"]["active"] = bme.active;
+    data["bme"]["heightCorrection"] = bme.heightCorrection;
+    data["bme"]["temperatureCorrection"] = bme.temperatureCorrection;
 
     data["ota"]["username"] = ota.username;
     data["ota"]["password"] = ota.password;
@@ -155,6 +158,8 @@ bool Configuration::readFile() {
         syslog.port                     = data["syslog"]["port"].as<int>();
 
         bme.active                      = data["bme"]["active"].as<bool>();
+        bme.heightCorrection            = data["bme"]["heightCorrection"].as<int>();
+        bme.temperatureCorrection       = data["bme"]["temperatureCorrection"].as<float>();
 
         ota.username                    = data["ota"]["username"].as<String>();
         ota.password                    = data["ota"]["password"].as<String>();
@@ -325,6 +330,8 @@ void Configuration::init() {
     syslog.port = 514;
 
     bme.active = false;
+    bme.heightCorrection = 0;
+    bme.temperatureCorrection = 0.0;
 
     ota.username = "";
     ota.password = "";
