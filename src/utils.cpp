@@ -12,10 +12,9 @@
 #include "display.h"
 #include "utils.h"
 
-extern WiFiClient           espClient;
 extern Configuration        Config;
+extern WiFiClient           espClient;
 extern String               versionDate;
-extern bool                 statusAfterBoot;
 extern String               firstLine;
 extern String               secondLine;
 extern String               thirdLine;
@@ -23,9 +22,7 @@ extern String               fourthLine;
 extern String               fifthLine;
 extern String               sixthLine;
 extern String               seventhLine;
-extern uint32_t             lastBeaconTx;
 extern uint32_t             lastScreenOn;
-extern bool                 beaconUpdate;
 extern String               iGateBeaconPacket;
 extern String               iGateLoRaBeaconPacket;
 extern std::vector<String>  lastHeardStation;
@@ -36,7 +33,11 @@ extern String               distance;
 extern uint32_t             lastWiFiCheck;
 extern bool                 WiFiConnect;
 extern bool                 WiFiConnected;
-extern bool                 bmeSensorFound;
+extern int                  wxModuleType;
+
+bool        statusAfterBoot     = true;
+bool        beaconUpdate        = true;
+uint32_t    lastBeaconTx        = 0;
 
 
 namespace Utils {
@@ -108,13 +109,13 @@ namespace Utils {
 
             activeStations();
 
-            if (Config.bme.active && bmeSensorFound) {
+            if (Config.bme.active && wxModuleType != 0) {
                 String sensorData = BME_Utils::readDataSensor();
                 beaconPacket += sensorData;
                 secondaryBeaconPacket += sensorData;
-            } else if (Config.bme.active && !bmeSensorFound) {
-                beaconPacket += ".../...g...t...r...p...P...h..b.....BME MODULE NOT FOUND! ";
-                secondaryBeaconPacket += ".../...g...t...r...p...P...h..b.....BME MODULE NOT FOUND! ";
+            } else if (Config.bme.active && wxModuleType == 0) {
+                beaconPacket += ".../...g...t...r...p...P...h..b.....";
+                secondaryBeaconPacket += ".../...g...t...r...p...P...h..b.....";
             }
             beaconPacket += Config.beacon.comment;
             secondaryBeaconPacket += Config.beacon.comment;
@@ -169,14 +170,14 @@ namespace Utils {
 
     void checkWiFiInterval() {
         uint32_t WiFiCheck = millis() - lastWiFiCheck;
-        if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15*60*1000) {
-        WiFiConnect = true;
+        if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
+            WiFiConnect = true;
         }
         if (WiFiConnect) {
-        Serial.println("\nConnecting to WiFi ...");
-        WIFI_Utils::startWiFi();
-        lastWiFiCheck = millis();
-        WiFiConnect = false;
+            Serial.println("\nConnecting to WiFi ...");
+            WIFI_Utils::startWiFi();
+            lastWiFiCheck = millis();
+            WiFiConnect = false;
         }
     }
 

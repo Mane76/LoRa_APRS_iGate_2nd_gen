@@ -6,7 +6,6 @@
 #include "utils.h"
 
 extern Configuration        Config;
-extern std::vector<String>  outputPacketBuffer;
 
 #define MAX_CLIENTS 4
 #define INPUT_BUFFER_SIZE (2 + MAX_CLIENTS)
@@ -31,16 +30,12 @@ namespace TNC_Utils {
 
     void checkNewClients() {
         WiFiClient new_client = tncServer.available();
-
         if (new_client.connected()) {
             for (int i = 0; i < MAX_CLIENTS; i++) {
                 WiFiClient* client = clients[i];
-
                 if (client == nullptr) {
                     clients[i] = new WiFiClient(new_client);
-
                     Utils::println("New TNC client connected");
-
                     break;
                 }
             }
@@ -49,13 +44,11 @@ namespace TNC_Utils {
 
     void handleInputData(char character, int bufferIndex) {
         String* data;
-        
         if (bufferIndex == -1) {
             data = &inputSerialBuffer;
         } else {
             data = &inputServerBuffer[bufferIndex];
         }
-
         if (data->length() == 0 && character != (char)FEND) {
             return;
         }
@@ -80,7 +73,6 @@ namespace TNC_Utils {
                     Utils::println("Ignored own frame from KISS");
                 }
             }
-
             data->clear();
         }
 
@@ -130,14 +122,12 @@ namespace TNC_Utils {
                 }
             }
         }
-
         Utils::print("---> Sent to TNC       : ");
         Utils::println(packet);
     }
 
     void sendToSerial(String packet) {
         packet = packet.substring(3);
-
         Serial.print(encodeKISS(packet));
         Serial.flush();
     }
@@ -145,10 +135,8 @@ namespace TNC_Utils {
     void loop() {
         if (Config.tnc.enableServer) {
             checkNewClients();
-
             readFromClients();
         }
-
         if (Config.tnc.enableSerial) {
             readFromSerial();
         }

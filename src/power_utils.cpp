@@ -20,10 +20,6 @@ extern Configuration    Config;
 
 namespace POWER_Utils {
 
-    bool   BatteryIsConnected = false;
-    String batteryVoltage = "";
-    String batteryChargeDischargeCurrent = "";
-
     void activateMeasurement() {
         #if defined(HAS_AXP192) || defined(HAS_AXP2101)
             PMU.disableTSPinMeasure();
@@ -138,7 +134,7 @@ namespace POWER_Utils {
         }
 
         #ifdef VEXT_CTRL
-            pinMode(VEXT_CTRL,OUTPUT); // this is for GPS and TFT screen on Wireless_Tracker and only for Oled in Heltec V3
+            pinMode(VEXT_CTRL,OUTPUT); // GPS + TFT on HELTEC Wireless_Tracker and only for Oled in HELTEC V3
             digitalWrite(VEXT_CTRL, HIGH);
         #endif
         
@@ -148,6 +144,10 @@ namespace POWER_Utils {
 
         #ifdef HELTEC_WIRELESS_TRACKER
             Wire.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
+        #endif
+
+        #ifdef HELTEC_V3
+            Wire1.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
         #endif
         
         delay(1000);

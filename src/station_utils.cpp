@@ -5,12 +5,14 @@
 #include "utils.h"
 #include <vector>
 
-extern Configuration        Config;
-extern std::vector<String>  lastHeardStation;
-extern std::vector<String>  outputPacketBuffer;
-extern uint32_t             lastTxTime;
-extern uint32_t             lastRxTime;
-extern String               fourthLine;
+extern Configuration            Config;
+extern uint32_t                 lastRxTime;
+extern String                   fourthLine;
+
+uint32_t lastTxTime             = millis();
+std::vector<String>             lastHeardStation;
+std::vector<String>             outputPacketBuffer;
+std::vector<String>             packet25SegBuffer;
 
 
 namespace STATION_Utils {
@@ -61,6 +63,39 @@ namespace STATION_Utils {
         }
         Utils::println(" ---> Station not Heard for last 30 min (Not Tx)\n");
         return false;
+    }
+
+    void clean25SegBuffer() {
+        if (!packet25SegBuffer.empty()) {
+            String deltaTimeString = packet25SegBuffer[0].substring(0, packet25SegBuffer[0].indexOf(","));
+            uint32_t deltaTime = deltaTimeString.toInt();
+            if ((millis() - deltaTime) >  25 * 1000) {
+                packet25SegBuffer.erase(packet25SegBuffer.begin());
+            }
+        }
+    }
+
+    bool check25SegBuffer(String station, String textMessage) {
+        if (!packet25SegBuffer.empty()) {
+            bool shouldBeIgnored = false;
+            for (int i = 0; i < packet25SegBuffer.size(); i++) {
+                String temp = packet25SegBuffer[i].substring(packet25SegBuffer[i].indexOf(",") + 1);
+                String bufferStation = temp.substring(0, temp.indexOf(","));
+                String bufferMessage = temp.substring(temp.indexOf(",") + 1);
+                if (bufferStation == station && bufferMessage == textMessage) {
+                    shouldBeIgnored = true;
+                }
+            }
+            if (shouldBeIgnored) {
+                return false;
+            } else {
+                packet25SegBuffer.push_back(String(millis()) + "," + station + "," + textMessage);
+                return true;
+            }
+        } else {
+            packet25SegBuffer.push_back(String(millis()) + "," + station + "," + textMessage);
+            return true;
+        }    
     }
 
     void processOutputPacketBuffer() {
