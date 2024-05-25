@@ -18,21 +18,17 @@
         "sendViaAPRSIS": true,
         "sendViaRF": false
     },
-    "digi": {
-        "mode": 0
-    },
-    "tnc": {
-        "enableServer": false,
-        "enableSerial": false,
-        "acceptOwn": false
-    },
     "aprs_is": {
         "active": false,
         "passcode": "XYZVW",
         "server": "rotate.aprs2.net",
         "port": 14580,
         "filter": "m/30",
-        "toRF": false
+        "messagesToRF": false,
+        "objectsToRF": false
+    },
+    "digi": {
+        "mode": 0
     },
     "lora": {
         "txFreq": 433775000,
@@ -49,26 +45,40 @@
         "timeout": 4,
         "turn180": false
     },
+    "battery": {
+        "sendInternalVoltage": false,
+        "monitorInternalVoltage": false,
+        "internalSleepVoltage": 3.0,
+        "sendExternalVoltage": false,
+        "externalVoltagePin": 34,
+        "monitorExternalVoltage": false,
+        "externalSleepVoltage": 10.9
+	},
+    "bme": {
+        "active": false,
+        "heightCorrection": 0,
+        "temperatureCorrection": 0.0
+	},
     "syslog": {
         "active": false,
         "server": "192.168.0.100",
         "port": 514
     },
-    "bme": {
-		"active": false,
-		"heightCorrection": 0,
-		"temperatureCorrection": 0.0
-	},
+    "tnc": {
+        "enableServer": false,
+        "enableSerial": false,
+        "acceptOwn": false
+    },
     "ota": {
         "username": "",
         "password": ""
     },
     "other": {
         "rememberStationTime": 30,
-        "sendBatteryVoltage": false,
-        "externalVoltageMeasurement": false,
-        "externalVoltagePin": 34,
         "lowPowerMode": false,
-        "lowVoltageCutOff": 0
+        "lowVoltageCutOff": 0,
+        "backupDigiMode": false,
+        "rebootMode": false,
+        "rebootModeTime": 6
     }
 }

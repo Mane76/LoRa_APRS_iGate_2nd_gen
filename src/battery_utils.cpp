@@ -1,12 +1,15 @@
 #include "battery_utils.h"
 #include "configuration.h"
-#include "pins_config.h"
+#include "boards_pinout.h"
+#include "utils.h"
 
-extern Configuration    Config;
-extern uint32_t         lastBatteryCheck;
+extern  Configuration               Config;
+extern  uint32_t                    lastBatteryCheck;
 
-float adcReadingTransformation = (3.3/4095);
-float voltageDividerCorrection = 0.288;
+bool    shouldSleepLowVoltage       = false;
+
+float   adcReadingTransformation    = (3.3/4095);
+float   voltageDividerCorrection    = 0.288;
 
 // for External Voltage Measurment (MAX = 15Volts !!!)
 float R1 = 100.000; //in Kilo-Ohms
@@ -21,14 +24,14 @@ namespace BATTERY_Utils {
         return (voltage - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
 
-    float checkBattery() { 
+    float checkInternalVoltage() { 
         int sample;
         int sampleSum = 0;
         #ifdef ADC_CTRL
             #if defined(HELTEC_WSL_V3) || defined(HELTEC_WIRELESS_TRACKER)
                 digitalWrite(ADC_CTRL, HIGH);
             #endif
-            #ifdef HELTEC_V3
+            #if defined(HELTEC_V3) || defined(HELTEC_V2)
                 digitalWrite(ADC_CTRL, LOW);
             #endif
         #endif
@@ -48,7 +51,7 @@ namespace BATTERY_Utils {
             #if defined(HELTEC_WSL_V3) || defined(HELTEC_WIRELESS_TRACKER)
                 digitalWrite(ADC_CTRL, LOW);
             #endif
-            #ifdef HELTEC_V3_GPS
+            #if defined(HELTEC_V3) || defined(HELTEC_V2)
                 digitalWrite(ADC_CTRL, HIGH);
             #endif
             double inputDivider = (1.0 / (390.0 + 100.0)) * 100.0;  // The voltage divider is a 390k + 100k resistor in series, 100k on the low side.
@@ -64,13 +67,13 @@ namespace BATTERY_Utils {
         int sample;
         int sampleSum = 0;
         for (int i = 0; i < 100; i++) {
-            sample = analogRead(Config.externalVoltagePin);
+            sample = analogRead(Config.battery.externalVoltagePin);
             sampleSum += sample;
             delayMicroseconds(50); 
         }
 
         float voltage = ((((sampleSum/100)* adcReadingTransformation) + readingCorrection) * ((R1+R2)/R2)) - multiplyCorrection;
-
+        
         return voltage; // raw voltage without mapping
 
         // return mapVoltage(voltage, 5.05, 6.32, 4.5, 5.5); // mapped voltage
@@ -80,11 +83,25 @@ namespace BATTERY_Utils {
         if (lastBatteryCheck == 0 || millis() - lastBatteryCheck >= 15 * 60 * 1000) {
             lastBatteryCheck = millis();
 
-            float voltage = checkBattery();
+            float voltage = checkInternalVoltage();
             
             if (voltage < Config.lowVoltageCutOff) {
                 ESP.deepSleep(1800000000); // 30 min sleep (60s = 60e6)
             }
+        }
+    }
+
+    void startupBatteryHealth() {
+        #ifdef BATTERY_PIN
+            if (Config.battery.monitorInternalVoltage && checkInternalVoltage() < Config.battery.internalSleepVoltage) {
+                shouldSleepLowVoltage = true;
+            }
+        #endif
+        if (Config.battery.monitorExternalVoltage && checkExternalVoltage() < Config.battery.externalSleepVoltage) {
+            shouldSleepLowVoltage = true;
+        }
+        if (shouldSleepLowVoltage) {
+            Utils::checkSleepByLowBatteryVoltage(0);
         }
     }
 

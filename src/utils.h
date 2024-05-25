@@ -19,11 +19,13 @@ namespace Utils {
     void activeStations();
     void checkBeaconInterval();
     void checkDisplayInterval();
-    void checkWiFiInterval();
     void validateFreqs();
     void typeOfPacket(const String& packet, uint8_t packetType);
     void print(const String& text);
     void println(const String& text);
+    void checkRebootMode();
+    void checkRebootTime();
+    void checkSleepByLowBatteryVoltage(uint8_t mode);
 
 }
 

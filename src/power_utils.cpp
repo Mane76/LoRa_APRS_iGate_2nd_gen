@@ -1,6 +1,7 @@
 #include "configuration.h"
+#include "battery_utils.h"
+#include "boards_pinout.h"
 #include "power_utils.h"
-#include "pins_config.h"
 
 #if defined(HAS_AXP192) || defined(HAS_AXP2101)
     #define I2C_SDA 21
@@ -128,8 +129,8 @@ namespace POWER_Utils {
             pinMode(INTERNAL_LED_PIN, OUTPUT);
         #endif
 
-        if (Config.externalVoltageMeasurement) {
-            pinMode(Config.externalVoltagePin, INPUT);
+        if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
+            pinMode(Config.battery.externalVoltagePin, INPUT);
         }
 
         #ifdef VEXT_CTRL
@@ -152,6 +153,8 @@ namespace POWER_Utils {
         #endif
         
         delay(1000);
+
+        BATTERY_Utils::startupBatteryHealth();
     }
 
 }

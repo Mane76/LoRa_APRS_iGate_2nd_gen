@@ -17,90 +17,87 @@ void Configuration::check() {
 void Configuration::writeFile() {
     Serial.println("Saving config..");
 
-    StaticJsonDocument<2048> data;
+    StaticJsonDocument<2560> data;
     File configFile = SPIFFS.open("/igate_conf.json", "w");
 
     if (wifiAPs[0].ssid != "") { // We don't want to save Auto AP empty SSID
         for (int i = 0; i < wifiAPs.size(); i++) {
             data["wifi"]["AP"][i]["ssid"] = wifiAPs[i].ssid;
             data["wifi"]["AP"][i]["password"] = wifiAPs[i].password;
-            // data["wifi"]["AP"][i]["latitude"] = wifiAPs[i].latitude;
-            // data["wifi"]["AP"][i]["longitude"] = wifiAPs[i].longitude;
         }
     }
 
-    data["wifi"]["autoAP"]["password"] = wifiAutoAP.password;
-    data["wifi"]["autoAP"]["powerOff"] = wifiAutoAP.powerOff;
+    data["wifi"]["autoAP"]["password"]      = wifiAutoAP.password;
+    data["wifi"]["autoAP"]["powerOff"]      = wifiAutoAP.powerOff;
 
-    data["callsign"] = callsign;
-    // data["stationMode"] = stationMode; // only check for config version
-    // data["iGateComment"] = iGateComment;
+    data["callsign"]                        = callsign;
 
-    // data["other"]["beaconInterval"] = beaconInterval;
-    // data["other"]["igateSendsLoRaBeacons"] = igateSendsLoRaBeacons;
-    // data["other"]["igateRepeatsLoRaPackets"] = igateRepeatsLoRaPackets;
-    data["other"]["rememberStationTime"] = rememberStationTime;
-    data["other"]["sendBatteryVoltage"] = sendBatteryVoltage;
-    data["other"]["externalVoltageMeasurement"] = externalVoltageMeasurement;
-    data["other"]["externalVoltagePin"] = externalVoltagePin;
+    data["aprs_is"]["active"]               = aprs_is.active;
+    data["aprs_is"]["passcode"]             = aprs_is.passcode;
+    data["aprs_is"]["server"]               = aprs_is.server;
+    data["aprs_is"]["port"]                 = aprs_is.port;
+    data["aprs_is"]["filter"]               = aprs_is.filter;
+    data["aprs_is"]["messagesToRF"]         = aprs_is.messagesToRF;
+    data["aprs_is"]["objectsToRF"]          = aprs_is.objectsToRF;
 
-    data["digi"]["mode"] = digi.mode;
-    // data["digi"]["comment"] = digi.comment;
-    // data["digi"]["latitude"] = digi.latitude;
-    // data["digi"]["longitude"] = digi.longitude;
+    data["beacon"]["comment"]               = beacon.comment;
+    data["beacon"]["interval"]              = beacon.interval;
+    data["beacon"]["latitude"]              = beacon.latitude;
+    data["beacon"]["longitude"]             = beacon.longitude;
+    data["beacon"]["overlay"]               = beacon.overlay;
+    data["beacon"]["symbol"]                = beacon.symbol;
+    data["beacon"]["sendViaAPRSIS"]         = beacon.sendViaAPRSIS;
+    data["beacon"]["sendViaRF"]             = beacon.sendViaRF;
+    data["beacon"]["path"]                  = beacon.path;
 
-    data["tnc"]["enableServer"] = tnc.enableServer;
-    data["tnc"]["enableSerial"] = tnc.enableSerial;
-    data["tnc"]["acceptOwn"] = tnc.acceptOwn;
+    data["digi"]["mode"]                    = digi.mode;
 
-    data["aprs_is"]["active"] = aprs_is.active;
-    data["aprs_is"]["passcode"] = aprs_is.passcode;
-    data["aprs_is"]["server"] = aprs_is.server;
-    data["aprs_is"]["port"] = aprs_is.port;
-    data["aprs_is"]["filter"] = aprs_is.filter;
-    data["aprs_is"]["toRF"] = aprs_is.toRF;
+    data["lora"]["rxFreq"]                  = loramodule.rxFreq;
+    data["lora"]["txFreq"]                  = loramodule.txFreq;
+    data["lora"]["spreadingFactor"]         = loramodule.spreadingFactor;
+    data["lora"]["signalBandwidth"]         = loramodule.signalBandwidth;
+    data["lora"]["codingRate4"]             = loramodule.codingRate4;
+    data["lora"]["power"]                   = loramodule.power;
+    data["lora"]["txActive"]                = loramodule.txActive;
+    data["lora"]["rxActive"]                = loramodule.rxActive;
 
-    data["beacon"]["comment"] = beacon.comment;
-    // data["beacon"]["igateRepeatsLoRaPackets"] = beacon.igateRepeatsLoRaPackets;
-    // data["beacon"]["igateSendsLoRaBeacons"] = beacon.igateSendsLoRaBeacons;
-    data["beacon"]["interval"] = beacon.interval;
-    data["beacon"]["latitude"] = beacon.latitude;
-    data["beacon"]["longitude"] = beacon.longitude;
-    data["beacon"]["overlay"] = beacon.overlay;
-    data["beacon"]["symbol"] = beacon.symbol;
-    data["beacon"]["sendViaAPRSIS"] = beacon.sendViaAPRSIS;
-    data["beacon"]["sendViaRF"] = beacon.sendViaRF;
-    data["beacon"]["path"] = beacon.path;
+    data["display"]["alwaysOn"]             = display.alwaysOn;
+    data["display"]["timeout"]              = display.timeout;
+    data["display"]["turn180"]              = display.turn180;
 
-    // data["lora"]["iGateFreq"] = loramodule.iGateFreq;
-    // data["lora"]["digirepeaterTxFreq"] = loramodule.digirepeaterTxFreq;
-    // data["lora"]["digirepeaterRxFreq"] = loramodule.digirepeaterRxFreq;
-    data["lora"]["rxFreq"] = loramodule.rxFreq;
-    data["lora"]["txFreq"] = loramodule.txFreq;
-    data["lora"]["spreadingFactor"] = loramodule.spreadingFactor;
-    data["lora"]["signalBandwidth"] = loramodule.signalBandwidth;
-    data["lora"]["codingRate4"] = loramodule.codingRate4;
-    data["lora"]["power"] = loramodule.power;
-    data["lora"]["txActive"] = loramodule.txActive;
-    data["lora"]["rxActive"] = loramodule.rxActive;
+    data["battery"]["sendInternalVoltage"]      = battery.sendInternalVoltage;
+    data["battery"]["monitorInternalVoltage"]   = battery.monitorInternalVoltage;
+    data["battery"]["internalSleepVoltage"]     = battery.internalSleepVoltage;
 
-    data["display"]["alwaysOn"] = display.alwaysOn;
-    data["display"]["timeout"] = display.timeout;
-    data["display"]["turn180"] = display.turn180;
+    data["battery"]["sendExternalVoltage"]      = battery.sendExternalVoltage;
+    data["battery"]["externalVoltagePin"]       = battery.externalVoltagePin;
+    data["battery"]["monitorExternalVoltage"]   = battery.monitorExternalVoltage;
+    data["battery"]["externalSleepVoltage"]     = battery.externalSleepVoltage;
 
-    data["syslog"]["active"] = syslog.active;
-    data["syslog"]["server"] = syslog.server;
-    data["syslog"]["port"] = syslog.port;
+    data["bme"]["active"]                   = bme.active;
+    data["bme"]["heightCorrection"]         = bme.heightCorrection;
+    data["bme"]["temperatureCorrection"]    = bme.temperatureCorrection;
 
-    data["bme"]["active"] = bme.active;
-    data["bme"]["heightCorrection"] = bme.heightCorrection;
-    data["bme"]["temperatureCorrection"] = bme.temperatureCorrection;
+    data["syslog"]["active"]                = syslog.active;
+    data["syslog"]["server"]                = syslog.server;
+    data["syslog"]["port"]                  = syslog.port;
 
-    data["ota"]["username"] = ota.username;
-    data["ota"]["password"] = ota.password;
+    data["tnc"]["enableServer"]             = tnc.enableServer;
+    data["tnc"]["enableSerial"]             = tnc.enableSerial;
+    data["tnc"]["acceptOwn"]                = tnc.acceptOwn;
 
-    data["other"]["lowPowerMode"] = lowPowerMode;
-    data["other"]["lowVoltageCutOff"] = lowVoltageCutOff;
+    data["other"]["rebootMode"]             = rebootMode;
+    data["other"]["rebootModeTime"]         = rebootModeTime;
+
+    data["ota"]["username"]                 = ota.username;
+    data["ota"]["password"]                 = ota.password;
+
+    data["other"]["rememberStationTime"]        = rememberStationTime;
+
+    data["other"]["backupDigiMode"]         = backupDigiMode;    
+
+    data["other"]["lowPowerMode"]           = lowPowerMode;
+    data["other"]["lowVoltageCutOff"]       = lowVoltageCutOff;    
 
     serializeJson(data, configFile);
 
@@ -115,7 +112,7 @@ bool Configuration::readFile() {
     File configFile = SPIFFS.open("/igate_conf.json", "r");
 
     if (configFile) {
-        StaticJsonDocument<2048> data;
+        StaticJsonDocument<2560> data;
 
         DeserializationError error = deserializeJson(data, configFile);
         if (error) {
@@ -136,9 +133,15 @@ bool Configuration::readFile() {
 
         callsign                        = data["callsign"].as<String>();
         rememberStationTime             = data["other"]["rememberStationTime"].as<int>();
-        sendBatteryVoltage              = data["other"]["sendBatteryVoltage"].as<bool>();
-        externalVoltageMeasurement      = data["other"]["externalVoltageMeasurement"].as<bool>();
-        externalVoltagePin              = data["other"]["externalVoltagePin"].as<int>();
+
+        battery.sendInternalVoltage     = data["battery"]["sendInternalVoltage"].as<bool>();
+        battery.monitorInternalVoltage  = data["battery"]["monitorInternalVoltage"].as<bool>();
+        battery.internalSleepVoltage    = data["battery"]["internalSleepVoltage"].as<float>();
+
+        battery.sendExternalVoltage     = data["battery"]["sendExternalVoltage"].as<bool>();
+        battery.externalVoltagePin      = data["battery"]["externalVoltagePin"].as<int>();
+        battery.monitorExternalVoltage  = data["battery"]["monitorExternalVoltage"].as<bool>();
+        battery.externalSleepVoltage    = data["battery"]["externalSleepVoltage"].as<float>();
 
         aprs_is.passcode                = data["aprs_is"]["passcode"].as<String>();
         aprs_is.server                  = data["aprs_is"]["server"].as<String>();
@@ -171,7 +174,12 @@ bool Configuration::readFile() {
         lowPowerMode                    = data["other"]["lowPowerMode"].as<bool>();
         lowVoltageCutOff                = data["other"]["lowVoltageCutOff"].as<double>();
 
-        int stationMode                     = data["stationMode"].as<int>(); // deprecated but need to specify config version
+        backupDigiMode                  = data["other"]["backupDigiMode"].as<bool>();
+
+        rebootMode                      = data["other"]["rebootMode"].as<bool>();
+        rebootModeTime                  = data["other"]["rebootModeTime"].as<int>();
+
+        int stationMode                 = data["stationMode"].as<int>(); // deprecated but need to specify config version
 
         if (stationMode == 0) {
             // Load new settings 
@@ -182,8 +190,6 @@ bool Configuration::readFile() {
             beacon.overlay                    = data["beacon"]["overlay"].as<String>();
             beacon.symbol                     = data["beacon"]["symbol"].as<String>();
             beacon.interval                   = data["beacon"]["interval"].as<int>();
-            // beacon.igateSendsLoRaBeacons      = data["beacon"]["igateSendsLoRaBeacons"].as<bool>();
-            // beacon.igateRepeatsLoRaPackets    = data["beacon"]["igateRepeatsLoRaPackets"].as<bool>();
             beacon.sendViaAPRSIS              = data["beacon"]["sendViaAPRSIS"].as<bool>();
             beacon.sendViaRF                  = data["beacon"]["sendViaRF"].as<bool>();
             beacon.path                       = data["beacon"]["path"].as<String>();
@@ -192,7 +198,8 @@ bool Configuration::readFile() {
 
             aprs_is.active                    = data["aprs_is"]["active"].as<bool>();
             aprs_is.filter                    = data["aprs_is"]["filter"].as<String>();
-            aprs_is.toRF                      = data["aprs_is"]["toRF"].as<bool>();
+            aprs_is.messagesToRF              = data["aprs_is"]["messagesToRF"].as<bool>();
+            aprs_is.objectsToRF               = data["aprs_is"]["objectsToRF"].as<bool>();
 
             loramodule.txFreq                 = data["lora"]["txFreq"].as<long>();
             loramodule.rxFreq                 = data["lora"]["rxFreq"].as<long>();
@@ -203,8 +210,6 @@ bool Configuration::readFile() {
 
             String iGateComment             = data["iGateComment"].as<String>();
             int beaconInterval              = data["other"]["beaconInterval"].as<int>();
-            // bool igateSendsLoRaBeacons      = data["other"]["igateSendsLoRaBeacons"].as<bool>();
-            // bool igateRepeatsLoRaPackets    = data["other"]["igateRepeatsLoRaPackets"].as<bool>();
 
             long iGateFreq                  = data["lora"]["iGateFreq"].as<long>();
             long digirepeaterTxFreq         = data["lora"]["digirepeaterTxFreq"].as<long>();
@@ -217,8 +222,7 @@ bool Configuration::readFile() {
             beacon.latitude = digiLatitude;
             beacon.longitude = digiLongitude;
             beacon.interval = beaconInterval;
-            // beacon.igateSendsLoRaBeacons = igateSendsLoRaBeacons;
-            // beacon.igateRepeatsLoRaPackets = igateRepeatsLoRaPackets;
+
             loramodule.txFreq = digirepeaterTxFreq;
             loramodule.rxFreq = digirepeaterRxFreq;
             loramodule.rxActive = true;
@@ -268,86 +272,85 @@ void Configuration::init() {
     reload = false;
 
     WiFi_AP wifiap;
-    wifiap.ssid                   = "";
-    wifiap.password               = "";
-    // wifiap.latitude               = 0.0; // deprecated
-    // wifiap.longitude              = 0.0; // deprecated
+    wifiap.ssid                 = "";
+    wifiap.password             = "";
+
     wifiAPs.push_back(wifiap);
 
-    wifiAutoAP.password = "1234567890";
-    wifiAutoAP.powerOff = 15;
+    wifiAutoAP.password         = "1234567890";
+    wifiAutoAP.powerOff         = 15;
 
-    callsign = "N0CALL";
-    // stationMode = 1; // deprecated
-    // iGateComment = "LoRa_APRS_iGate Development"; // deprecated
+    callsign                    = "N0CALL";
 
-    beacon.comment = "LoRa APRS"; // new
-    beacon.latitude = 0.0; // new
-    beacon.longitude = 0.0; // new
-    beacon.interval = 15; // new
-    // beacon.igateRepeatsLoRaPackets = false; // new
-    // beacon.igateSendsLoRaBeacons = false; // new
-    beacon.overlay = "L"; // new
-    beacon.symbol = "#"; // new
-    beacon.sendViaAPRSIS = true; // new
-    beacon.sendViaRF = false; // new
-    beacon.path = "WIDE1-1"; // new
+    beacon.comment              = "LoRa APRS"; // new
+    beacon.latitude             = 0.0; // new
+    beacon.longitude            = 0.0; // new
+    beacon.interval             = 15; // new
+    beacon.overlay              = "L"; // new
+    beacon.symbol               = "#"; // new
+    beacon.sendViaAPRSIS        = true; // new
+    beacon.sendViaRF            = false; // new
+    beacon.path                 = "WIDE1-1"; // new
     
-    digi.mode = 0; // new
-    // digi.comment = "LoRa_APRS_iGate Development"; // deprecated
-    // digi.latitude = 0.0; // deprecated
-    // digi.longitude = 0.0; // deprecated
+    digi.mode = 0;
 
-    tnc.enableServer = false;
-    tnc.enableSerial = false;
-    tnc.acceptOwn = false;
+    tnc.enableServer            = false;
+    tnc.enableSerial            = false;
+    tnc.acceptOwn               = false;
 
-    aprs_is.active = false; // new
-    aprs_is.passcode = "XYZVW";
-    aprs_is.server = "rotate.aprs2.net";
-    aprs_is.port = 14580;
-    aprs_is.filter = "m/10"; // new
-    aprs_is.toRF = false; // new
+    aprs_is.active              = false; // new
+    aprs_is.passcode            = "XYZVW";
+    aprs_is.server              = "rotate.aprs2.net";
+    aprs_is.port                = 14580;
+    aprs_is.filter              = "m/10"; // new
+    aprs_is.messagesToRF        = false;
+    aprs_is.objectsToRF         = false;
 
-    // loramodule.iGateFreq = 433775000; // deprecated
-    // loramodule.digirepeaterTxFreq = 433775000; // deprecated
-    // loramodule.digirepeaterRxFreq = 433900000; // deprecated
-    loramodule.txFreq = 433775000; // new
-    loramodule.rxFreq = 433775000; // new
-    loramodule.spreadingFactor = 12;
-    loramodule.signalBandwidth = 125000;
-    loramodule.codingRate4 = 5;
-    loramodule.power = 20;
-    loramodule.txActive = false; // new
-    loramodule.rxActive = true; // new
+    loramodule.txFreq           = 433775000; // new
+    loramodule.rxFreq           = 433775000; // new
+    loramodule.spreadingFactor  = 12;
+    loramodule.signalBandwidth  = 125000;
+    loramodule.codingRate4      = 5;
+    loramodule.power            = 20;
+    loramodule.txActive         = false; // new
+    loramodule.rxActive         = true; // new
 
-    display.alwaysOn = true;
-    display.timeout = 4;
-    display.turn180 = false;
+    display.alwaysOn            = true;
+    display.timeout             = 4;
+    display.turn180             = false;
 
-    syslog.active = false;
-    syslog.server = "192.168.0.100";
-    syslog.port = 514;
+    syslog.active               = false;
+    syslog.server               = "192.168.0.100";
+    syslog.port                 = 514;
 
-    bme.active = false;
-    bme.heightCorrection = 0;
-    bme.temperatureCorrection = 0.0;
+    bme.active                  = false;
+    bme.heightCorrection        = 0;
+    bme.temperatureCorrection   = 0.0;
 
-    ota.username = "";
-    ota.password = "";
+    ota.username                = "";
+    ota.password                = "";
 
-    // beaconInterval = 15; // deprecated
-    // igateSendsLoRaBeacons = false; // deprecated
-    // igateRepeatsLoRaPackets = false; // deprecated
-    rememberStationTime = 30;
-    sendBatteryVoltage = false;
-    externalVoltageMeasurement = false;
-    externalVoltagePin = 34;
+    
+    rememberStationTime         = 30;
 
-    lowPowerMode = false;
-    lowVoltageCutOff = 0;
+    battery.sendInternalVoltage     = false;
+    battery.monitorInternalVoltage  = false;
+    battery.internalSleepVoltage    = 3.0;
 
-    Serial.println("todo escrito");
+    battery.sendExternalVoltage     = false;
+    battery.externalVoltagePin      = 34;
+    battery.monitorExternalVoltage  = false;
+    battery.externalSleepVoltage    = 3.0;
+
+    lowPowerMode                = false;
+    lowVoltageCutOff            = 0;
+
+    backupDigiMode              = false;
+
+    rebootMode                  = false;
+    rebootModeTime              = 0;
+
+    Serial.println("All is Written!");
 }
 
 Configuration::Configuration() {
