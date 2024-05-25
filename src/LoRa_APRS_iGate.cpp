@@ -9,7 +9,7 @@
 
                                           Ricardo Guzman - CA2RXU 
                               https://github.com/richonguzman/LoRa_APRS_Tracker
-                                 (donations : http://paypal.me/richonguzman)                                                                       
+                                 (donations : http://paypal.me/richonguzman)
 ______________________________________________________________________________________________________________*/
 
 #include <ElegantOTA.h>
@@ -20,8 +20,8 @@ ________________________________________________________________________________
 #include "battery_utils.h"
 #include "aprs_is_utils.h"
 #include "station_utils.h"
+#include "boards_pinout.h"
 #include "syslog_utils.h"
-#include "pins_config.h"
 #include "query_utils.h"
 #include "power_utils.h"
 #include "lora_utils.h"
@@ -37,29 +37,21 @@ ________________________________________________________________________________
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.05.17";
+String          versionDate             = "2024.05.24";
 Configuration   Config;
 WiFiClient      espClient;
+
 uint8_t         myWiFiAPIndex           = 0;
 int             myWiFiAPSize            = Config.wifiAPs.size();
 WiFi_AP         *currentWiFi            = &Config.wifiAPs[myWiFiAPIndex];
 
 bool            isUpdatingOTA           = false;
-uint32_t        previousWiFiMillis      = 0;
-uint32_t        lastScreenOn            = millis();
-
-uint32_t        lastWiFiCheck           = 0;
-bool            WiFiConnect             = true;
-bool            WiFiConnected           = false;
-bool            WiFiAutoAPStarted       = false;
-long            WiFiAutoAPTime          = false;
-
 uint32_t        lastBatteryCheck        = 0;
-String          batteryVoltage;
+
+bool            backUpDigiMode          = false;
+bool            modemLoggedToAPRSIS     = false;
 
 std::vector<ReceivedPacket> receivedPackets;
-
-bool            modemLoggedToAPRSIS     = false;
 
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine;
 
@@ -102,8 +94,8 @@ void setup() {
                 if (lastBeacon == 0 || time - lastBeacon >= Config.beacon.interval * 60) {
                     Serial.println("Sending beacon");
                     String comment = Config.beacon.comment;
-                    if (Config.sendBatteryVoltage) comment += " Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V";
-                    if (Config.externalVoltageMeasurement) comment += " Ext=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V";
+                    if (Config.battery.sendInternalVoltage) comment += " Batt=" + String(BATTERY_Utils::checkInternalVoltage(),2) + "V";
+                    if (Config.battery.sendExternalVoltage) comment += " Ext=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V";
                     STATION_Utils::addToOutputPacketBuffer(GPS_Utils::getiGateLoRaBeaconPacket() + comment);                
                     lastBeacon = time;
                 }
@@ -119,7 +111,6 @@ void setup() {
             Config.loramodule.rxActive = false;
         }
     #endif
-
     WIFI_Utils::setup();
     SYSLOG_Utils::setup();
     BME_Utils::setup();
@@ -128,6 +119,7 @@ void setup() {
     #ifdef ESP32_DIY_LoRa_A7670
         A7670_Utils::setup();
     #endif
+    Utils::checkRebootMode();
 }
 
 void loop() {
@@ -150,7 +142,7 @@ void loop() {
     #ifdef ESP32_DIY_LoRa_A7670
         if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
     #else
-        if (Config.aprs_is.active && !espClient.connected()) APRS_IS_Utils::connect();
+        if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !espClient.connected()) APRS_IS_Utils::connect();
     #endif
 
     TNC_Utils::loop();
@@ -170,7 +162,7 @@ void loop() {
             APRS_IS_Utils::processLoRaPacket(packet); // Send received packet to APRSIS
         }
 
-        if (Config.digi.mode == 2) { // If Digi enabled
+        if (Config.digi.mode == 2 || backUpDigiMode) { // If Digi enabled
             DIGI_Utils::processLoRaPacket(packet); // Send received packet to Digi
         }
 
@@ -190,4 +182,6 @@ void loop() {
     STATION_Utils::clean25SegBuffer();
 
     show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+    Utils::checkRebootTime();
+    Utils::checkSleepByLowBatteryVoltage(1);
 }

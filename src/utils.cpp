@@ -3,8 +3,8 @@
 #include "station_utils.h"
 #include "battery_utils.h"
 #include "aprs_is_utils.h"
+#include "boards_pinout.h"
 #include "syslog_utils.h"
-#include "pins_config.h"
 #include "A7670_utils.h"
 #include "wifi_utils.h"
 #include "gps_utils.h"
@@ -22,7 +22,6 @@ extern String               fourthLine;
 extern String               fifthLine;
 extern String               sixthLine;
 extern String               seventhLine;
-extern uint32_t             lastScreenOn;
 extern String               iGateBeaconPacket;
 extern String               iGateLoRaBeaconPacket;
 extern std::vector<String>  lastHeardStation;
@@ -30,14 +29,15 @@ extern int                  rssi;
 extern float                snr;
 extern int                  freqError;
 extern String               distance;
-extern uint32_t             lastWiFiCheck;
-extern bool                 WiFiConnect;
 extern bool                 WiFiConnected;
 extern int                  wxModuleType;
+extern bool                 backUpDigiMode;
+extern bool                 shouldSleepLowVoltage;
 
 bool        statusAfterBoot     = true;
 bool        beaconUpdate        = true;
 uint32_t    lastBeaconTx        = 0;
+uint32_t    lastScreenOn        = millis();
 
 
 namespace Utils {
@@ -63,6 +63,8 @@ namespace Utils {
     String getLocalIP() {
         if (!WiFiConnected) {
             return "IP :  192.168.4.1";
+        } else if (backUpDigiMode) {
+            return "- BACKUP DIGI MODE -";
         } else {
             return "IP :  " + String(WiFi.localIP()[0]) + "." + String(WiFi.localIP()[1]) + "." + String(WiFi.localIP()[2]) + "." + String(WiFi.localIP()[3]);
         }        
@@ -121,21 +123,38 @@ namespace Utils {
             secondaryBeaconPacket += Config.beacon.comment;
 
             #ifdef BATTERY_PIN
-                if (Config.sendBatteryVoltage) {
-                    String batteryInfo = "Batt=" + String(BATTERY_Utils::checkBattery(),2) + "V";
-                    beaconPacket += (" " + batteryInfo);
-                    secondaryBeaconPacket += (" " + batteryInfo);
-                    sixthLine = "     ( " + batteryInfo + ")";
+                if (Config.battery.sendInternalVoltage || Config.battery.monitorInternalVoltage) {
+                    float internalVoltage       = BATTERY_Utils::checkInternalVoltage();
+                    String internalVoltageInfo  = String(internalVoltage,2) + "V";
+                    if (Config.battery.sendInternalVoltage) {
+                        beaconPacket += " Batt=" + internalVoltageInfo;
+                        secondaryBeaconPacket += " Batt=" + internalVoltageInfo;
+                        sixthLine = "    (Batt=" + internalVoltageInfo + ")";
+                    }
+                    if (Config.battery.monitorInternalVoltage && internalVoltage < Config.battery.internalSleepVoltage) {
+                        beaconPacket += " **IntBatWarning:SLEEP**";
+                        secondaryBeaconPacket += " **IntBatWarning:SLEEP**";
+                        shouldSleepLowVoltage = true;
+                    }                    
                 }
             #endif
 
-            if (Config.externalVoltageMeasurement) { 
-                beaconPacket += " Ext=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V";
-                secondaryBeaconPacket += " Ext=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V";
-                sixthLine = "    (Ext V=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V)";
+            if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
+                float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
+                String externalVoltageInfo  = String(externalVoltage,2) + "V";
+                if (Config.battery.sendExternalVoltage) {
+                    beaconPacket += " Ext=" + externalVoltageInfo;
+                    secondaryBeaconPacket += " Ext=" + externalVoltageInfo;
+                    sixthLine = "    (Ext V=" + externalVoltageInfo + ")";
+                }
+                if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
+                    beaconPacket += " **ExtBatWarning:SLEEP**";
+                    secondaryBeaconPacket += " **ExtBatWarning:SLEEP**";
+                    shouldSleepLowVoltage = true;
+                }
             }
 
-            if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS) {
+            if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS && !backUpDigiMode) {
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
                 seventhLine = "     listening...";
                 #ifdef ESP32_DIY_LoRa_A7670
@@ -145,7 +164,7 @@ namespace Utils {
                 #endif
             }
 
-            if (Config.beacon.sendViaRF) {
+            if (Config.beacon.sendViaRF || backUpDigiMode) {
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
                 seventhLine = "     listening...";
                 STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket);
@@ -165,19 +184,6 @@ namespace Utils {
         uint32_t lastDisplayTime = millis() - lastScreenOn;
         if (!Config.display.alwaysOn && lastDisplayTime >= Config.display.timeout * 1000) {
             display_toggle(false);
-        }
-    }
-
-    void checkWiFiInterval() {
-        uint32_t WiFiCheck = millis() - lastWiFiCheck;
-        if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
-            WiFiConnect = true;
-        }
-        if (WiFiConnect) {
-            Serial.println("\nConnecting to WiFi ...");
-            WIFI_Utils::startWiFi();
-            lastWiFiCheck = millis();
-            WiFiConnect = false;
         }
     }
 
@@ -218,7 +224,9 @@ namespace Utils {
             seventhLine = "RSSI:" + String(rssi) + "dBm SNR: " + String(snr) + "dBm";
         } else if (packet.indexOf(":!") >= 10 || packet.indexOf(":=") >= 10) {
             sixthLine = sender + "> GPS BEACON";
-            GPS_Utils::getDistance(packet);
+            if (!Config.syslog.active) {
+                GPS_Utils::getDistanceAndComment(packet);       // to be checked!!!
+            }            
             seventhLine = "RSSI:" + String(rssi) + "dBm";
             if (rssi <= -100) {
                 seventhLine += " ";
@@ -253,6 +261,40 @@ namespace Utils {
     void println(const String& text) {
         if (!Config.tnc.enableSerial) {
             Serial.println(text);
+        }
+    }
+
+    void checkRebootMode() {
+        if (Config.rebootMode && Config.rebootModeTime > 0) {
+            Serial.println("(Reboot Time Set to " + String(Config.rebootModeTime) + " hours)");
+        }
+    }
+
+    void checkRebootTime() {
+        if (Config.rebootMode && Config.rebootModeTime > 0) {
+            if (millis() > Config.rebootModeTime * 60 * 60 * 1000) {
+                Serial.println("\n*** Automatic Reboot Time Restart! ****\n");
+                ESP.restart();
+            }
+        }
+    }
+
+    void checkSleepByLowBatteryVoltage(uint8_t mode) {
+        if (shouldSleepLowVoltage) {
+            if (mode == 0) {
+                delay(3000);
+            }
+            Serial.println("\n\n*** Sleeping Low Battey Voltage ***\n\n");
+            esp_sleep_enable_timer_wakeup(30 * 60 * 1000000); // sleep 30 min
+            if (mode == 1) {
+                display_toggle(false);
+            }
+            #ifdef VEXT_CTRL
+                #ifndef HELTEC_WSL_V3
+                    digitalWrite(VEXT_CTRL, LOW);
+                #endif
+            #endif
+            esp_deep_sleep_start();
         }
     }
 

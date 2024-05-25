@@ -9,8 +9,6 @@ class WiFi_AP {
 public:
     String  ssid;
     String  password;
-    // double  latitude; // deprecated
-    // double  longitude; // deprecated
 };
 
 class WiFi_Auto_AP {
@@ -19,47 +17,42 @@ public:
     int     powerOff;
 };
 
-class Beacon {
+class BEACON {
 public:
-    double  latitude; // new
-    double  longitude; // new
-    String  comment; // new
-    String  overlay; // new
-    String  symbol; // new
-    int     interval; // new
-    bool    sendViaRF; // new
-    bool    sendViaAPRSIS; // new
-    String  path; // new
-};
-
-class DIGI {
-public:
-    int     mode; // new
-    // String  comment; // deprecated
-    // double  latitude; // deprecated
-    // double  longitude; // deprecated
+    double  latitude;
+    double  longitude;
+    String  comment;
+    int     interval;
+    String  overlay;
+    String  symbol;
+    String  path;    
+    bool    sendViaRF;
+    bool    sendViaAPRSIS;
 };
 
 class APRS_IS {
 public:
-    bool    active; // new
+    bool    active;
     String  passcode;
     String  server;
     int     port;
-    // int     reportingDistance; // deprecated
-    String  filter; // new
-    bool    toRF; // new
+    String  filter;
+    bool    messagesToRF;
+    bool    objectsToRF;
 };
+
+class DIGI {
+public:
+    int     mode;
+};
+
 
 class LoraModule {
 public:
-    // long    iGateFreq; // deprecated
-    // long    digirepeaterTxFreq; // deprecated
-    // long    digirepeaterRxFreq; // deprecated
-    long    txFreq; // new
-    long    rxFreq; // new
-    bool    txActive; // new
-    bool    rxActive; // new
+    long    txFreq;
+    long    rxFreq;
+    bool    txActive;
+    bool    rxActive;
     int     spreadingFactor;
     long    signalBandwidth;
     int     codingRate4;
@@ -73,18 +66,15 @@ public:
     bool    turn180;
 };
 
-class TNC {
+class BATTERY {
 public:
-    bool    enableServer;
-    bool    enableSerial;
-    bool    acceptOwn;
-};
-
-class SYSLOG {
-public:
-    bool    active;
-    String  server;
-    int     port;
+    bool    sendInternalVoltage;
+    bool    monitorInternalVoltage;
+    float   internalSleepVoltage;
+    bool    sendExternalVoltage;
+    int     externalVoltagePin;
+    bool    monitorExternalVoltage;
+    float   externalSleepVoltage;
 };
 
 class BME {
@@ -94,41 +84,48 @@ public:
     float   temperatureCorrection;
 };
 
+class SYSLOG {
+public:
+    bool    active;
+    String  server;
+    int     port;
+};
+
+class TNC {
+public:
+    bool    enableServer;
+    bool    enableSerial;
+    bool    acceptOwn;
+};
+
 class OTA {
 public:
     String  username;
     String  password;
 };
 
-
-
-
 class Configuration {
 public:
-    bool                  reload;
-    String                callsign;  
-    // int                   stationMode; // deprecated
-    // String                iGateComment; // deprecated
-    // int                   beaconInterval; // deprecated
-    // bool                  igateSendsLoRaBeacons; // deprecated
-    // bool                  igateRepeatsLoRaPackets; // deprecated
-    int                   rememberStationTime;
-    bool                  sendBatteryVoltage;
-    bool                  externalVoltageMeasurement;
-    int                   externalVoltagePin;
-    bool                  lowPowerMode;
-    double                lowVoltageCutOff;
-    std::vector<WiFi_AP>  wifiAPs;
-    WiFi_Auto_AP          wifiAutoAP;
-    Beacon                beacon; // new
-    DIGI                  digi;
-    TNC                   tnc; // new
-    APRS_IS               aprs_is;
-    LoraModule            loramodule;
-    Display               display;
-    SYSLOG                syslog;
-    BME                   bme;
-    OTA                   ota;
+    bool                    reload;     // ?
+    String                  callsign;
+    int                     rememberStationTime;
+    bool                    lowPowerMode;
+    double                  lowVoltageCutOff;
+    bool                    backupDigiMode;
+    bool                    rebootMode;
+    int                     rebootModeTime;
+    std::vector<WiFi_AP>    wifiAPs;
+    WiFi_Auto_AP            wifiAutoAP;
+    BEACON                  beacon;
+    APRS_IS                 aprs_is;
+    DIGI                    digi;
+    LoraModule              loramodule;
+    Display                 display;
+    BATTERY                 battery;
+    BME                     bme;
+    SYSLOG                  syslog;
+    TNC                     tnc;  
+    OTA                     ota;
   
     void init();
     void writeFile();

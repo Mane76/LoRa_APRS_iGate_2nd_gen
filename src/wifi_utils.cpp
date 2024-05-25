@@ -1,29 +1,56 @@
 #include <WiFi.h>
 #include "configuration.h"
-#include "pins_config.h"
+#include "boards_pinout.h"
 #include "wifi_utils.h"
 #include "display.h"
 #include "utils.h"
 
-extern Configuration  Config;
-extern WiFi_AP        *currentWiFi;
-extern uint8_t        myWiFiAPIndex;
-extern int            myWiFiAPSize;
-extern uint32_t       previousWiFiMillis;
-extern bool           WiFiConnected;
-extern long           WiFiAutoAPTime;
-extern bool           WiFiAutoAPStarted;
+extern Configuration    Config;
+
+extern uint8_t          myWiFiAPIndex;
+extern int              myWiFiAPSize;
+extern WiFi_AP          *currentWiFi;
+extern bool             backUpDigiMode;
+
+bool        WiFiConnected       = false;
+uint32_t    WiFiAutoAPTime      = millis();
+bool        WiFiAutoAPStarted   = false;
+uint32_t    previousWiFiMillis  = 0;
+uint8_t     wifiCounter         = 0;
+uint32_t    lastBackupDigiTime  = millis();
 
 
 namespace WIFI_Utils {
 
     void checkWiFi() {
-        if ((WiFi.status() != WL_CONNECTED) && ((millis() - previousWiFiMillis) >= 30 * 1000) && !WiFiAutoAPStarted) {
+        if (backUpDigiMode) {
+            uint32_t WiFiCheck = millis() - lastBackupDigiTime;
+            if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
+                Serial.println("*** Stoping BackUp Digi Mode ***");
+                backUpDigiMode = false;
+                wifiCounter = 0;
+            } else if (WiFi.status() == WL_CONNECTED) {
+                Serial.println("*** WiFi Reconnect Success (Stoping Backup Digi Mode) ***");
+                backUpDigiMode = false;
+                wifiCounter = 0;
+            }
+        }
+
+        if (!backUpDigiMode && (WiFi.status() != WL_CONNECTED) && ((millis() - previousWiFiMillis) >= 30 * 1000) && !WiFiAutoAPStarted) {
             Serial.print(millis());
             Serial.println("Reconnecting to WiFi...");
             WiFi.disconnect();
             WiFi.reconnect();
             previousWiFiMillis = millis();
+
+            if (Config.backupDigiMode) {
+                wifiCounter++;
+            }
+            if (wifiCounter >= 2) {
+                Serial.println("*** Starting BackUp Digi Mode ***");
+                backUpDigiMode = true;
+                lastBackupDigiTime = millis();
+            }
         }
     }
 
