@@ -62,6 +62,7 @@ ____________________________________________________
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.05.27 Battery Monitor for internal and External Voltages (to make board sleep and avoid low discharge of batterys) T-Beam boards now with Battery readings as well.
 - 2024.05.23 Forced Reboot Mode added.
 - 2024.05.22 Experimental backup-Digirepeater-Mode when "only" iGate mode loses WiFi connection added.
 - 2024.05.20 WebConfig update to control whether Messages and Objects should be Tx to RF.

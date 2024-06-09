@@ -118,7 +118,7 @@ namespace LoRa_Utils {
         transmitFlag = true;
         if (state == RADIOLIB_ERR_NONE) {
             if (Config.syslog.active && WiFi.status() == WL_CONNECTED) {
-                SYSLOG_Utils::log(3, newPacket, 0, 0, 0);    // TX
+                SYSLOG_Utils::log(3, newPacket, 0, 0.0, 0);    // TX
             }
             Utils::print("---> LoRa Packet Tx    : ");
             Utils::println(newPacket);
@@ -134,7 +134,7 @@ namespace LoRa_Utils {
         }
     }
 
-    String packetSanitization(const String& packet) {
+    /*String packetSanitization(const String& packet) {
         String sanitizedPacket = packet;
         if (packet.indexOf("\0") > 0) {
             sanitizedPacket.replace("\0", "");
@@ -146,7 +146,7 @@ namespace LoRa_Utils {
             sanitizedPacket.replace("\n", "");
         }
         return sanitizedPacket;
-    }
+    }*/
 
     void startReceive() {
         radio.startReceive();
@@ -188,9 +188,9 @@ namespace LoRa_Utils {
                         return packet;
                     }                
                 } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
-                    rssi = radio.getRSSI();
-                    snr = radio.getSNR();
-                    freqError = radio.getFrequencyError();
+                    rssi        = radio.getRSSI();
+                    snr         = radio.getSNR();
+                    freqError   = radio.getFrequencyError();
                     Utils::println(F("CRC error!"));
                     if (Config.syslog.active && WiFi.status() == WL_CONNECTED) {
                         SYSLOG_Utils::log(0, packet, rssi, snr, freqError); // CRC
@@ -204,6 +204,10 @@ namespace LoRa_Utils {
             }
         }
         return packet;
+    }
+
+    void sleepRadio() {
+        radio.sleep();
     }
 
 }

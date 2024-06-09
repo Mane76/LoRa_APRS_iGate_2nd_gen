@@ -37,7 +37,7 @@ ________________________________________________________________________________
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.05.24m";
+String          versionDate             = "2024.06.07m";
 Configuration   Config;
 WiFiClient      espClient;
 
@@ -137,7 +137,6 @@ void loop() {
     thirdLine = Utils::getLocalIP();
 
     WIFI_Utils::checkWiFi(); // Always use WiFi, not related to IGate/Digi mode
-    // Utils::checkWiFiInterval();
 
     #ifdef ESP32_DIY_LoRa_A7670
         if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
@@ -155,7 +154,7 @@ void loop() {
     String packet = "";
     if (Config.loramodule.rxActive) {
         packet = LoRa_Utils::receivePacket(); // We need to fetch LoRa packet above APRSIS and Digi
-    } 
+    }
 
     if (packet != "") {
         if (Config.aprs_is.active) { // If APRSIS enabled
