@@ -116,71 +116,60 @@ namespace BME_Utils {
         }
     }
 
-    String generateTempString(float bmeTemp) {
+    const String generateTempString(const float bmeTemp) {
         String strTemp;
         strTemp = String((int)bmeTemp);
         switch (strTemp.length()) {
             case 1:
                 return "00" + strTemp;
-                break;
             case 2:
                 return "0" + strTemp;
-                break;
             case 3:
                 return strTemp;
-                break;
             default:
                 return "-999";
         }
     }
 
-    String generateHumString(float bmeHum) {
+    const String generateHumString(const float bmeHum) {
         String strHum;
         strHum = String((int)bmeHum);
         switch (strHum.length()) {
             case 1:
                 return "0" + strHum;
-                break;
             case 2:
                 return strHum;
-                break;
             case 3:
                 if ((int)bmeHum == 100) {
                     return "00";
                 } else {
                     return "-99";
                 }
-                break;
             default:
                 return "-99";
         }
     }
 
-    String generatePresString(float bmePress) {
+    const String generatePresString(const float bmePress) {
         String strPress = String((int)bmePress);
         String decPress = String(int((bmePress - int(bmePress)) * 10));
         switch (strPress.length()) {
             case 1:
                 return "000" + strPress + decPress;
-                break;
             case 2:
                 return "00" + strPress + decPress;
-                break;
             case 3:
                 return "0" + strPress + decPress;
-                break;
             case 4:
                 return strPress + decPress;
-                break;
             case 5:
                 return strPress;
-                break;
             default:
                 return "-99999";
         }
     }
 
-    String readDataSensor() {
+    const String readDataSensor() {
         String wx, tempStr, humStr, presStr;
         switch (wxModuleType) {
             case 1: // BME280
@@ -222,10 +211,26 @@ namespace BME_Utils {
                 humStr  = "..";
             }
             presStr = generatePresString(newPress + (Config.bme.heightCorrection/CORRECTION_FACTOR));
-            fifthLine = "BME-> " + String(int(newTemp + Config.bme.temperatureCorrection))+"C " + humStr + "% " + presStr.substring(0,4) + "hPa";
-            wx = ".../...g...t" + tempStr + "r...p...P...h" + humStr + "b" + presStr;
+            
+            fifthLine = "BME-> ";
+            fifthLine += String(int(newTemp + Config.bme.temperatureCorrection));
+            fifthLine += "C ";
+            fifthLine += humStr;
+            fifthLine += "% ";
+            fifthLine += presStr.substring(0,4);
+            fifthLine += "hPa";
+
+            wx = ".../...g...t";
+            wx += tempStr;
+            wx += "r...p...P...h";
+            wx += humStr;
+            wx += "b";
+            wx += presStr;
+
             if (wxModuleType == 3) {
-                wx += "Gas: " + String(newGas) + "Kohms";
+                wx += "Gas: ";
+                wx += String(newGas);
+                wx += "Kohms";
             }
             return wx;
         }

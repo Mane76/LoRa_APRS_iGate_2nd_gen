@@ -100,14 +100,16 @@ namespace APRS_IS_Utils {
                 lastScreenOn = millis();
             }            
         }
-        secondLine = "WiFi: " + wifiState + " APRS-IS: " + aprsisState;
+        secondLine = "WiFi: ";
+        secondLine += wifiState;
+        secondLine += " APRS-IS: ";
+        secondLine += aprsisState;
     }
 
     String buildPacketToUpload(const String& packet) {
         if (!(Config.aprs_is.active && Config.digi.mode == 0)) { // Check if NOT only IGate
             return packet.substring(3, packet.indexOf(":")) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(":"));
-        }
-        else {
+        } else {
             return packet.substring(3, packet.indexOf(":")) + ",qAO," + Config.callsign + packet.substring(packet.indexOf(":"));
         }
     }
@@ -115,7 +117,9 @@ namespace APRS_IS_Utils {
     String buildPacketToTx(const String& aprsisPacket, uint8_t packetType) {
         String packet = aprsisPacket;
         packet.trim();
-        String outputPacket = packet.substring(0, packet.indexOf(",")) + ",TCPIP,WIDE1-1," + Config.callsign;
+        String outputPacket = packet.substring(0, packet.indexOf(","));
+        outputPacket.concat(",TCPIP,WIDE1-1,");
+        outputPacket.concat(Config.callsign);
         switch (packetType) {
             case 0: // gps
                 if (packet.indexOf(":=") > 0) {
@@ -150,7 +154,8 @@ namespace APRS_IS_Utils {
     bool processReceivedLoRaMessage(const String& sender, const String& packet) {
         String receivedMessage;
         if (packet.indexOf("{") > 0) {     // ack?
-            String ackMessage = "ack" + packet.substring(packet.indexOf("{") + 1);
+            String ackMessage = "ack";
+            ackMessage.concat(packet.substring(packet.indexOf("{") + 1));
             ackMessage.trim();
             //Serial.println(ackMessage);
             String processedSender = sender;
@@ -262,14 +267,16 @@ namespace APRS_IS_Utils {
                         #else
                             upload(queryAnswer);
                         #endif                        
-                        SYSLOG_Utils::log(2, queryAnswer, 0, 0, 0); // APRSIS TX
+                        SYSLOG_Utils::log(2, queryAnswer, 0, 0.0, 0); // APRSIS TX
                         fifthLine = "APRS-IS ----> APRS-IS";
                         sixthLine = Config.callsign;
                         for (int j = sixthLine.length();j < 9;j++) {
                             sixthLine += " ";
                         }
-                        sixthLine += "> " + Sender;
-                        seventhLine = "QUERY = " + receivedMessage;
+                        sixthLine += "> ";
+                        sixthLine += Sender;
+                        seventhLine = "QUERY = ";
+                        seventhLine += receivedMessage;
                     }
                 } else {
                     Utils::print("Received Message from APRS-IS  : " + packet);
