@@ -65,6 +65,7 @@ namespace LoRa_Utils {
         radio.setBandwidth(signalBandwidth);
         radio.setCodingRate(Config.loramodule.codingRate4);
         radio.setCRC(true);
+        radio.autoLDRO();
 
         #if defined(ESP32_DIY_1W_LoRa) || defined(OE5HWN_MeshCom)
             radio.setRfSwitchPins(RADIO_RXEN, RADIO_TXEN);

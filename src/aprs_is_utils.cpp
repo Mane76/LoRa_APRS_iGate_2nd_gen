@@ -107,7 +107,7 @@ namespace APRS_IS_Utils {
     }
 
     String buildPacketToUpload(const String& packet) {
-        if (!(Config.aprs_is.active && Config.digi.mode == 0)) { // Check if NOT only IGate
+        if (Config.aprs_is.active && Config.loramodule.txActive) { // Check if NOT only IGate
             return packet.substring(3, packet.indexOf(":")) + ",qAR," + Config.callsign + packet.substring(packet.indexOf(":"));
         } else {
             return packet.substring(3, packet.indexOf(":")) + ",qAO," + Config.callsign + packet.substring(packet.indexOf(":"));
