@@ -46,9 +46,11 @@ namespace Utils {
 
     void processStatus() {
         String status = Config.callsign;
-        status.concat(">APLRG1,");
-        status.concat(Config.beacon.path);
-        
+        status.concat(">APLRG1");
+        if (Config.beacon.path.indexOf("WIDE") == 0) {
+            status.concat(",");
+            status.concat(Config.beacon.path);
+        }
         if (WiFi.status() == WL_CONNECTED && Config.aprs_is.active && Config.beacon.sendViaAPRSIS) {
             delay(1000);
             status.concat(",qAC:>https://github.com/richonguzman/LoRa_APRS_iGate ");
@@ -66,7 +68,7 @@ namespace Utils {
         }
     }
 
-    const String getLocalIP() {
+    String getLocalIP() {
         if (!WiFiConnected) {
             return "IP :  192.168.4.1";
         } else if (backUpDigiMode) {
@@ -102,9 +104,6 @@ namespace Utils {
 
     void checkBeaconInterval() {
         uint32_t lastTx = millis() - lastBeaconTx;
-        String beaconPacket             = iGateBeaconPacket;
-        String secondaryBeaconPacket    = iGateLoRaBeaconPacket;
-
         if (lastBeaconTx == 0 || lastTx >= Config.beacon.interval * 60 * 1000) {
             beaconUpdate = true;    
         }
@@ -119,6 +118,8 @@ namespace Utils {
 
             activeStations();
 
+            String beaconPacket             = iGateBeaconPacket;
+            String secondaryBeaconPacket    = iGateLoRaBeaconPacket;
             if (Config.bme.active && wxModuleType != 0) {
                 String sensorData = BME_Utils::readDataSensor();
                 beaconPacket += sensorData;
@@ -127,26 +128,26 @@ namespace Utils {
                 beaconPacket += ".../...g...t...r...p...P...h..b.....";
                 secondaryBeaconPacket += ".../...g...t...r...p...P...h..b.....";
             }
-            beaconPacket += Config.beacon.comment;
-            secondaryBeaconPacket += Config.beacon.comment;
+            beaconPacket            += Config.beacon.comment;
+            secondaryBeaconPacket   += Config.beacon.comment;
 
             #if defined(BATTERY_PIN) || defined(HAS_AXP192) || defined(HAS_AXP2101)
                 if (Config.battery.sendInternalVoltage || Config.battery.monitorInternalVoltage) {
                     float internalVoltage       = BATTERY_Utils::checkInternalVoltage();
                     String internalVoltageInfo  = String(internalVoltage,2) + "V";
                     if (Config.battery.sendInternalVoltage) {
-                        beaconPacket += " Batt=";
-                        beaconPacket += internalVoltageInfo;
-                        secondaryBeaconPacket += " Batt=";
-                        secondaryBeaconPacket += internalVoltageInfo;
-                        sixthLine = "    (Batt=";
-                        sixthLine += internalVoltageInfo;
-                        sixthLine += ")";
+                        beaconPacket            += " Batt=";
+                        beaconPacket            += internalVoltageInfo;
+                        secondaryBeaconPacket   += " Batt=";
+                        secondaryBeaconPacket   += internalVoltageInfo;
+                        sixthLine               = "    (Batt=";
+                        sixthLine               += internalVoltageInfo;
+                        sixthLine               += ")";
                     }
                     if (Config.battery.monitorInternalVoltage && internalVoltage < Config.battery.internalSleepVoltage) {
-                        beaconPacket += " **IntBatWarning:SLEEP**";
-                        secondaryBeaconPacket += " **IntBatWarning:SLEEP**";
-                        shouldSleepLowVoltage = true;
+                        beaconPacket            += " **IntBatWarning:SLEEP**";
+                        secondaryBeaconPacket   += " **IntBatWarning:SLEEP**";
+                        shouldSleepLowVoltage   = true;
                     }                    
                 }
             #endif
@@ -155,25 +156,25 @@ namespace Utils {
                 float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
                 String externalVoltageInfo  = String(externalVoltage,2) + "V";
                 if (Config.battery.sendExternalVoltage) {
-                    beaconPacket += " Ext=";
-                    beaconPacket += externalVoltageInfo;
-                    secondaryBeaconPacket += " Ext=";
-                    secondaryBeaconPacket += externalVoltageInfo;
-                    sixthLine = "    (Ext V=";
-                    sixthLine += externalVoltageInfo;
-                    sixthLine += ")";
+                    beaconPacket            += " Ext=";
+                    beaconPacket            += externalVoltageInfo;
+                    secondaryBeaconPacket   += " Ext=";
+                    secondaryBeaconPacket   += externalVoltageInfo;
+                    sixthLine               = "    (Ext V=";
+                    sixthLine               += externalVoltageInfo;
+                    sixthLine               += ")";
                 }
                 if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
-                    beaconPacket += " **ExtBatWarning:SLEEP**";
-                    secondaryBeaconPacket += " **ExtBatWarning:SLEEP**";
-                    shouldSleepLowVoltage = true;
+                    beaconPacket            += " **ExtBatWarning:SLEEP**";
+                    secondaryBeaconPacket   += " **ExtBatWarning:SLEEP**";
+                    shouldSleepLowVoltage   = true;
                 }
             }
 
             if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS && !backUpDigiMode) {
                 show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
                 seventhLine = "     listening...";
-                #ifdef ESP32_DIY_LoRa_A7670
+                #ifdef HAS_A7670
                     A7670_Utils::uploadToAPRSIS(beaconPacket);
                 #else
                     APRS_IS_Utils::upload(beaconPacket);
@@ -323,6 +324,46 @@ namespace Utils {
             delay(100);
             esp_deep_sleep_start();
         }
+    }
+
+    bool checkValidCallsign(const String& callsign) {
+        if (callsign == "WLNK-1") return true;
+        
+        String cleanCallsign;
+        if (callsign.indexOf("-")) {    // SSID Validation
+            cleanCallsign = callsign.substring(0, callsign.indexOf("-"));
+            String ssid = callsign.substring(callsign.indexOf("-") + 1);
+            if (ssid.indexOf("-") != -1 || ssid.length() > 2) return false;
+            for (int i = 0; i < ssid.length(); i++) {
+                if (!isAlphaNumeric(ssid[i])) return false;
+            }
+        } else {
+            cleanCallsign = callsign;
+        }
+
+        if (cleanCallsign.length() < 4 || cleanCallsign.length() > 6) return false;
+
+        if (cleanCallsign.length() < 6 && isAlpha(cleanCallsign[0]) && isDigit(cleanCallsign[1]) && isAlpha(cleanCallsign[2]) && isAlpha(cleanCallsign[3]) ) {
+            cleanCallsign = " " + cleanCallsign;    // A0AA --> _A0AA
+        }
+
+        if (!isDigit(cleanCallsign[2]) || !isAlpha(cleanCallsign[3])) return false; // __0A must be validated
+
+        bool isValid = false;
+        if ((isAlphaNumeric(cleanCallsign[0]) || cleanCallsign[0] == ' ') && isAlpha(cleanCallsign[1])) {
+            isValid = true;     //  AA0A (+A+A) + _A0AA (+A) + 0A0A (+A+A)
+        } else if (isAlpha(cleanCallsign[0]) && isDigit(cleanCallsign[1])) {
+            isValid = true;     //  A00A (+A+A)
+        }
+        if (!isValid) return false;   // also 00__ avoided
+
+        if (cleanCallsign.length() > 4) {
+            for (int i = 5; i <= cleanCallsign.length(); i++) {
+                if (!isAlpha(cleanCallsign[i - 1])) return false;
+            }
+        }
+
+        return true;
     }
 
 }

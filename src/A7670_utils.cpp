@@ -6,7 +6,7 @@
 #include "display.h"
 #include "utils.h"
 
-#if defined(ESP32_DIY_LoRa_A7670)
+#ifdef HAS_A7670
     #define TINY_GSM_MODEM_SIM7600      //The AT instruction of A7670 is compatible with SIM7600 
     #define TINY_GSM_RX_BUFFER 1024     // Set RX buffer to 1Kb
     #define SerialAT Serial1
@@ -146,7 +146,12 @@
         }
 
         void APRS_IS_connect() {
-            String loginInfo = "user " + Config.callsign + " pass " + String(Config.aprs_is.passcode) + " vers CA2RXU_LoRa_iGate 1.3 filter " + Config.aprs_is.filter;
+            String loginInfo = "user ";
+            loginInfo += Config.callsign;
+            loginInfo += " pass ";
+            loginInfo += String(Config.aprs_is.passcode);
+            loginInfo += " vers CA2RXU_LoRa_iGate 1.3 filter ";
+            loginInfo += Config.aprs_is.filter;
             Serial.println("-----> Connecting to APRS IS");
             while (!modemStartUp) {
                 Serial.print("Opening Port...                 ");

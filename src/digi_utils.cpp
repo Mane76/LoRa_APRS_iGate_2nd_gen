@@ -24,30 +24,31 @@ extern bool             backUpDigiMode;
 
 namespace DIGI_Utils {
 
-    String generateDigiRepeatedPacket(const String& packet){
-        String temp0, path;
-        temp0 = packet.substring(packet.indexOf(">") + 1, packet.indexOf(":"));
-        if (temp0.indexOf(",") > 2) {
-            path = temp0.substring(temp0.indexOf(",") + 1, temp0.indexOf(":"));
-            if (path.indexOf("WIDE1-") >= 0) {
-                String hop = path.substring(path.indexOf("WIDE1-") + 6, path.indexOf("WIDE1-") + 7);
-                if (hop.toInt() >= 1 && hop.toInt() <= 7) {
-                    if (hop.toInt() == 1) {
-                        path.replace("WIDE1-1", Config.callsign + "*");
-                    } else {
-                        path.replace("WIDE1-" + hop, Config.callsign + "*,WIDE1-" + String(hop.toInt() - 1));
-                    }
+    String buildPacket(const String& path, const String& packet, bool thirdParty) {
+        String packetToRepeat = packet.substring(0, packet.indexOf(",") + 1);
+        String tempPath = path;
+        tempPath.replace(Config.beacon.path, Config.callsign + "*");
+        packetToRepeat += tempPath;
+        if (thirdParty) {
+            packetToRepeat += APRS_IS_Utils::checkForStartingBytes(packet.substring(packet.indexOf(":}")));
+        } else {
+            packetToRepeat += APRS_IS_Utils::checkForStartingBytes(packet.substring(packet.indexOf(":")));
+        }
+        return packetToRepeat;
+    }
 
-                    String repeatedPacket = packet.substring(0, packet.indexOf(">"));   // sender
-                    repeatedPacket += ">";
-                    repeatedPacket += temp0.substring(0, temp0.indexOf(","));           // tocall
-                    repeatedPacket += ",";
-                    repeatedPacket += path;
-                    repeatedPacket += packet.substring(packet.indexOf(":"));
-                    return repeatedPacket;
-                } else {
-                    return "";
-                }
+    String generateDigiRepeatedPacket(const String& packet, bool thirdParty){
+        String temp;
+        if (thirdParty) { // only header is used
+            const String& header = packet.substring(0, packet.indexOf(":}"));
+            temp = header.substring(header.indexOf(">") + 1);
+        } else {
+            temp = packet.substring(packet.indexOf(">") + 1, packet.indexOf(":"));
+        }
+        if (temp.indexOf(",") > 2) { // checks for path
+            const String& path = temp.substring(temp.indexOf(",") + 1); // after tocall
+            if (path.indexOf(Config.beacon.path) != -1) {
+                return buildPacket(path, packet, thirdParty);
             } else {
                 return "";
             }
@@ -56,24 +57,37 @@ namespace DIGI_Utils {
         }
     }
 
-    void processLoRaPacket(const String& packet) {
-        bool queryMessage = false;
-        String loraPacket, Sender, AddresseeAndMessage, Addressee;
+    void processLoRaPacket(const String& packet) {        
         if (packet != "") {
             if ((packet.substring(0, 3) == "\x3c\xff\x01") && (packet.indexOf("NOGATE") == -1)) {
-                Sender = packet.substring(3, packet.indexOf(">"));
-                if (Sender != Config.callsign) {
-                    if (STATION_Utils::check25SegBuffer(Sender, packet.substring(packet.indexOf(":") + 2))) {
+                bool thirdPartyPacket = false;
+                String temp, Sender;
+                if (packet.indexOf("}") > 0 && packet.indexOf("TCPIP") > 0) {   // 3rd Party 
+                    thirdPartyPacket = true;
+                    temp    = packet.substring(packet.indexOf(":}") + 2);
+                    Sender  = temp.substring(0, temp.indexOf(">"));
+                } else {
+                    temp    = packet.substring(3);
+                    Sender  = packet.substring(3, packet.indexOf(">"));
+                }
+                if (Sender != Config.callsign) {        // Avoid listening to own packets
+                    if (!thirdPartyPacket && !Utils::checkValidCallsign(Sender)) {
+                        return;
+                    }
+                    if (STATION_Utils::check25SegBuffer(Sender, temp.substring(temp.indexOf(":") + 2))) {
                         STATION_Utils::updateLastHeard(Sender);
-                        Utils::typeOfPacket(packet.substring(3), 2);    // Digi
-                        AddresseeAndMessage = packet.substring(packet.indexOf("::") + 2);
-                        Addressee = AddresseeAndMessage.substring(0, AddresseeAndMessage.indexOf(":"));
-                        Addressee.trim();
-                        if (packet.indexOf("::") > 10 && Addressee == Config.callsign) {      // its a message for me!
-                            queryMessage = APRS_IS_Utils::processReceivedLoRaMessage(Sender, AddresseeAndMessage);
+                        Utils::typeOfPacket(temp, 2);    // Digi
+                        bool queryMessage = false;
+                        if (temp.indexOf("::") > 10) {   // it's a message
+                            String AddresseeAndMessage  = temp.substring(temp.indexOf("::") + 2);
+                            String Addressee            = AddresseeAndMessage.substring(0, AddresseeAndMessage.indexOf(":"));
+                            Addressee.trim();
+                            if (Addressee == Config.callsign) {     // it's a message for me!
+                                queryMessage = APRS_IS_Utils::processReceivedLoRaMessage(Sender, AddresseeAndMessage);
+                            }
                         }
-                        if (!queryMessage && packet.indexOf("WIDE1-") > 10 && (Config.digi.mode == 2 || backUpDigiMode)) { // If should repeat packet (WIDE1 Digi)
-                            loraPacket = generateDigiRepeatedPacket(packet.substring(3));
+                        if (!queryMessage) {
+                            String loraPacket = generateDigiRepeatedPacket(packet.substring(3), thirdPartyPacket);
                             if (loraPacket != "") {
                                 STATION_Utils::addToOutputPacketBuffer(loraPacket);
                                 display_toggle(true);
