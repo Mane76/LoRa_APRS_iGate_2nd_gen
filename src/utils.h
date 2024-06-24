@@ -14,7 +14,7 @@ public:
 namespace Utils {
 
     void    processStatus();
-    const String getLocalIP();
+    String  getLocalIP();
     void    setupDisplay();
     void    activeStations();
     void    checkBeaconInterval();
@@ -26,6 +26,7 @@ namespace Utils {
     void    checkRebootMode();
     void    checkRebootTime();
     void    checkSleepByLowBatteryVoltage(uint8_t mode);
+    bool    checkValidCallsign(const String& callsign);
 
 }
 

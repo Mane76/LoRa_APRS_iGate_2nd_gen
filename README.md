@@ -6,7 +6,7 @@ Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a 
 
 ![Screenshot](https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/iGateOledScreen.jpeg)
 
-__(NOTE: This iGate Firmware was develop to work with all LoRa APRS Trackers and specially with this firmware <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker</a>)__
+__(This iGate Firmware works with all LoRa Tracker Firmwares (specially this <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker Firmware</a>))__
 
 ___________________________________________________
 
@@ -16,49 +16,47 @@ ___________________________________________________
 
 ____________________________________________________
 
-### This repo is a fork of Richonguzman's iGate with adjusted parameters in config. If you like the work of Ricardo - support him. Either as <a href="https://github.com/sponsors/richonguzman" target="_blank">sponsor on github</a> or directly via <a href="http://paypal.me/richonguzman" target="_blank">paypal</a>.
-
-
-This next generation LoRa iGate can work as:
-- pure RX-iGate, 
-- Rx+Tx-iGate and distribute messages and weather forecasts to heard trackers, and 
-- Digipeater in simplex or split-frequency environment.
-# WEB INSTALLER
-
-As easy as it gets, the new <a href="https://sq2cpa.github.io/lora-flasher/ca2rxu.html" target="_blank">Web Installer</a> (thanks Damian SQ2CPA)
-
-[<img src="https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/WebFlasher.png">](https://sq2cpa.github.io/lora-flasher/ca2rxu.html)
-
-____________________________________________________
-
-# SUPPORTED BOARDS
-
-- TTGO Lilygo LoRa32 v2.1 / v1.6 (they work the same)
-
-- TTGO T-Beam v1.0 , v1.1, v1.2 (also variations with SX1262 and SX1268 LoRa Modules)
-
-- HELTEC V2, V3 , Wireless Stick, HT-CT62, Wireless Tracker
-
-- ESP32 Wroom + SX1278 LoRa Module or 400M30S 1W LoRa Module for a DIY Versions.
-
-- ESP32 + 4G/LTE A7670 Modem + SX1278 DIY Version.
-
-- Wemos Lolin32 Oled + SX1278 DIY Version.
-
-
-### Buying links --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/Z.-------Supported-Boards-and-Buying-Links" target="_blank">here</a>.
+# WEB FLASHER/INSTALLER is <a href="https://richonguzman.github.io/lora-igate-web-flasher/installer.html" target="_blank">here</a>
 
 ____________________________________________________
 
 # WIKI
 
+### FAQ, BME280, TNC and more --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/00.-FAQ-(frequently-asked-questions)" target="_blank">here</a>.
+
 ### Installation Guide --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/01.-Installation-Guide" target="_blank">here</a>.
 
-*(Wiki has all configuration explanation, supported boards list, adding BME/BMP Wx modules and more)*
+
+____________________________________________________
+
+# SUPPORTED BOARDS
+
+### Buying links --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/108.-Supported-Boards-and-Buying-Links" target="_blank">here</a>.
+
+(NOTE: all boards with 433-868-915 MHz versions)
+
+- TTGO Lilygo LoRa32 v2.1 / v1.6 (they work the same).
+
+- TTGO T-Beam v1.0 , v1.1, v1.2 (also variations with SX1262 and SX1268 LoRa Modules).
+
+- HELTEC V2, V3 , Wireless Stick, Wireless Stick Lite, HT-CT62, Wireless Tracker.
+
+- ESP32 Wroom + SX1278 LoRa Module or Ebyte 400M30S (or 900M30S) 1W LoRa Module for a DIY Versions.
+
+- ESP32C3 + Ebyte 400M30S(or 900M30S) 1W LoRa Module for another DIY version.
+
+- ESP32 + 4G/LTE A7670 Modem + SX1278 DIY Version.
+
+- Wemos Lolin32 Oled + SX1278 DIY Version.
 
 ____________________________________________________
 ## Timeline (Versions):
 
+- 2024.06.21 Tx packets coming from APRS-IS are (now) formatted into 3rd Party (as they should have been since the beginning).
+- 2024.06.18 All boards with 433 / 868 / 915 MHz versions.
+- 2024.06.10 ESP32C3 + 1W LoRa Module (E22 400M30S) support added.
+- 2024.06.09 Si7021 module added (with autodetected I2C Address)
+- 2024.06.08 Callsign Validation for all Station that iGate/Digi hears.
 - 2024.05.27 Battery Monitor for internal and External Voltages (to make board sleep and avoid low discharge of batterys) T-Beam boards now with Battery readings as well.
 - 2024.05.23 Forced Reboot Mode added.
 - 2024.05.22 Experimental backup-Digirepeater-Mode when "only" iGate mode loses WiFi connection added.

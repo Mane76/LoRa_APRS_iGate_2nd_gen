@@ -33,11 +33,11 @@ ________________________________________________________________________________
 #include "tnc_utils.h"
 #include "display.h"
 #include "utils.h"
-#ifdef ESP32_DIY_LoRa_A7670
+#ifdef HAS_A7670
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.06.07";
+String          versionDate             = "2024.06.21";
 Configuration   Config;
 WiFiClient      espClient;
 
@@ -116,7 +116,7 @@ void setup() {
     BME_Utils::setup();
     WEB_Utils::setup();
     TNC_Utils::setup();
-    #ifdef ESP32_DIY_LoRa_A7670
+    #ifdef HAS_A7670
         A7670_Utils::setup();
     #endif
     Utils::checkRebootMode();
@@ -138,7 +138,7 @@ void loop() {
 
     WIFI_Utils::checkWiFi(); // Always use WiFi, not related to IGate/Digi mode
 
-    #ifdef ESP32_DIY_LoRa_A7670
+    #ifdef HAS_A7670
         if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
     #else
         if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !espClient.connected()) APRS_IS_Utils::connect();
@@ -162,7 +162,8 @@ void loop() {
         }
 
         if (Config.digi.mode == 2 || backUpDigiMode) { // If Digi enabled
-            DIGI_Utils::processLoRaPacket(packet); // Send received packet to Digi
+            STATION_Utils::clean25SegBuffer();
+            DIGI_Utils::processLoRaPacket(packet); // Send received packet to Digi            
         }
 
         if (Config.tnc.enableServer) { // If TNC server enabled
@@ -176,9 +177,8 @@ void loop() {
     if (Config.aprs_is.active) { // If APRSIS enabled
         APRS_IS_Utils::listenAPRSIS(); // listen received packet from APRSIS
     }
-
-    STATION_Utils::processOutputPacketBuffer();
-    STATION_Utils::clean25SegBuffer();
+    
+    STATION_Utils::processOutputPacketBuffer();    
 
     show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
     Utils::checkRebootTime();
