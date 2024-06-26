@@ -122,13 +122,15 @@ b) Choose _stationMode_:
     1 = RX iGate, black "L" as symbol
     Section "Station", Symbol, set to "Black Diamond with L"
     Section "WiFi Access", set SSID and Passphrase
-    Section "APRS-IS", enable "Enable APRS-IS connection" and "Send our beacon to APRS-IS"
+    Section "APRS-IS", enable "Enable APRS-IS connection"
+    Section "Beaconing", enable "Send our beacon to APRS-IS"
     Section "LoRa", enable "Enable LoRa-RX", set RX Frequency (e.g. 433775000)
 
     2 = Rx + TX iGate, red "L" as symbol, HAM only. RX will be sent to APRS-IS, Messages will be sent via Lora. Same frequency for RX and TX. By using this feature you have comply with the regulations of your country.
     Section "Station", Symbol, set to "Red Diamond with L"
     Section "WiFi Access", set SSID and Passphrase
-    Section "APRS-IS", enable "Enable APRS-IS connection" and "Send our beacon to APRS-IS"
+    Section "APRS-IS", enable "Enable APRS-IS connection" and "Gate APRS-IS Messages to RF"
+    Section "Beaconing", enable "Send our beacon to APRS-IS"
     Section "LoRa", enable "Enable LoRa-TX" and "Enable LoRa-RX", set Frequencies to same frequency (e.g. 433775000, TX 433775000)
 
     3 = Digipeater simplex, green "L" as symbol, HAM only. Received packets containing WIDEx-x in path will be digipeated on the same frequency. By using this feature you have comply with the regulations of your country.
