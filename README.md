@@ -7,27 +7,23 @@ Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a 
 ![Screenshot](https://github.com/richonguzman/LoRa_APRS_iGate/blob/main/images/iGateOledScreen.jpeg)
 
 __(This iGate Firmware works with all LoRa Tracker Firmwares (specially this <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker Firmware</a>))__
-
-___________________________________________________
+<br />
 
 ## You can support this project to continue to grow:
 
 [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/blob/main/images/github-sponsors.png">](https://github.com/sponsors/richonguzman)     [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/blob/main/images/paypalme.png">](http://paypal.me/richonguzman)
 
-____________________________________________________
+<br />
 
 # WEB FLASHER/INSTALLER is <a href="https://richonguzman.github.io/lora-igate-web-flasher/installer.html" target="_blank">here</a>
-
-____________________________________________________
+<br />
 
 # WIKI
 
 ### FAQ, BME280, TNC and more --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/00.-FAQ-(frequently-asked-questions)" target="_blank">here</a>.
 
 ### Installation Guide --> <a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/01.-Installation-Guide" target="_blank">here</a>.
-
-
-____________________________________________________
+<br />
 
 # SUPPORTED BOARDS
 
@@ -49,9 +45,11 @@ ____________________________________________________
 
 - Wemos Lolin32 Oled + SX1278 DIY Version.
 
-____________________________________________________
+<br />
+
 ## Timeline (Versions):
 
+- 2024.06.27 External Voltage Divider Resistor configuration on WebUI. Thanks Tilen S54B.
 - 2024.06.26 Personal Note information on WebUI for the Station. Thanks Tilen S54B.
 - 2024.06.24 Callsign Validation fix. Thanks Helge SA7SKY.
 - 2024.06.21 Tx packets coming from APRS-IS are (now) formatted into 3rd Party (as they should have been since the beginning). Thanks Lynn KJ4ERJ and Geoffrey F4FXL.
