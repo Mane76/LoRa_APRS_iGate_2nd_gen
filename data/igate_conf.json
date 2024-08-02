@@ -17,11 +17,11 @@
         "overlay": "L",
         "symbol": "&",
         "path": "WIDE1-1",
-        "sendViaAPRSIS": false,
+        "sendViaAPRSIS": true,
         "sendViaRF": false
     },
     "aprs_is": {
-        "active": false,
+        "active": true,
         "passcode": "XYZVW",
         "server": "euro.aprs2.net",
         "port": 14580,

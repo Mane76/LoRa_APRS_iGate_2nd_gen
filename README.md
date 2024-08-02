@@ -52,6 +52,7 @@ ____________________________________________________
 
 ## Timeline (Versions):
 
+- 2024.08.02 Minor Fixes
 - 2024.06.27 External Voltage Divider Resistor configuration on WebUI. Thanks Tilen S54B.
 - 2024.06.26 Personal Note information on WebUI for the Station. Thanks Tilen S54B.
 - 2024.06.24 Callsign Validation fix. Thanks Helge SA7SKY.
