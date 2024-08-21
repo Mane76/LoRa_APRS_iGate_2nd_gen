@@ -79,12 +79,12 @@ namespace Utils {
     }
 
     void setupDisplay() {
-        setup_display();
+        displaySetup();
         #ifdef INTERNAL_LED_PIN
             digitalWrite(INTERNAL_LED_PIN,HIGH);
         #endif
         Serial.println("\nStarting Station: " + Config.callsign + "   Version: " + versionDate);
-        show_display(" LoRa APRS", "", "   ( iGATE & DIGI )", "", "", "Richonguzman / CA2RXU", "      " + versionDate, 4000);
+        displayShow(" LoRa APRS", "", "", "   ( iGATE & DIGI )", "", "" , "  CA2RXU  " + versionDate, 4000);
         #ifdef INTERNAL_LED_PIN
             digitalWrite(INTERNAL_LED_PIN,LOW);
         #endif
@@ -110,7 +110,7 @@ namespace Utils {
 
         if (beaconUpdate) {
             if (!Config.display.alwaysOn && Config.display.timeout != 0) {
-                display_toggle(true);
+                displayToggle(true);
             }
             Utils::println("-- Sending Beacon to APRSIS --");
 
@@ -152,27 +152,29 @@ namespace Utils {
                 }
             #endif
 
-            if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
-                float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
-                String externalVoltageInfo  = String(externalVoltage,2) + "V";
-                if (Config.battery.sendExternalVoltage) {
-                    beaconPacket            += " Ext=";
-                    beaconPacket            += externalVoltageInfo;
-                    secondaryBeaconPacket   += " Ext=";
-                    secondaryBeaconPacket   += externalVoltageInfo;
-                    sixthLine               = "    (Ext V=";
-                    sixthLine               += externalVoltageInfo;
-                    sixthLine               += ")";
+            #ifndef HELTEC_WP
+                if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
+                    float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
+                    String externalVoltageInfo  = String(externalVoltage,2) + "V";
+                    if (Config.battery.sendExternalVoltage) {
+                        beaconPacket            += " Ext=";
+                        beaconPacket            += externalVoltageInfo;
+                        secondaryBeaconPacket   += " Ext=";
+                        secondaryBeaconPacket   += externalVoltageInfo;
+                        sixthLine               = "    (Ext V=";
+                        sixthLine               += externalVoltageInfo;
+                        sixthLine               += ")";
+                    }
+                    if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
+                        beaconPacket            += " **ExtBatWarning:SLEEP**";
+                        secondaryBeaconPacket   += " **ExtBatWarning:SLEEP**";
+                        shouldSleepLowVoltage   = true;
+                    }
                 }
-                if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
-                    beaconPacket            += " **ExtBatWarning:SLEEP**";
-                    secondaryBeaconPacket   += " **ExtBatWarning:SLEEP**";
-                    shouldSleepLowVoltage   = true;
-                }
-            }
+            #endif
 
             if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS && !backUpDigiMode) {
-                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
+                displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
                 seventhLine = "     listening...";
                 #ifdef HAS_A7670
                     A7670_Utils::uploadToAPRSIS(beaconPacket);
@@ -182,7 +184,7 @@ namespace Utils {
             }
 
             if (Config.beacon.sendViaRF || backUpDigiMode) {
-                show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
+                displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
                 seventhLine = "     listening...";
                 STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket);
             }
@@ -200,14 +202,14 @@ namespace Utils {
     void checkDisplayInterval() {
         uint32_t lastDisplayTime = millis() - lastScreenOn;
         if (!Config.display.alwaysOn && lastDisplayTime >= Config.display.timeout * 1000) {
-            display_toggle(false);
+            displayToggle(false);
         }
     }
 
     void validateFreqs() {
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq && abs(Config.loramodule.txFreq - Config.loramodule.rxFreq) < 125000) {
             Serial.println("Tx Freq less than 125kHz from Rx Freq ---> NOT VALID");
-            show_display("Tx Freq is less than ", "125kHz from Rx Freq", "device will autofix", "and then reboot", 1000);
+            displayShow("Tx Freq is less than ", "125kHz from Rx Freq", "device will autofix", "and then reboot", 1000);
             Config.loramodule.txFreq = Config.loramodule.rxFreq; // Inform about that but then change the TX QRG to RX QRG and reset the device
             Config.writeFile();
             ESP.restart();
@@ -313,7 +315,7 @@ namespace Utils {
             Serial.println("\n\n*** Sleeping Low Battey Voltage ***\n\n");
             esp_sleep_enable_timer_wakeup(30 * 60 * 1000000); // sleep 30 min
             if (mode == 1) {
-                display_toggle(false);
+                displayToggle(false);
             }
             #ifdef VEXT_CTRL
                 #ifndef HELTEC_WSL_V3
@@ -348,17 +350,21 @@ namespace Utils {
             cleanCallsign = " " + cleanCallsign;    // A0AA --> _A0AA
         }
 
-        if (!isDigit(cleanCallsign[2]) || !isAlpha(cleanCallsign[3])) return false; // __0A must be validated
+        if (!isDigit(cleanCallsign[2]) || !isAlpha(cleanCallsign[3])) {     // __0A__ must be validated
+            if (cleanCallsign[0] != 'R' && !isDigit(cleanCallsign[1]) && !isAlpha(cleanCallsign[2])) return false;    // to accepto R0A___
+        }
 
         bool isValid = false;
         if ((isAlphaNumeric(cleanCallsign[0]) || cleanCallsign[0] == ' ') && isAlpha(cleanCallsign[1])) {
             isValid = true;     //  AA0A (+A+A) + _A0AA (+A) + 0A0A (+A+A)
         } else if (isAlpha(cleanCallsign[0]) && isDigit(cleanCallsign[1])) {
             isValid = true;     //  A00A (+A+A)
+        } else if (cleanCallsign[0] == 'R' && cleanCallsign.length() == 6 && isDigit(cleanCallsign[1]) && isAlpha(cleanCallsign[2]) && isAlpha(cleanCallsign[3]) && isAlpha(cleanCallsign[4])) {
+            isValid = true;     //  R0AA (+A+A)
         }
         if (!isValid) return false;   // also 00__ avoided
 
-        if (cleanCallsign.length() > 4) {
+        if (cleanCallsign.length() > 4) {   // to validate ____AA
             for (int i = 5; i <= cleanCallsign.length(); i++) {
                 if (!isAlpha(cleanCallsign[i - 1])) return false;
             }

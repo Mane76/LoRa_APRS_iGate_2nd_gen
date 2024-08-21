@@ -52,7 +52,10 @@ ____________________________________________________
 
 ## Timeline (Versions):
 
-- 2024.08.02 Minor Fixes
+- 2024.08.19 HELTEC Wireless Paper working (still missing Epaper code).
+- 2024.08.13 Web Authentication for WebUI. Thanks Mitja S57PNX.
+- 2024.08.05 WIDE2-n added to WIDE1-n in Digirepeater Modes.
+- 2024.08.02 minor fixes
 - 2024.06.27 External Voltage Divider Resistor configuration on WebUI. Thanks Tilen S54B.
 - 2024.06.26 Personal Note information on WebUI for the Station. Thanks Tilen S54B.
 - 2024.06.24 Callsign Validation fix. Thanks Helge SA7SKY.
