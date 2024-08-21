@@ -5,6 +5,7 @@
 #include "query_utils.h"
 #include "digi_utils.h"
 #include "wifi_utils.h"
+#include "lora_utils.h"
 #include "gps_utils.h"
 #include "display.h"
 #include "utils.h"
@@ -27,7 +28,21 @@ namespace DIGI_Utils {
     String buildPacket(const String& path, const String& packet, bool thirdParty) {
         String packetToRepeat = packet.substring(0, packet.indexOf(",") + 1);
         String tempPath = path;
-        tempPath.replace(Config.beacon.path, Config.callsign + "*");
+
+        if (path.indexOf("WIDE1-1") != -1 && (Config.digi.mode == 2 || Config.digi.mode == 3)) {
+            tempPath.replace("WIDE1-1", Config.callsign + "*");
+        } else if (path.indexOf("WIDE2-") != -1 && Config.digi.mode == 3) {
+            if (path.indexOf("*") != 1) {
+                tempPath.remove(path.indexOf("*"), 1);
+            }
+            if (path.indexOf("WIDE2-1") != -1) {
+                tempPath.replace("WIDE2-1", Config.callsign + "*");
+            } else if (path.indexOf("WIDE2-2") != -1) {
+                tempPath.replace("WIDE2-2", Config.callsign + "*,WIDE2-1");
+            } else {
+                return "";
+            }
+        }
         packetToRepeat += tempPath;
         if (thirdParty) {
             packetToRepeat += APRS_IS_Utils::checkForStartingBytes(packet.substring(packet.indexOf(":}")));
@@ -47,8 +62,21 @@ namespace DIGI_Utils {
         }
         if (temp.indexOf(",") > 2) { // checks for path
             const String& path = temp.substring(temp.indexOf(",") + 1); // after tocall
-            if (path.indexOf(Config.beacon.path) != -1) {
+            if ((Config.digi.mode == 2 || backUpDigiMode) && path.indexOf("WIDE1-1") != - 1) {
                 return buildPacket(path, packet, thirdParty);
+            } else if (Config.digi.mode == 3) {
+                int wide1Index = path.indexOf("WIDE1-1");
+                int wide2Index = path.indexOf("WIDE2-");
+
+                if (wide1Index != -1 && wide2Index != -1 && wide1Index < wide2Index) {  // WIDE1-1 && WIDE2-n
+                    return buildPacket(path, packet, thirdParty);
+                } else if (wide1Index != -1 && wide2Index == -1) {                      // only WIDE1-1
+                    return buildPacket(path, packet, thirdParty);
+                } else if (wide1Index == -1 && wide2Index != -1) {                      // only WIDE2-n
+                    return buildPacket(path, packet, thirdParty);
+                } else {
+                    return "";
+                }
             } else {
                 return "";
             }
@@ -75,7 +103,7 @@ namespace DIGI_Utils {
                     if (!thirdPartyPacket && !Utils::checkValidCallsign(Sender)) {
                         return;
                     }
-                    if (STATION_Utils::check25SegBuffer(Sender, temp.substring(temp.indexOf(":") + 2))) {
+                    if (STATION_Utils::check25SegBuffer(Sender, temp.substring(temp.indexOf(":") + 2)) || Config.lowPowerMode) {
                         STATION_Utils::updateLastHeard(Sender);
                         Utils::typeOfPacket(temp, 2);    // Digi
                         bool queryMessage = false;
@@ -90,8 +118,12 @@ namespace DIGI_Utils {
                         if (!queryMessage) {
                             String loraPacket = generateDigiRepeatedPacket(packet.substring(3), thirdPartyPacket);
                             if (loraPacket != "") {
-                                STATION_Utils::addToOutputPacketBuffer(loraPacket);
-                                display_toggle(true);
+                                if (Config.lowPowerMode) {
+                                    LoRa_Utils::sendNewPacket(loraPacket);
+                                } else {
+                                    STATION_Utils::addToOutputPacketBuffer(loraPacket);
+                                }
+                                displayToggle(true);
                                 lastScreenOn = millis();
                             }
                         }

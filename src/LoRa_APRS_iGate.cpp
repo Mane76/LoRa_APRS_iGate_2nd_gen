@@ -38,7 +38,7 @@ ________________________________________________________________________________
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.08.02";
+String          versionDate             = "2024.08.19";
 Configuration   Config;
 WiFiClient      espClient;
 
@@ -63,13 +63,12 @@ void setup() {
     POWER_Utils::setup();
     BATTERY_Utils::setup();
     Utils::setupDisplay();
-    Config.check();
     LoRa_Utils::setup();
     Utils::validateFreqs();
     GPS_Utils::generateBeacons();
 
     #ifdef STARTUP_DELAY    // (TEST) just to wait for WiFi init of Routers
-    show_display("", "  STARTUP DELAY ...", "", "", 0);
+    displayShow("", "  STARTUP DELAY ...", "", "", 0);
     delay(STARTUP_DELAY * 60 * 1000);
     #endif
 
@@ -98,7 +97,7 @@ void setup() {
                     String comment = Config.beacon.comment;
                     if (Config.battery.sendInternalVoltage) comment += " Batt=" + String(BATTERY_Utils::checkInternalVoltage(),2) + "V";
                     if (Config.battery.sendExternalVoltage) comment += " Ext=" + String(BATTERY_Utils::checkExternalVoltage(),2) + "V";
-                    STATION_Utils::addToOutputPacketBuffer(GPS_Utils::getiGateLoRaBeaconPacket() + comment);                
+                    LoRa_Utils::sendNewPacket(GPS_Utils::getiGateLoRaBeaconPacket() + comment);
                     lastBeacon = time;
                 }
 
@@ -163,7 +162,7 @@ void loop() {
             APRS_IS_Utils::processLoRaPacket(packet); // Send received packet to APRSIS
         }
 
-        if (Config.digi.mode == 2 || backUpDigiMode) { // If Digi enabled
+        if (Config.loramodule.txActive && (Config.digi.mode == 2 || Config.digi.mode == 3 || backUpDigiMode)) { // If Digi enabled
             STATION_Utils::clean25SegBuffer();
             DIGI_Utils::processLoRaPacket(packet); // Send received packet to Digi            
         }
@@ -182,7 +181,7 @@ void loop() {
     
     STATION_Utils::processOutputPacketBuffer();
 
-    show_display(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+    displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
     Utils::checkRebootTime();
     Utils::checkSleepByLowBatteryVoltage(1);
 }
