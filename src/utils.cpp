@@ -25,7 +25,6 @@ extern String               sixthLine;
 extern String               seventhLine;
 extern String               iGateBeaconPacket;
 extern String               iGateLoRaBeaconPacket;
-extern std::vector<String>  lastHeardStation;
 extern int                  rssi;
 extern float                snr;
 extern int                  freqError;
@@ -36,7 +35,10 @@ extern bool                 backUpDigiMode;
 extern bool                 shouldSleepLowVoltage;
 extern bool                 transmitFlag;
 
+extern std::vector<LastHeardStation>    lastHeardStations;
+
 bool        statusAfterBoot     = true;
+bool        sendStartTelemetry  = true;
 bool        beaconUpdate        = true;
 uint32_t    lastBeaconTx        = 0;
 uint32_t    lastScreenOn        = millis();
@@ -60,7 +62,6 @@ namespace Utils {
             statusAfterBoot = false;
         }
         if (statusAfterBoot && !Config.beacon.sendViaAPRSIS && Config.beacon.sendViaRF) {
-            delay(2000);
             status.concat(":>https://github.com/richonguzman/LoRa_APRS_iGate ");
             status.concat(versionDate);
             STATION_Utils::addToOutputPacketBuffer(status);
@@ -96,11 +97,81 @@ namespace Utils {
         fourthLine = "Stations (";
         fourthLine.concat(String(Config.rememberStationTime));
         fourthLine.concat("min) = ");
-        if (lastHeardStation.size() < 10) {
+        if (lastHeardStations.size() < 10) {
             fourthLine += " ";
         }
-        fourthLine.concat(String(lastHeardStation.size()));
+        fourthLine.concat(String(lastHeardStations.size()));
     }
+
+
+    void sendInitialTelemetryPackets() {
+        String sender = Config.callsign;
+        for (int i = sender.length(); i < 9; i++) {
+            sender += ' ';
+        }
+        String baseAPRSISTelemetryPacket = Config.callsign;
+        baseAPRSISTelemetryPacket += ">APLRG1,TCPIP,qAC::";
+        baseAPRSISTelemetryPacket += sender;
+        baseAPRSISTelemetryPacket += ":";
+
+        String baseRFTelemetryPacket = Config.callsign;
+        baseRFTelemetryPacket += ">APLRG1,WIDE1-1::";
+        baseRFTelemetryPacket += sender;
+        baseRFTelemetryPacket += ":";
+
+
+        String telemetryPacket1 = "EQNS.";
+        if (Config.battery.sendInternalVoltage) {
+            telemetryPacket1 += "0,0.01,0";
+        }
+        if (Config.battery.sendExternalVoltage) {
+            telemetryPacket1 += String(Config.battery.sendInternalVoltage ? "," : "") + "0,0.02,0";
+        }
+
+        String telemetryPacket2 = "UNIT.";
+        if (Config.battery.sendInternalVoltage) {
+            telemetryPacket2 += "VDC";
+        }
+        if (Config.battery.sendExternalVoltage) {
+            telemetryPacket2 += String(Config.battery.sendInternalVoltage ? "," : "") + "VDC";
+        }
+
+        String telemetryPacket3 = "PARM.";
+        if (Config.battery.sendInternalVoltage) {
+            telemetryPacket3 += "V_Batt";
+        }
+        if (Config.battery.sendExternalVoltage) {
+            telemetryPacket3 += String(Config.battery.sendInternalVoltage ? "," : "") + "V_Ext";
+        }
+
+        if (Config.beacon.sendViaAPRSIS) {
+            #ifdef HAS_A7670
+                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket1);
+                delay(300);
+                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket2);
+                delay(300);
+                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket3);
+                delay(300);
+            #else
+                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket1);
+                delay(300);
+                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket2);
+                delay(300);
+                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket3);
+                delay(300);
+            #endif
+            delay(300);
+        } else if (Config.beacon.sendViaRF) {
+            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket1);
+            delay(3000);
+            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket2);
+            delay(3000);
+            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket3);
+            delay(3000);
+        }
+        sendStartTelemetry = false;
+    }            
+
 
     void checkBeaconInterval() {
         uint32_t lastTx = millis() - lastBeaconTx;
@@ -112,8 +183,11 @@ namespace Utils {
             if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                 displayToggle(true);
             }
-            Utils::println("-- Sending Beacon to APRSIS --");
 
+            if (sendStartTelemetry && Config.battery.sendVoltageAsTelemetry && !Config.bme.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)) {
+                sendInitialTelemetryPackets();
+            }
+            
             STATION_Utils::deleteNotHeard();
 
             activeStations();
@@ -125,8 +199,8 @@ namespace Utils {
                 beaconPacket += sensorData;
                 secondaryBeaconPacket += sensorData;
             } else if (Config.bme.active && wxModuleType == 0) {
-                beaconPacket += ".../...g...t...r...p...P...h..b.....";
-                secondaryBeaconPacket += ".../...g...t...r...p...P...h..b.....";
+                beaconPacket += ".../...g...t...";
+                secondaryBeaconPacket += ".../...g...t...";
             }
             beaconPacket            += Config.beacon.comment;
             secondaryBeaconPacket   += Config.beacon.comment;
@@ -134,46 +208,59 @@ namespace Utils {
             #if defined(BATTERY_PIN) || defined(HAS_AXP192) || defined(HAS_AXP2101)
                 if (Config.battery.sendInternalVoltage || Config.battery.monitorInternalVoltage) {
                     float internalVoltage       = BATTERY_Utils::checkInternalVoltage();
-                    String internalVoltageInfo  = String(internalVoltage,2) + "V";
-                    if (Config.battery.sendInternalVoltage) {
-                        beaconPacket            += " Batt=";
-                        beaconPacket            += internalVoltageInfo;
-                        secondaryBeaconPacket   += " Batt=";
-                        secondaryBeaconPacket   += internalVoltageInfo;
-                        sixthLine               = "    (Batt=";
-                        sixthLine               += internalVoltageInfo;
-                        sixthLine               += ")";
-                    }
                     if (Config.battery.monitorInternalVoltage && internalVoltage < Config.battery.internalSleepVoltage) {
                         beaconPacket            += " **IntBatWarning:SLEEP**";
                         secondaryBeaconPacket   += " **IntBatWarning:SLEEP**";
                         shouldSleepLowVoltage   = true;
-                    }                    
+                    }
+
+                    String internalVoltageInfo  = String(internalVoltage,2) + "V";
+                    if (Config.battery.sendInternalVoltage) {
+                        sixthLine               = "    (Batt=";
+                        sixthLine               += internalVoltageInfo;
+                        sixthLine               += ")";
+                        if (!Config.battery.sendVoltageAsTelemetry) {
+                            beaconPacket            += " Batt=";
+                            beaconPacket            += internalVoltageInfo;
+                            secondaryBeaconPacket   += " Batt=";
+                            secondaryBeaconPacket   += internalVoltageInfo;
+                        }
+                    }      
                 }
             #endif
 
             #ifndef HELTEC_WP
                 if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
                     float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
-                    String externalVoltageInfo  = String(externalVoltage,2) + "V";
-                    if (Config.battery.sendExternalVoltage) {
-                        beaconPacket            += " Ext=";
-                        beaconPacket            += externalVoltageInfo;
-                        secondaryBeaconPacket   += " Ext=";
-                        secondaryBeaconPacket   += externalVoltageInfo;
-                        sixthLine               = "    (Ext V=";
-                        sixthLine               += externalVoltageInfo;
-                        sixthLine               += ")";
-                    }
                     if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
                         beaconPacket            += " **ExtBatWarning:SLEEP**";
                         secondaryBeaconPacket   += " **ExtBatWarning:SLEEP**";
                         shouldSleepLowVoltage   = true;
                     }
+
+                    String externalVoltageInfo  = String(externalVoltage,2) + "V";
+                    if (Config.battery.sendExternalVoltage) {
+                        sixthLine               = "    (Ext V=";
+                        sixthLine               += externalVoltageInfo;
+                        sixthLine               += ")";
+                        if (!Config.battery.sendVoltageAsTelemetry) {
+                            beaconPacket            += " Ext=";
+                            beaconPacket            += externalVoltageInfo;
+                            secondaryBeaconPacket   += " Ext=";
+                            secondaryBeaconPacket   += externalVoltageInfo;
+                        }                        
+                    }                    
                 }
             #endif
 
+            if (Config.battery.sendVoltageAsTelemetry && !Config.bme.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)){
+                String encodedTelemetry = BATTERY_Utils::generateEncodedTelemetry();
+                beaconPacket += encodedTelemetry;
+                secondaryBeaconPacket += encodedTelemetry;
+            }
+
             if (Config.aprs_is.active && Config.beacon.sendViaAPRSIS && !backUpDigiMode) {
+                Utils::println("-- Sending Beacon to APRSIS --");
                 displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING IGATE BEACON", 0); 
                 seventhLine = "     listening...";
                 #ifdef HAS_A7670
@@ -184,6 +271,7 @@ namespace Utils {
             }
 
             if (Config.beacon.sendViaRF || backUpDigiMode) {
+                Utils::println("-- Sending Beacon to RF --");
                 displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
                 seventhLine = "     listening...";
                 STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket);
@@ -246,7 +334,7 @@ namespace Utils {
         } else if (packet[firstColonIndex + 1] == '>') {
             sixthLine += "> NEW STATUS";
             seventhLine = seventhLineHelper;
-        } else if (packet[firstColonIndex + 1] == '!' || packet[firstColonIndex + 1] == '=') {
+        } else if (packet[firstColonIndex + 1] == '!' || packet[firstColonIndex + 1] == '=' || packet[firstColonIndex + 1] == '@') {
             sixthLine += "> GPS BEACON";
             if (!Config.syslog.active) {
                 GPS_Utils::getDistanceAndComment(packet);       // to be checked!!!
@@ -309,12 +397,12 @@ namespace Utils {
 
     void checkSleepByLowBatteryVoltage(uint8_t mode) {
         if (shouldSleepLowVoltage) {
-            if (mode == 0) {
+            if (mode == 0) {    // at startup
                 delay(3000);
             }
             Serial.println("\n\n*** Sleeping Low Battey Voltage ***\n\n");
             esp_sleep_enable_timer_wakeup(30 * 60 * 1000000); // sleep 30 min
-            if (mode == 1) {
+            if (mode == 1) {    // low voltage detected after a while
                 displayToggle(false);
             }
             #ifdef VEXT_CTRL

@@ -1,13 +1,14 @@
 #include "configuration.h"
+#include "station_utils.h"
 #include "query_utils.h"
 #include "lora_utils.h"
 
-extern Configuration        Config;
-extern std::vector<String>  lastHeardStation;
-extern String               versionDate;
-extern int                  rssi;
-extern float                snr;
-extern int                  freqError;
+extern Configuration                    Config;
+extern std::vector<LastHeardStation>    lastHeardStations;
+extern String                           versionDate;
+extern int                              rssi;
+extern float                            snr;
+extern int                              freqError;
 
 
 namespace QUERY_Utils {
@@ -19,7 +20,7 @@ namespace QUERY_Utils {
         if (queryQuestion == "?APRS?" || queryQuestion == "H" || queryQuestion == "HELP" || queryQuestion=="?") {
             answer.concat("?APRSV ?APRSP ?APRSL ?APRSH ?WHERE callsign");
         } else if (queryQuestion == "?APRSV") {
-            answer.concat("CA2RXU_LoRa_iGate 1.4 v");
+            answer.concat("CA2RXU_LoRa_iGate 2.0 v");
             answer.concat(versionDate);
         } else if (queryQuestion == "?APRSP") {
             answer.concat("iGate QTH: ");
@@ -27,13 +28,13 @@ namespace QUERY_Utils {
             answer.concat(" ");
             answer.concat(String(Config.beacon.longitude,3));
         } else if (queryQuestion == "?APRSL") {
-            if (lastHeardStation.size() == 0) {
+            if (lastHeardStations.size() == 0) {
                 char answerArray[50];
                 snprintf(answerArray, sizeof(answerArray), "No Station Listened in the last %d min.", Config.rememberStationTime);
                 answer.concat(answerArray);
             } else {
-                for (int i=0; i<lastHeardStation.size(); i++) {
-                    answer += lastHeardStation[i].substring(0,lastHeardStation[i].indexOf(",")) + " ";
+                for (int i=0; i<lastHeardStations.size(); i++) {
+                    answer += lastHeardStations[i].station + " ";
                 }
                 answer.trim();
             }

@@ -33,11 +33,11 @@ namespace BME_Utils {
         uint8_t err, addr;
         for(addr = 1; addr < 0x7F; addr++) {
             #if defined(HELTEC_V3) || defined(HELTEC_WSL_V3) || defined(HELTEC_WSL_V3_DISPLAY)
-            Wire1.beginTransmission(addr);
-            err = Wire1.endTransmission();
+                Wire1.beginTransmission(addr);
+                err = Wire1.endTransmission();
             #else
-            Wire.beginTransmission(addr);
-            err = Wire.endTransmission();
+                Wire.beginTransmission(addr);
+                err = Wire.endTransmission();
             #endif
             if (err == 0) {
                 //Serial.println(addr); this shows any connected board to I2C
@@ -216,7 +216,7 @@ namespace BME_Utils {
         String wx;
         if (isnan(newTemp) || isnan(newHum) || isnan(newPress)) {
             Serial.println("BME/BMP/Si7021 Module data failed");
-            wx = ".../...g...t...r...p...P...h..b.....";
+            wx = ".../...g...t...";
             fifthLine = "";
             return wx;
         } else {
@@ -246,7 +246,7 @@ namespace BME_Utils {
 
             wx = ".../...g...t";
             wx += tempStr;
-            wx += "r...p...P...h";
+            wx += "h";
             wx += humStr;
             wx += "b";
             wx += presStr;
