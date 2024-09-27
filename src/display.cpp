@@ -21,7 +21,7 @@
         #else
             #include <Adafruit_GFX.h>
             #include <Adafruit_SSD1306.h>
-            #if defined(HELTEC_V3)
+            #if defined(HELTEC_V3) || defined(HELTEC_WS)
                 #define OLED_DISPLAY_HAS_RST_PIN
             #endif
             #ifdef HELTEC_WSL_V3_DISPLAY
@@ -65,10 +65,6 @@ void displaySetup() {
                     digitalWrite(OLED_RST, LOW);
                     delay(20);
                     digitalWrite(OLED_RST, HIGH);
-                #endif
-
-                #ifndef HELTEC_WSL_V3_DISPLAY
-                    Wire.begin(OLED_SDA, OLED_SCL);
                 #endif
 
                 if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) { 

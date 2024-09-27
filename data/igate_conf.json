@@ -6,7 +6,7 @@
             "powerOff": 10
         },
         "AP": [
-            {"ssid":"replace_with_wifi","password":"replace_with_password"}
+            {"ssid":"replace_with_your_wifi","password":"replace_with_your_password"}
         ]
     },
     "beacon": {
@@ -56,7 +56,8 @@
         "monitorExternalVoltage": false,
         "externalSleepVoltage": 10.9,
         "voltageDividerR1": 100.0,
-        "voltageDividerR2": 27.0
+        "voltageDividerR2": 27.0,
+        "sendVoltageAsTelemetry": true
 	},
     "bme": {
         "active": false,

@@ -38,7 +38,7 @@ ________________________________________________________________________________
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.08.19m";
+String          versionDate             = "2024.09.25m";
 Configuration   Config;
 WiFiClient      espClient;
 
@@ -61,7 +61,6 @@ String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seven
 void setup() {
     Serial.begin(115200);
     POWER_Utils::setup();
-    BATTERY_Utils::setup();
     Utils::setupDisplay();
     LoRa_Utils::setup();
     Utils::validateFreqs();
