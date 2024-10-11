@@ -23,33 +23,35 @@ uint32_t    lastBackupDigiTime  = millis();
 namespace WIFI_Utils {
 
     void checkWiFi() {
-        if (backUpDigiMode) {
-            uint32_t WiFiCheck = millis() - lastBackupDigiTime;
-            if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
-                Serial.println("*** Stoping BackUp Digi Mode ***");
-                backUpDigiMode = false;
-                wifiCounter = 0;
-            } else if (WiFi.status() == WL_CONNECTED) {
-                Serial.println("*** WiFi Reconnect Success (Stoping Backup Digi Mode) ***");
-                backUpDigiMode = false;
-                wifiCounter = 0;
+        if (!Config.digi.ecoMode) {
+            if (backUpDigiMode) {
+                uint32_t WiFiCheck = millis() - lastBackupDigiTime;
+                if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
+                    Serial.println("*** Stoping BackUp Digi Mode ***");
+                    backUpDigiMode = false;
+                    wifiCounter = 0;
+                } else if (WiFi.status() == WL_CONNECTED) {
+                    Serial.println("*** WiFi Reconnect Success (Stoping Backup Digi Mode) ***");
+                    backUpDigiMode = false;
+                    wifiCounter = 0;
+                }
             }
-        }
 
-        if (!backUpDigiMode && (WiFi.status() != WL_CONNECTED) && ((millis() - previousWiFiMillis) >= 30 * 1000) && !WiFiAutoAPStarted) {
-            Serial.print(millis());
-            Serial.println("Reconnecting to WiFi...");
-            WiFi.disconnect();
-            WIFI_Utils::startWiFi();//WiFi.reconnect();
-            previousWiFiMillis = millis();
+            if (!backUpDigiMode && (WiFi.status() != WL_CONNECTED) && ((millis() - previousWiFiMillis) >= 30 * 1000) && !WiFiAutoAPStarted) {
+                Serial.print(millis());
+                Serial.println("Reconnecting to WiFi...");
+                WiFi.disconnect();
+                WIFI_Utils::startWiFi();//WiFi.reconnect();
+                previousWiFiMillis = millis();
 
-            if (Config.backupDigiMode) {
-                wifiCounter++;
-            }
-            if (wifiCounter >= 2) {
-                Serial.println("*** Starting BackUp Digi Mode ***");
-                backUpDigiMode = true;
-                lastBackupDigiTime = millis();
+                if (Config.backupDigiMode) {
+                    wifiCounter++;
+                }
+                if (wifiCounter >= 2) {
+                    Serial.println("*** Starting BackUp Digi Mode ***");
+                    backUpDigiMode = true;
+                    lastBackupDigiTime = millis();
+                }
             }
         }
     }
@@ -58,7 +60,7 @@ namespace WIFI_Utils {
         WiFi.mode(WIFI_MODE_NULL);
 
         WiFi.mode(WIFI_AP);
-        WiFi.softAP(Config.callsign + " AP", Config.wifiAutoAP.password);
+        WiFi.softAP(Config.callsign + "-AP", Config.wifiAutoAP.password);
 
         WiFiAutoAPTime = millis();
         WiFiAutoAPStarted = true;
@@ -131,14 +133,14 @@ namespace WIFI_Utils {
         }
     }
 
-    void checkIfAutoAPShouldPowerOff() {
-        if (WiFiAutoAPStarted && Config.wifiAutoAP.powerOff > 0) {
+    void checkAutoAPTimeout() {
+        if (WiFiAutoAPStarted && Config.wifiAutoAP.timeout > 0) {
             if (WiFi.softAPgetStationNum() > 0) {
                 WiFiAutoAPTime = 0;
             } else {
                 if (WiFiAutoAPTime == 0) {
                     WiFiAutoAPTime = millis();
-                } else if ((millis() - WiFiAutoAPTime) > Config.wifiAutoAP.powerOff * 60 * 1000) {
+                } else if ((millis() - WiFiAutoAPTime) > Config.wifiAutoAP.timeout * 60 * 1000) {
                     Serial.println("Stopping auto AP");
 
                     WiFiAutoAPStarted = false;
@@ -151,7 +153,7 @@ namespace WIFI_Utils {
     }
 
     void setup() {
-        startWiFi();
+        if (!Config.digi.ecoMode) startWiFi();
         btStop();
     }
 

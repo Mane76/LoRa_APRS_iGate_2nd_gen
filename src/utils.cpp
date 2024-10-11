@@ -9,7 +9,7 @@
 #include "lora_utils.h"
 #include "wifi_utils.h"
 #include "gps_utils.h"
-#include "bme_utils.h"
+#include "wx_utils.h"
 #include "display.h"
 #include "utils.h"
 
@@ -70,7 +70,9 @@ namespace Utils {
     }
 
     String getLocalIP() {
-        if (!WiFiConnected) {
+        if (Config.digi.ecoMode) {
+            return "** WiFi AP  Killed **";
+        } else if (!WiFiConnected) {
             return "IP :  192.168.4.1";
         } else if (backUpDigiMode) {
             return "- BACKUP DIGI MODE -";
@@ -85,6 +87,7 @@ namespace Utils {
             digitalWrite(INTERNAL_LED_PIN,HIGH);
         #endif
         Serial.println("\nStarting Station: " + Config.callsign + "   Version: " + versionDate);
+        Serial.println((Config.digi.ecoMode) ? "(DigiEcoMode: ON)" : "(DigiEcoMode: OFF)");
         displayShow(" LoRa APRS", "", "", "   ( iGATE & DIGI )", "", "" , "  CA2RXU  " + versionDate, 4000);
         #ifdef INTERNAL_LED_PIN
             digitalWrite(INTERNAL_LED_PIN,LOW);
@@ -184,7 +187,7 @@ namespace Utils {
                 displayToggle(true);
             }
 
-            if (sendStartTelemetry && Config.battery.sendVoltageAsTelemetry && !Config.bme.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)) {
+            if (sendStartTelemetry && Config.battery.sendVoltageAsTelemetry && !Config.wxsensor.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)) {
                 sendInitialTelemetryPackets();
             }
             
@@ -194,11 +197,11 @@ namespace Utils {
 
             String beaconPacket             = iGateBeaconPacket;
             String secondaryBeaconPacket    = iGateLoRaBeaconPacket;
-            if (Config.bme.active && wxModuleType != 0) {
-                String sensorData = BME_Utils::readDataSensor();
+            if (Config.wxsensor.active && wxModuleType != 0) {
+                String sensorData = WX_Utils::readDataSensor();
                 beaconPacket += sensorData;
                 secondaryBeaconPacket += sensorData;
-            } else if (Config.bme.active && wxModuleType == 0) {
+            } else if (Config.wxsensor.active && wxModuleType == 0) {
                 beaconPacket += ".../...g...t...";
                 secondaryBeaconPacket += ".../...g...t...";
             }
@@ -253,7 +256,7 @@ namespace Utils {
                 }
             #endif
 
-            if (Config.battery.sendVoltageAsTelemetry && !Config.bme.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)){
+            if (Config.battery.sendVoltageAsTelemetry && !Config.wxsensor.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)){
                 String encodedTelemetry = BATTERY_Utils::generateEncodedTelemetry();
                 beaconPacket += encodedTelemetry;
                 secondaryBeaconPacket += encodedTelemetry;

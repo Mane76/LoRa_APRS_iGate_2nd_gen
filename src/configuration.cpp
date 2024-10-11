@@ -18,7 +18,7 @@ void Configuration::writeFile() {
     }
 
     data["wifi"]["autoAP"]["password"]          = wifiAutoAP.password;
-    data["wifi"]["autoAP"]["powerOff"]          = wifiAutoAP.powerOff;
+    data["wifi"]["autoAP"]["timeout"]           = wifiAutoAP.timeout;
 
     data["callsign"]                            = callsign;
 
@@ -41,6 +41,7 @@ void Configuration::writeFile() {
     data["beacon"]["path"]                      = beacon.path;
 
     data["digi"]["mode"]                        = digi.mode;
+    data["digi"]["ecoMode"]                     = digi.ecoMode;
 
     data["lora"]["rxFreq"]                      = loramodule.rxFreq;
     data["lora"]["txFreq"]                      = loramodule.txFreq;
@@ -68,9 +69,9 @@ void Configuration::writeFile() {
 
     data["battery"]["sendVoltageAsTelemetry"]   = battery.sendVoltageAsTelemetry;
     
-    data["bme"]["active"]                       = bme.active;
-    data["bme"]["heightCorrection"]             = bme.heightCorrection;
-    data["bme"]["temperatureCorrection"]        = bme.temperatureCorrection;
+    data["wxsensor"]["active"]                  = wxsensor.active;
+    data["wxsensor"]["heightCorrection"]        = wxsensor.heightCorrection;
+    data["wxsensor"]["temperatureCorrection"]   = wxsensor.temperatureCorrection;
 
     data["syslog"]["active"]                    = syslog.active;
     data["syslog"]["server"]                    = syslog.server;
@@ -129,7 +130,7 @@ bool Configuration::readFile() {
         }
 
         wifiAutoAP.password             = data["wifi"]["autoAP"]["password"] | "1234567890";
-        wifiAutoAP.powerOff             = data["wifi"]["autoAP"]["powerOff"] | 10;
+        wifiAutoAP.timeout              = data["wifi"]["autoAP"]["timeout"] | 10;
 
         callsign                        = data["callsign"] | "NOCALL-10";
         rememberStationTime             = data["other"]["rememberStationTime"] | 30;
@@ -153,6 +154,7 @@ bool Configuration::readFile() {
         aprs_is.objectsToRF             = data["aprs_is"]["objectsToRF"] | false;
         
         digi.mode                       = data["digi"]["mode"] | 0;
+        digi.ecoMode                    = data["digi"]["ecoMode"] | false;
 
         loramodule.txFreq               = data["lora"]["txFreq"] | 433775000;
         loramodule.rxFreq               = data["lora"]["rxFreq"] | 433775000;
@@ -169,7 +171,7 @@ bool Configuration::readFile() {
 
         battery.sendInternalVoltage     = data["battery"]["sendInternalVoltage"] | false;
         battery.monitorInternalVoltage  = data["battery"]["monitorInternalVoltage"] | false;
-        battery.internalSleepVoltage    = data["battery"]["internalSleepVoltage"] | 3.0;
+        battery.internalSleepVoltage    = data["battery"]["internalSleepVoltage"] | 2.9;
 
         battery.sendExternalVoltage     = data["battery"]["sendExternalVoltage"] | false;
         battery.externalVoltagePin      = data["battery"]["externalVoltagePin"] | 34;
@@ -180,9 +182,9 @@ bool Configuration::readFile() {
 
         battery.sendVoltageAsTelemetry  = data["battery"]["sendVoltageAsTelemetry"] | false;
 
-        bme.active                      = data["bme"]["active"] | false;
-        bme.heightCorrection            = data["bme"]["heightCorrection"] | 0;
-        bme.temperatureCorrection       = data["bme"]["temperatureCorrection"] | 0.0;
+        wxsensor.active                 = data["wxsensor"]["active"] | false;
+        wxsensor.heightCorrection       = data["wxsensor"]["heightCorrection"] | 0;
+        wxsensor.temperatureCorrection  = data["wxsensor"]["temperatureCorrection"] | 0.0;
 
         syslog.active                   = data["syslog"]["active"] | false;
         syslog.server                   = data["syslog"]["server"] | "192.168.0.100";
@@ -234,7 +236,7 @@ void Configuration::init() {
     wifiAPs.push_back(wifiap);
 
     wifiAutoAP.password             = "1234567890";
-    wifiAutoAP.powerOff             = 15;
+    wifiAutoAP.timeout              = 10;
 
     callsign                        = "N0CALL-10";
 
@@ -248,7 +250,8 @@ void Configuration::init() {
     beacon.sendViaRF                = false;
     beacon.path                     = "WIDE1-1";
     
-    digi.mode = 0;
+    digi.mode                       = 0;
+    digi.ecoMode                    = false;
 
     tnc.enableServer                = false;
     tnc.enableSerial                = false;
@@ -279,9 +282,9 @@ void Configuration::init() {
     syslog.server                   = "192.168.0.100";
     syslog.port                     = 514;
 
-    bme.active                      = false;
-    bme.heightCorrection            = 0;
-    bme.temperatureCorrection       = 0.0;
+    wxsensor.active                 = false;
+    wxsensor.heightCorrection       = 0;
+    wxsensor.temperatureCorrection  = 0.0;
 
     ota.username                    = "";
     ota.password                    = "";
@@ -290,7 +293,7 @@ void Configuration::init() {
 
     battery.sendInternalVoltage     = false;
     battery.monitorInternalVoltage  = false;
-    battery.internalSleepVoltage    = 3.0;
+    battery.internalSleepVoltage    = 2.9;
 
     battery.sendExternalVoltage     = false;
     battery.externalVoltagePin      = 34;

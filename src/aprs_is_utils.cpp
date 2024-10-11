@@ -71,7 +71,7 @@ namespace APRS_IS_Utils {
         if (WiFi.status() == WL_CONNECTED) {
             wifiState = "OK";
         } else {
-            if (backUpDigiMode) {
+            if (backUpDigiMode || Config.digi.ecoMode) {
                 wifiState = "--";
             } else {
                 wifiState = "AP";
@@ -138,7 +138,8 @@ namespace APRS_IS_Utils {
             //Serial.println(ackMessage);
             
             String addToBuffer = Config.callsign;
-            addToBuffer += ">APLRG1,RFONLY";
+            addToBuffer += ">APLRG1";
+            if (!thirdParty) addToBuffer += ",RFONLY";
             if (Config.beacon.path != "") {
                 addToBuffer += ",";
                 addToBuffer += Config.beacon.path;
