@@ -9,6 +9,8 @@ Attention users of TTGO 2.1 v1.6 (boards labeled “T3_V1.6” on pcb): Read <a 
 __(This iGate Firmware works with all LoRa Tracker Firmwares (specially this <a href="https://github.com/richonguzman/LoRa_APRS_Tracker" target="_blank">LoRa APRS Tracker Firmware</a>))__
 <br />
 
+____________________________________________________
+
 ## You can support this project to continue to grow:
 
 [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/blob/main/images/github-sponsors.png">](https://github.com/sponsors/richonguzman)     [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/blob/main/images/paypalme.png">](http://paypal.me/richonguzman)
@@ -52,6 +54,9 @@ ____________________________________________________
 
 ## Timeline (Versions):
 
+- 2024.10.11 Minor Bugfixes
+- 2024.10.08 New EcoMode for Remote Digirepeaters without WiFi/WiFiAP, Screen, Leds (Example: LILYGO LoRa32 uses only 24mA, with WifiAP and all was 150mA). APRS Message/Queries can start/stop this mode too.
+- 2024.10.06 Cross Frequency Digirepeater Rules added.
 - 2024.09.23 Libraries Update for SDK3
 - 2024.09.23 Added Enconded Telemetry for Battery (+ External Voltage) in Station GPS Beacon Packet. 
 - 2024.08.23 Wemos S2 Mini DIY LoRa added.
@@ -153,5 +158,4 @@ b) Choose _stationMode_:
 
 __________________________________________
 
-
-# Hope You Enjoy this, 73 !!  CA2RXU , Valparaiso, Chile
+# Hope You Enjoy this, 73! CA2RXU, Valparaiso, Chile

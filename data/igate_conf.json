@@ -3,7 +3,7 @@
     "wifi": {
         "autoAP": {
             "password": "1234567890",
-            "powerOff": 10
+            "timeout": 10
         },
         "AP": [
             {"ssid":"replace_with_your_wifi","password":"replace_with_your_password"}
@@ -30,7 +30,8 @@
         "objectsToRF": false
     },
     "digi": {
-        "mode": 0
+        "mode": 0,
+        "ecoMode": false
     },
     "lora": {
         "txFreq": 433775000,
@@ -50,7 +51,7 @@
     "battery": {
         "sendInternalVoltage": false,
         "monitorInternalVoltage": false,
-        "internalSleepVoltage": 3.0,
+        "internalSleepVoltage": 2.9,
         "sendExternalVoltage": false,
         "externalVoltagePin": 34,
         "monitorExternalVoltage": false,
@@ -59,7 +60,7 @@
         "voltageDividerR2": 27.0,
         "sendVoltageAsTelemetry": true
 	},
-    "bme": {
+    "wxsensor": {
         "active": false,
         "heightCorrection": 0,
         "temperatureCorrection": 0.0

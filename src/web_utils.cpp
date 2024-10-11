@@ -110,10 +110,10 @@ namespace WEB_Utils {
         }
 
         Config.callsign                 = request->getParam("callsign", true)->value();
-                
-        Config.wifiAutoAP.password      = request->getParam("wifi.autoAP.password", true)->value();
-        Config.wifiAutoAP.powerOff      = request->getParam("wifi.autoAP.powerOff", true)->value().toInt();
 
+        Config.wifiAutoAP.password      = request->getParam("wifi.autoAP.password", true)->value();
+        Config.wifiAutoAP.timeout       = request->getParam("wifi.autoAP.timeout", true)->value().toInt();
+        
 
         Config.aprs_is.active           = request->hasParam("aprs_is.active", true);
         Config.aprs_is.passcode         = request->getParam("aprs_is.passcode", true)->value();
@@ -135,7 +135,8 @@ namespace WEB_Utils {
         Config.beacon.path                  = request->getParam("beacon.path", true)->value();
 
 
-        Config.digi.mode                = request->getParam("digi.mode", true)->value().toInt();
+        Config.digi.mode                    = request->getParam("digi.mode", true)->value().toInt();
+        Config.digi.ecoMode                 = request->hasParam("digi.ecoMode", true);
 
 
         Config.loramodule.txFreq            = request->getParam("lora.txFreq", true)->value().toInt();
@@ -148,11 +149,11 @@ namespace WEB_Utils {
         Config.loramodule.rxActive          = request->hasParam("lora.rxActive", true);
 
 
-        Config.display.alwaysOn             = request->hasParam("display.alwaysOn", true);
+        Config.display.alwaysOn                 = request->hasParam("display.alwaysOn", true);
         if (!Config.display.alwaysOn) {
             Config.display.timeout  = request->getParam("display.timeout", true)->value().toInt();
         }
-        Config.display.turn180              = request->hasParam("display.turn180", true);
+        Config.display.turn180                  = request->hasParam("display.turn180", true);
 
 
         Config.battery.sendInternalVoltage      = request->hasParam("battery.sendInternalVoltage", true);
@@ -162,18 +163,18 @@ namespace WEB_Utils {
         Config.battery.sendExternalVoltage      = request->hasParam("battery.sendExternalVoltage", true);
         if (Config.battery.sendExternalVoltage) {
             Config.battery.externalVoltagePin   = request->getParam("battery.externalVoltagePin", true)->value().toInt();
-            Config.battery.voltageDividerR1           = request->getParam("battery.voltageDividerR1", true)->value().toFloat();
-            Config.battery.voltageDividerR2           = request->getParam("battery.voltageDividerR2", true)->value().toFloat();
+            Config.battery.voltageDividerR1     = request->getParam("battery.voltageDividerR1", true)->value().toFloat();
+            Config.battery.voltageDividerR2     = request->getParam("battery.voltageDividerR2", true)->value().toFloat();
         }
         Config.battery.monitorExternalVoltage   = request->hasParam("battery.monitorExternalVoltage", true);
         Config.battery.externalSleepVoltage     = request->getParam("battery.externalSleepVoltage", true)->value().toFloat();
 
         Config.battery.sendVoltageAsTelemetry   = request->hasParam("battery.sendVoltageAsTelemetry", true);
         
-        Config.bme.active                   = request->hasParam("bme.active", true);
-        Config.bme.heightCorrection         = request->getParam("bme.heightCorrection", true)->value().toInt();
-        Config.bme.temperatureCorrection    = request->getParam("bme.temperatureCorrection", true)->value().toFloat();
-        if (Config.bme.active) {
+        Config.wxsensor.active                  = request->hasParam("wxsensor.active", true);
+        Config.wxsensor.heightCorrection        = request->getParam("wxsensor.heightCorrection", true)->value().toInt();
+        Config.wxsensor.temperatureCorrection   = request->getParam("wxsensor.temperatureCorrection", true)->value().toFloat();
+        if (Config.wxsensor.active) {
             Config.beacon.symbol = "_";
         }
 
@@ -258,23 +259,25 @@ namespace WEB_Utils {
     }
 
     void setup() {
-        server.on("/", HTTP_GET, handleHome);
-        server.on("/status", HTTP_GET, handleStatus);
-        server.on("/received-packets.json", HTTP_GET, handleReceivedPackets);
-        server.on("/configuration.json", HTTP_GET, handleReadConfiguration);
-        server.on("/configuration.json", HTTP_POST, handleWriteConfiguration);
-        server.on("/action", HTTP_POST, handleAction);
-        server.on("/style.css", HTTP_GET, handleStyle);
-        server.on("/script.js", HTTP_GET, handleScript);
-        server.on("/bootstrap.css", HTTP_GET, handleBootstrapStyle);
-        server.on("/bootstrap.js", HTTP_GET, handleBootstrapScript);
-        server.on("/favicon.png", HTTP_GET, handleFavicon);
+        if (!Config.digi.ecoMode) {
+            server.on("/", HTTP_GET, handleHome);
+            server.on("/status", HTTP_GET, handleStatus);
+            server.on("/received-packets.json", HTTP_GET, handleReceivedPackets);
+            server.on("/configuration.json", HTTP_GET, handleReadConfiguration);
+            server.on("/configuration.json", HTTP_POST, handleWriteConfiguration);
+            server.on("/action", HTTP_POST, handleAction);
+            server.on("/style.css", HTTP_GET, handleStyle);
+            server.on("/script.js", HTTP_GET, handleScript);
+            server.on("/bootstrap.css", HTTP_GET, handleBootstrapStyle);
+            server.on("/bootstrap.js", HTTP_GET, handleBootstrapScript);
+            server.on("/favicon.png", HTTP_GET, handleFavicon);
 
-        OTA_Utils::setup(&server); // Include OTA Updater for WebServer
+            OTA_Utils::setup(&server); // Include OTA Updater for WebServer
 
-        server.onNotFound(handleNotFound);
+            server.onNotFound(handleNotFound);
 
-        server.begin();
+            server.begin();
+        }
     }
 
 }

@@ -14,7 +14,7 @@ public:
 class WiFi_Auto_AP {
 public:
     String  password;
-    int     powerOff;
+    int     timeout;
 };
 
 class BEACON {
@@ -44,6 +44,7 @@ public:
 class DIGI {
 public:
     int     mode;
+    bool    ecoMode;
 };
 
 
@@ -80,7 +81,7 @@ public:
     bool    sendVoltageAsTelemetry;
 };
 
-class BME {
+class WXSENSOR {
 public:
     bool    active;
     int     heightCorrection;
@@ -132,7 +133,7 @@ public:
     LoraModule              loramodule;
     Display                 display;
     BATTERY                 battery;
-    BME                     bme;
+    WXSENSOR                wxsensor;
     SYSLOG                  syslog;
     TNC                     tnc;  
     OTA                     ota;

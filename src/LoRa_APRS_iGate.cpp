@@ -29,16 +29,16 @@ ________________________________________________________________________________
 #include "wifi_utils.h"
 #include "digi_utils.h"
 #include "gps_utils.h"
-#include "bme_utils.h"
 #include "web_utils.h"
 #include "tnc_utils.h"
+#include "wx_utils.h"
 #include "display.h"
 #include "utils.h"
 #ifdef HAS_A7670
     #include "A7670_utils.h"
 #endif
 
-String          versionDate             = "2024.09.25m";
+String          versionDate             = "2024.10.11m";
 Configuration   Config;
 WiFiClient      espClient;
 
@@ -111,9 +111,10 @@ void setup() {
             Config.loramodule.rxActive = false;
         }
     #endif
+    DIGI_Utils::checkEcoMode();
     WIFI_Utils::setup();
     SYSLOG_Utils::setup();
-    BME_Utils::setup();
+    WX_Utils::setup();
     WEB_Utils::setup();
     TNC_Utils::setup();
     #ifdef HAS_A7670
@@ -123,7 +124,7 @@ void setup() {
 }
 
 void loop() {
-    WIFI_Utils::checkIfAutoAPShouldPowerOff();
+    WIFI_Utils::checkAutoAPTimeout();
 
     if (isUpdatingOTA) {
         ElegantOTA.loop();
@@ -136,7 +137,7 @@ void loop() {
 
     thirdLine = Utils::getLocalIP();
 
-    WIFI_Utils::checkWiFi(); // Always use WiFi, not related to IGate/Digi mode
+    WIFI_Utils::checkWiFi();
 
     #ifdef HAS_A7670
         if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
