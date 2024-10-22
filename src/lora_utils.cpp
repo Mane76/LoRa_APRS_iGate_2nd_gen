@@ -4,6 +4,7 @@
 #include "aprs_is_utils.h"
 #include "boards_pinout.h"
 #include "syslog_utils.h"
+#include "ntp_utils.h"
 #include "display.h"
 #include "utils.h"
 
@@ -175,15 +176,15 @@ namespace LoRa_Utils {
                         Utils::println("<--- LoRa Packet Rx    : " + packet.substring(3));
                         Utils::println("(RSSI:" + String(rssi) + " / SNR:" + String(snr) + " / FreqErr:" + String(freqError) + ")");
 
-                        if (!Config.lowPowerMode) {
+                        if (!Config.lowPowerMode && !Config.digi.ecoMode) {
+                            if (receivedPackets.size() >= 10) {
+                                receivedPackets.erase(receivedPackets.begin());
+                            }
                             ReceivedPacket receivedPacket;
-                            receivedPacket.millis   = millis();
+                            receivedPacket.rxTime   = NTP_Utils::getFormatedTime();
                             receivedPacket.packet   = packet.substring(3);
                             receivedPacket.RSSI     = rssi;
                             receivedPacket.SNR      = snr;
-                            if (receivedPackets.size() >= 20) {
-                                receivedPackets.erase(receivedPackets.begin());
-                            }
                             receivedPackets.push_back(receivedPacket);
                         }
 

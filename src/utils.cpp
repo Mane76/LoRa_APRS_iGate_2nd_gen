@@ -1,3 +1,4 @@
+#include <TinyGPS++.h>
 #include <WiFi.h>
 #include "configuration.h"
 #include "station_utils.h"
@@ -13,8 +14,10 @@
 #include "display.h"
 #include "utils.h"
 
+
 extern Configuration        Config;
 extern WiFiClient           espClient;
+extern TinyGPSPlus          gps;
 extern String               versionDate;
 extern String               firstLine;
 extern String               secondLine;
@@ -42,6 +45,8 @@ bool        sendStartTelemetry  = true;
 bool        beaconUpdate        = true;
 uint32_t    lastBeaconTx        = 0;
 uint32_t    lastScreenOn        = millis();
+String      beaconPacket;
+String      secondaryBeaconPacket;
 
 
 namespace Utils {
@@ -105,7 +110,6 @@ namespace Utils {
         }
         fourthLine.concat(String(lastHeardStations.size()));
     }
-
 
     void sendInitialTelemetryPackets() {
         String sender = Config.callsign;
@@ -175,12 +179,18 @@ namespace Utils {
         sendStartTelemetry = false;
     }            
 
-
     void checkBeaconInterval() {
         uint32_t lastTx = millis() - lastBeaconTx;
         if (lastBeaconTx == 0 || lastTx >= Config.beacon.interval * 60 * 1000) {
             beaconUpdate = true;    
         }
+
+        #ifdef HAS_GPS
+            if (Config.beacon.gpsActive && gps.location.lat() == 0.0 && gps.location.lng() == 0.0 && Config.beacon.latitude == 0.0 && Config.beacon.longitude == 0.0) {
+                GPS_Utils::getData();
+                beaconUpdate = false;
+            }
+        #endif
 
         if (beaconUpdate) {
             if (!Config.display.alwaysOn && Config.display.timeout != 0) {
@@ -195,8 +205,20 @@ namespace Utils {
 
             activeStations();
 
-            String beaconPacket             = iGateBeaconPacket;
-            String secondaryBeaconPacket    = iGateLoRaBeaconPacket;
+            beaconPacket            = iGateBeaconPacket;
+            secondaryBeaconPacket   = iGateLoRaBeaconPacket;
+            #ifdef HAS_GPS
+                if (Config.beacon.gpsActive && !Config.digi.ecoMode) {
+                    GPS_Utils::getData();
+                    if (gps.location.isUpdated() && gps.location.lat() != 0.0 && gps.location.lng() != 0.0) {
+                        GPS_Utils::generateBeaconFirstPart();
+                        String encodedGPS = GPS_Utils::encodeGPS(gps.location.lat(), gps.location.lng(), Config.beacon.overlay, Config.beacon.symbol);
+                        beaconPacket = iGateBeaconPacket + encodedGPS;
+                        secondaryBeaconPacket = iGateLoRaBeaconPacket + encodedGPS;
+                    }
+                }
+            #endif
+
             if (Config.wxsensor.active && wxModuleType != 0) {
                 String sensorData = WX_Utils::readDataSensor();
                 beaconPacket += sensorData;

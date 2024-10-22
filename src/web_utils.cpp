@@ -81,10 +81,10 @@ namespace WEB_Utils {
         StaticJsonDocument<1536> data;
 
         for (int i = 0; i < receivedPackets.size(); i++) {
-            data[i]["millis"] = receivedPackets[i].millis;
-            data[i]["packet"] = receivedPackets[i].packet;
-            data[i]["RSSI"] = receivedPackets[i].RSSI;
-            data[i]["SNR"] = receivedPackets[i].SNR;
+            data[i]["rxTime"]   = receivedPackets[i].rxTime;
+            data[i]["packet"]   = receivedPackets[i].packet;
+            data[i]["RSSI"]     = receivedPackets[i].RSSI;
+            data[i]["SNR"]      = receivedPackets[i].SNR;
         }
 
         String buffer;
@@ -134,6 +134,9 @@ namespace WEB_Utils {
         Config.beacon.symbol                = request->getParam("beacon.symbol", true)->value();
         Config.beacon.path                  = request->getParam("beacon.path", true)->value();
 
+        Config.beacon.gpsActive             = request->hasParam("beacon.gpsActive", true);
+        Config.beacon.gpsAmbiguity          = request->hasParam("beacon.gpsAmbiguity", true);
+        
 
         Config.digi.mode                    = request->getParam("digi.mode", true)->value().toInt();
         Config.digi.ecoMode                 = request->hasParam("digi.ecoMode", true);
@@ -207,6 +210,8 @@ namespace WEB_Utils {
             Config.webadmin.username        = request->getParam("webadmin.username", true)->value();
             Config.webadmin.password        = request->getParam("webadmin.password", true)->value();
         }
+
+        Config.ntp.gmtCorrection            = request->getParam("ntp.gmtCorrection", true)->value().toInt();
 
         Config.writeFile();
 

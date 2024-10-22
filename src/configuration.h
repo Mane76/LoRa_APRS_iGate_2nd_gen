@@ -28,6 +28,8 @@ public:
     String  path;    
     bool    sendViaRF;
     bool    sendViaAPRSIS;
+    bool    gpsActive;
+    bool    gpsAmbiguity;
 };
 
 class APRS_IS {
@@ -115,6 +117,13 @@ public:
     String  password;
 };
 
+class NTP {
+public:
+    int     gmtCorrection;
+};
+
+
+
 class Configuration {
 public:
     String                  callsign;
@@ -138,6 +147,7 @@ public:
     TNC                     tnc;  
     OTA                     ota;
     WEBADMIN                webadmin;
+    NTP                     ntp;
   
     void init();
     void writeFile();

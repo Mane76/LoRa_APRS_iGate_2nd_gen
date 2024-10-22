@@ -40,6 +40,9 @@ void Configuration::writeFile() {
     data["beacon"]["sendViaRF"]                 = beacon.sendViaRF;
     data["beacon"]["path"]                      = beacon.path;
 
+    data["beacon"]["gpsActive"]                 = beacon.gpsActive;
+    data["beacon"]["gpsAmbiguity"]              = beacon.gpsAmbiguity;
+
     data["digi"]["mode"]                        = digi.mode;
     data["digi"]["ecoMode"]                     = digi.ecoMode;
 
@@ -100,6 +103,8 @@ void Configuration::writeFile() {
     data["webadmin"]["username"]                = webadmin.username;
     data["webadmin"]["password"]                = webadmin.password;
 
+    data["ntp"]["gmtCorrection"]                = ntp.gmtCorrection;
+
     serializeJson(data, configFile);
 
     configFile.close();
@@ -144,6 +149,9 @@ bool Configuration::readFile() {
         beacon.path                     = data["beacon"]["path"] | "WIDE1-1";
         beacon.sendViaAPRSIS            = data["beacon"]["sendViaAPRSIS"] | false;
         beacon.sendViaRF                = data["beacon"]["sendViaRF"] | false;
+
+        beacon.gpsActive                = data["beacon"]["gpsActive"] | false;
+        beacon.gpsAmbiguity             = data["beacon"]["gpsAmbiguity"] | false;
         
         aprs_is.active                  = data["aprs_is"]["active"] | false;
         aprs_is.passcode                = data["aprs_is"]["passcode"] | "XYZWV";
@@ -201,6 +209,8 @@ bool Configuration::readFile() {
         webadmin.username               = data["webadmin"]["username"] | "admin";
         webadmin.password               = data["webadmin"]["password"] | "";
 
+        ntp.gmtCorrection               = data["ntp"]["gmtCorrection"] | 0;
+
         lowPowerMode                    = data["other"]["lowPowerMode"] | false;
         lowVoltageCutOff                = data["other"]["lowVoltageCutOff"] | 0;
 
@@ -249,6 +259,9 @@ void Configuration::init() {
     beacon.sendViaAPRSIS            = true;
     beacon.sendViaRF                = false;
     beacon.path                     = "WIDE1-1";
+
+    beacon.gpsActive                = false;
+    beacon.gpsAmbiguity             = false;
     
     digi.mode                       = 0;
     digi.ecoMode                    = false;
@@ -317,6 +330,8 @@ void Configuration::init() {
     webadmin.active                 = false;
     webadmin.username               = "admin";
     webadmin.password               = "";
+
+    ntp.gmtCorrection               = 0;
 
     Serial.println("All is Written!");
 }
