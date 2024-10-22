@@ -134,6 +134,9 @@ function loadSettings(settings) {
     document.getElementById("beacon.sendViaAPRSIS").checked             = settings.beacon.sendViaAPRSIS;
     document.getElementById("beacon.sendViaRF").checked                 = settings.beacon.sendViaRF;
 
+    document.getElementById("beacon.gpsActive").checked                 = settings.beacon.gpsActive;
+    document.getElementById("beacon.gpsAmbiguity").checked              = settings.beacon.gpsAmbiguity;
+
     // Digi
     document.getElementById("digi.mode").value                          = settings.digi.mode;
     document.getElementById("digi.ecoMode").checked                     = settings.digi.ecoMode;
@@ -207,6 +210,9 @@ function loadSettings(settings) {
     document.getElementById("webadmin.active").checked                  = settings.webadmin.active;
     document.getElementById("webadmin.username").value                  = settings.webadmin.username;
     document.getElementById("webadmin.password").value                  = settings.webadmin.password;
+
+    // NTP
+    document.getElementById("ntp.gmtCorrection").value                  = settings.ntp.gmtCorrection;
 
     // Experimental
     document.getElementById("other.backupDigiMode").checked             = settings.other.backupDigiMode;
@@ -507,13 +513,9 @@ function loadReceivedPackets(packets) {
 
         packets.forEach((packet) => {
             const element = document.createElement("tr");
-
-            date.setTime(packet.millis);
-
-            const p = date.toUTCString().split(' ')
         
             element.innerHTML = `
-                        <td>${p[p.length-2]}</td>
+                        <td>${packet.rxTime}</td>
                         <td>${packet.packet}</td>
                         <td>${packet.RSSI}</td>
                         <td>${packet.SNR}</td>

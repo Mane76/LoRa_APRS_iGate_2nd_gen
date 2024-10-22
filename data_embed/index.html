@@ -62,11 +62,11 @@
             <div class="container d-none" id="received-packets">
                 <div class="row my-5 d-flex align-items-top">
                     <div class="col-12">
-                        <h3>Last 20 received packets list</h3>
+                        <h3>Last 10 received packets list</h3>
                         <table class="table mt-4">
                             <thead>
                                 <tr>
-                                    <th scope="col">Time*</th>
+                                    <th scope="col">Time</th>
                                     <th scope="col">Frame</th>
                                     <th scope="col">RSSI</th>
                                     <th scope="col">SNR</th>
@@ -77,7 +77,7 @@
                             </tbody>
                         </table>
                         <span>List refresh automatically every 15 seconds.</span><br>
-                        <small>* - For now time is measured from board boot up.</small>
+                        <small>(Local Time is NPT-Time adjusted with your GMT Offset)</small>
                     </div>
                 </div>
                 <hr />
@@ -532,12 +532,42 @@
                                                 class="form-control"
                                                 required=""
                                                 step="1"
-                                                min="1"
+                                                min="15"
                                             />
                                             <span class="input-group-text"
                                                 >minutes
                                             </span>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 mt-3">
+                                    <div class="form-check form-switch">
+                                        <input
+                                            type="checkbox"
+                                            name="beacon.gpsActive"
+                                            id="beacon.gpsActive"
+                                            class="form-check-input"
+                                        />
+                                        <label
+                                            for="beacon.gpsActive"
+                                            class="form-label"
+                                            >Send Real-GPS Beacon <small>(Only for Boards with GPS Modules)</small>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check form-switch">
+                                        <input
+                                            type="checkbox"
+                                            name="beacon.gpsAmbiguity"
+                                            id="beacon.gpsAmbiguity"
+                                            class="form-check-input"
+                                        />
+                                        <label
+                                            for="beacon.gpsAmbiguity"
+                                            class="form-label"
+                                            >Send Real-GPS Beacon with Ambiguity <small>(~ 1 Km of Random Error)</small>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -806,7 +836,6 @@
                                             id="lora.codingRate4"
                                             required=""
                                         >
-                                            <option value="4">4</option>
                                             <option value="5">5</option>
                                             <option value="6">6</option>
                                             <option value="7">7</option>
@@ -1634,6 +1663,55 @@
                                         id="webadmin.password"
                                         class="form-control"
                                     />
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+
+                        <div class="row my-5 d-flex align-items-top">
+                            <div class="col-lg-3 col-sm-12">
+                                <h5>
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        width="20"
+                                        height="20"
+                                        fill="currentColor"
+                                        class="bi bi-cloud-upload-fill"
+                                        viewBox="0 0 16 16"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M8 0a5.53 5.53 0 0 0-3.594 1.342c-.766.66-1.321 1.52-1.464 2.383C1.266 4.095 0 5.555 0 7.318 0 9.366 1.708 11 3.781 11H7.5V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707V11h4.188C14.502 11 16 9.57 16 7.773c0-1.636-1.242-2.969-2.834-3.194C12.923 1.999 10.69 0 8 0m-.5 14.5V11h1v3.5a.5.5 0 0 1-1 0"
+                                        />
+                                    </svg>
+                                    NTP
+                                </h5>
+                                <small
+                                    >Set your GMT Time Zone.
+                                </small>
+                            </div>
+                            <div class="col-lg-9 col-sm-12">
+                                <div class="col-12">
+                                    <label
+                                        for="ntp.gmtCorrection"
+                                        class="form-label"
+                                        >GMT Time Correction for accurate Local Time</label
+                                    >
+                                    <div class="input-group">
+                                        <input
+                                            type="number"
+                                            name="ntp.gmtCorrection"
+                                            id="ntp.gmtCorrection"
+                                            placeholder="0"
+                                            class="form-control"
+                                            step="1"
+                                            min="-23"
+                                            max="23"
+                                        />
+                                        <span class="input-group-text"
+                                            >hours</span
+                                        >
+                                    </div>
                                 </div>
                             </div>
                         </div>
