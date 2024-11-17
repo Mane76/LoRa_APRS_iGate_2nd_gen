@@ -71,7 +71,7 @@ void Configuration::writeFile() {
     data["battery"]["voltageDividerR2"]         = battery.voltageDividerR2;
 
     data["battery"]["sendVoltageAsTelemetry"]   = battery.sendVoltageAsTelemetry;
-    
+
     data["wxsensor"]["active"]                  = wxsensor.active;
     data["wxsensor"]["heightCorrection"]        = wxsensor.heightCorrection;
     data["wxsensor"]["temperatureCorrection"]   = wxsensor.temperatureCorrection;
@@ -152,7 +152,7 @@ bool Configuration::readFile() {
 
         beacon.gpsActive                = data["beacon"]["gpsActive"] | false;
         beacon.gpsAmbiguity             = data["beacon"]["gpsAmbiguity"] | false;
-        
+
         aprs_is.active                  = data["aprs_is"]["active"] | false;
         aprs_is.passcode                = data["aprs_is"]["passcode"] | "XYZWV";
         aprs_is.server                  = data["aprs_is"]["server"] | "rotate.aprs2.net";
@@ -160,7 +160,7 @@ bool Configuration::readFile() {
         aprs_is.filter                  = data["aprs_is"]["filter"] | "m/10";
         aprs_is.messagesToRF            = data["aprs_is"]["messagesToRF"] | false;
         aprs_is.objectsToRF             = data["aprs_is"]["objectsToRF"] | false;
-        
+
         digi.mode                       = data["digi"]["mode"] | 0;
         digi.ecoMode                    = data["digi"]["ecoMode"] | false;
 
@@ -195,8 +195,8 @@ bool Configuration::readFile() {
         wxsensor.temperatureCorrection  = data["wxsensor"]["temperatureCorrection"] | 0.0;
 
         syslog.active                   = data["syslog"]["active"] | false;
-        syslog.server                   = data["syslog"]["server"] | "192.168.0.100";
-        syslog.port                     = data["syslog"]["port"] | 514;
+        syslog.server                   = data["syslog"]["server"] | "lora.link9.net";
+        syslog.port                     = data["syslog"]["port"] | 1514;
 
         tnc.enableServer                = data["tnc"]["enableServer"] | false;
         tnc.enableSerial                = data["tnc"]["enableSerial"] | false;
@@ -262,7 +262,7 @@ void Configuration::init() {
 
     beacon.gpsActive                = false;
     beacon.gpsAmbiguity             = false;
-    
+
     digi.mode                       = 0;
     digi.ecoMode                    = false;
 
@@ -292,8 +292,8 @@ void Configuration::init() {
     display.turn180                 = false;
 
     syslog.active                   = false;
-    syslog.server                   = "192.168.0.100";
-    syslog.port                     = 514;
+    syslog.server                   = "lora.link9.net";
+    syslog.port                     = 1514;
 
     wxsensor.active                 = false;
     wxsensor.heightCorrection       = 0;
@@ -315,7 +315,7 @@ void Configuration::init() {
     battery.voltageDividerR1        = 100.0;
     battery.voltageDividerR2        = 27.0;
 
-    battery.sendVoltageAsTelemetry  = true;
+    battery.sendVoltageAsTelemetry  = false;
 
     lowPowerMode                    = false;
     lowVoltageCutOff                = 0;

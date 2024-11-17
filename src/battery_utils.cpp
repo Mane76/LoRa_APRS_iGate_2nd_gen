@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "battery_utils.h"
 #include "configuration.h"
-#include "boards_pinout.h"
+#include "board_pinout.h"
 #include "power_utils.h"
 #include "utils.h"
 
@@ -23,7 +23,7 @@ int     telemetryCounter                = random(1,999);
 #ifdef HAS_ADC_CALIBRATION
     #include <esp_adc_cal.h>
 
-    #if defined(TTGO_T_LORA32_V2_1) || defined(TTGO_T_LORA32_V2_1_915)
+    #if defined(TTGO_LORA32_V2_1) || defined(TTGO_LORA32_V2_1_915)
         #define InternalBattery_ADC_Channel ADC1_CHANNEL_7  // t_lora32 pin35
         #define ExternalVoltage_ADC_Channel ADC1_CHANNEL_6  // t_lora32 pin34
     #endif
@@ -126,7 +126,7 @@ namespace BATTERY_Utils {
                             sample = 0;
                         #endif
                     #endif
-                #endif                
+                #endif
                 sampleSum += sample;
                 delayMicroseconds(50); 
             }
@@ -182,7 +182,7 @@ namespace BATTERY_Utils {
 
         float extVoltage;
         #ifdef HAS_ADC_CALIBRATION
-            if (calibrationEnable){       
+            if (calibrationEnable){
                 extVoltage = esp_adc_cal_raw_to_voltage(sampleSum / 100, &adc_chars) * voltageDividerTransformation; // in mV
                 extVoltage /= 1000;
             } else {
@@ -240,7 +240,7 @@ namespace BATTERY_Utils {
                     tempValue = value;
                     break;
             }
-        }        
+        }
 
         int firstByte   = tempValue / 91;
         tempValue       -= firstByte * 91;

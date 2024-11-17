@@ -1,6 +1,6 @@
 #include "configuration.h"
 #include "battery_utils.h"
-#include "boards_pinout.h"
+#include "board_pinout.h"
 #include "power_utils.h"
 
 #if defined(HAS_AXP192) || defined(HAS_AXP2101)
@@ -205,7 +205,7 @@ namespace POWER_Utils {
             Wire1.begin(BOARD_I2C_SDA, BOARD_I2C_SCL);
         #endif
 
-        #if defined(HELTEC_V3) || defined(HELTEC_WS)
+        #if defined(HELTEC_V3) || defined(HELTEC_WS) || defined(LIGHTGATEWAY_1_0) || defined(TTGO_LORA32_T3S3_V1_2)
             Wire.begin(OLED_SDA, OLED_SCL);
         #endif
         
