@@ -25,7 +25,7 @@
         "passcode": "XYZVW",
         "server": "euro.aprs2.net",
         "port": 14580,
-        "filter": "m/30",
+        "filter": "m/30 -t/t",
         "messagesToRF": false,
         "objectsToRF": false
     },
