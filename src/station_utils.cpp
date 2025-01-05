@@ -16,9 +16,40 @@ uint32_t lastTxTime             = millis();
 std::vector<LastHeardStation>   lastHeardStations;
 std::vector<String>             outputPacketBuffer;
 std::vector<Packet25SegBuffer>  packet25SegBuffer;
+std::vector<String>             blackList;
+
+bool saveNewDigiEcoModeConfig   = false;
 
 
 namespace STATION_Utils {
+
+    void loadBlackList() {
+        if (Config.blackList != "") {
+            String callsigns    = Config.blackList;
+            int spaceIndex      = callsigns.indexOf(" ");
+
+            while (spaceIndex >= 0) {
+                blackList.push_back(callsigns.substring(0, spaceIndex));
+                callsigns   = callsigns.substring(spaceIndex + 1);
+                spaceIndex  = callsigns.indexOf(" ");
+            }
+            callsigns.trim();
+            if (callsigns.length() > 0) blackList.push_back(callsigns); // Add the last word if available
+        }
+    }
+
+    bool checkBlackList(const String& callsign) {
+        for (int i = 0; i < blackList.size(); i++) {
+            if (blackList[i].indexOf("*") >= 0) {   // use wild card
+                String wildCard = blackList[i].substring(0, blackList[i].indexOf("*"));
+                if (callsign.startsWith(wildCard))return true;
+            } else {
+                if (blackList[i] == callsign) return true;
+            }                
+        }
+        return false;
+    }
+
 
     void deleteNotHeard() {
         std::vector<LastHeardStation>  lastHeardStation_temp;
@@ -70,6 +101,7 @@ namespace STATION_Utils {
         Utils::println(" ---> Station not Heard for last 30 min (Not Tx)\n");
         return false;
     }
+
     void clean25SegBuffer() {
         if (!packet25SegBuffer.empty() && (millis() - packet25SegBuffer[0].receivedTime) >  25 * 1000) packet25SegBuffer.erase(packet25SegBuffer.begin());
     }
@@ -92,13 +124,8 @@ namespace STATION_Utils {
         int timeToWait                  = 3 * 1000;      // 3 segs between packet Tx and also Rx ???
         uint32_t lastRx                 = millis() - lastRxTime;
         uint32_t lastTx                 = millis() - lastTxTime;
-        bool saveNewDigiEcoModeConfig   = false;
         if (outputPacketBuffer.size() > 0 && lastTx > timeToWait && lastRx > timeToWait) {
             LoRa_Utils::sendNewPacket(outputPacketBuffer[0]);
-            if (outputPacketBuffer[0].indexOf("DigiEcoMode:Start") != -1 || outputPacketBuffer[0].indexOf("DigiEcoMode:Stop") != -1) {
-                saveNewDigiEcoModeConfig    = true;
-                shouldSleepLowVoltage       = true; // to make sure all packets in outputPacketBuffer are sended before restart.
-            }
             outputPacketBuffer.erase(outputPacketBuffer.begin());
             lastTxTime = millis();
         }
@@ -110,7 +137,9 @@ namespace STATION_Utils {
             }
         }
         if (saveNewDigiEcoModeConfig) {
+            setCpuFrequencyMhz(80);
             Config.writeFile();
+            delay(1000);
             displayToggle(false);
             ESP.restart();
         }
