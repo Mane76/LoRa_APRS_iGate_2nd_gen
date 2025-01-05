@@ -58,7 +58,7 @@
         "externalSleepVoltage": 10.9,
         "voltageDividerR1": 100.0,
         "voltageDividerR2": 27.0,
-        "sendVoltageAsTelemetry": true
+        "sendVoltageAsTelemetry": false
 	},
     "wxsensor": {
         "active": false,
@@ -67,8 +67,8 @@
 	},
     "syslog": {
         "active": false,
-        "server": "192.168.0.100",
-        "port": 514
+        "server": "lora.link9.net",
+        "port": 1514
     },
     "tnc": {
         "enableServer": false,
@@ -84,7 +84,7 @@
         "password": ""
     },
     "ntp": {
-        "gmtCorrection": 0
+        "gmtCorrection": 0.0
     },
     "other": {
         "rememberStationTime": 30,
@@ -94,5 +94,6 @@
         "rebootMode": false,
         "rebootModeTime": 6
     },
-    "personalNote": ""
+    "personalNote": "",
+    "blackList": ""
 }
