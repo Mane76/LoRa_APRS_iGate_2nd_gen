@@ -48,12 +48,14 @@ ___________________________________________________________________*/
     #include "A7670_utils.h"
 #endif
 
-String              versionDate             = "2025.01.04m";
+String              versionDate             = "2025.03.03m";
 Configuration       Config;
 WiFiClient          espClient;
 #ifdef HAS_GPS
     HardwareSerial  gpsSerial(1);
     TinyGPSPlus     gps;
+    uint32_t        gpsSatelliteTime        = 0;
+    bool            gpsInfoToggle           = false;
 #endif
 
 uint8_t             myWiFiAPIndex           = 0;
@@ -66,10 +68,14 @@ uint32_t            lastBatteryCheck        = 0;
 bool                backUpDigiMode          = false;
 bool                modemLoggedToAPRSIS     = false;
 
+#ifdef HAS_EPAPER
+    uint32_t        lastEpaperTime          = 0;
+    extern String   lastEpaperText;
+#endif
+
 std::vector<ReceivedPacket> receivedPackets;
 
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine;
-
 //#define STARTUP_DELAY 5 //min
 
 void setup() {
@@ -152,7 +158,26 @@ void loop() {
         BATTERY_Utils::checkIfShouldSleep();
     }
     
-    thirdLine = Utils::getLocalIP();
+    #ifdef HAS_GPS
+        if (Config.beacon.gpsActive) {
+            if (millis() - gpsSatelliteTime > 5000) {
+                gpsInfoToggle = !gpsInfoToggle;
+                gpsSatelliteTime = millis();
+            }
+            if (gpsInfoToggle) {
+                thirdLine = "Satellite(s): ";
+                String gpsData = String(gps.satellites.value());
+                if (gpsData.length() < 2) gpsData = "0" + gpsData;  // Ensure two-digit formatting
+                thirdLine += gpsData;
+            } else {
+                thirdLine = Utils::getLocalIP();
+            }
+        } else {
+            thirdLine = Utils::getLocalIP();
+        }
+    #else
+        thirdLine = Utils::getLocalIP();
+    #endif
 
     #ifdef HAS_A7670
         if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
@@ -198,7 +223,19 @@ void loop() {
 
     STATION_Utils::processOutputPacketBuffer();
 
-    displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+    #ifdef HAS_EPAPER   // Only consider updating every 10 seconds (when data to show is different from before)
+        if(lastEpaperTime == 0 || millis() - lastEpaperTime > 10000) {
+            String posibleEpaperText = firstLine + secondLine + thirdLine + fourthLine + fifthLine + sixthLine + seventhLine;
+            if (lastEpaperText != posibleEpaperText) {
+                displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+                lastEpaperText = posibleEpaperText;
+                lastEpaperTime = millis();
+            }
+        }
+    #else
+        displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine, 0);
+    #endif
+
     Utils::checkRebootTime();
     Utils::checkSleepByLowBatteryVoltage(1);
 }

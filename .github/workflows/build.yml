@@ -21,6 +21,8 @@ jobs:
                       chip: esp32
                     - name: heltec_wifi_lora_32_V3
                       chip: esp32s3
+                    - name: heltec_wifi_lora_32_V3_2
+                      chip: esp32s3
                     - name: heltec_wireless_stick
                       chip: esp32s3
                     - name: heltec_wireless_stick_lite_v3
@@ -51,6 +53,12 @@ jobs:
                       chip: esp32
                     - name: ttgo-t-beam-v1_2_SX1262
                       chip: esp32
+                    - name: ttgo_t_deck_plus
+                      chip: esp32s3
+                    - name: ttgo_t_deck_GPS
+                      chip: esp32s3
+                    - name: ttgo_t_beam_s3_SUPREME_v3
+                      chip: esp32s3
                     - name: ESP32_DIY_LoRa_A7670
                       chip: esp32
                     - name: ESP32_DIY_LoRa_A7670_915
@@ -78,7 +86,9 @@ jobs:
                     - name: QRPLabs_LightGateway_1_0
                       chip: esp32s3
                     - name: XIAO_ESP32S3_WIO_SX1262
-                      chip: esp32s3                    
+                      chip: esp32s3
+                    - name: TROY_LoRa_APRS
+                      chip: esp32                    
         steps:
             - uses: actions/checkout@v3
 
