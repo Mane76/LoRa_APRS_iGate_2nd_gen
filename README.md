@@ -38,6 +38,8 @@ ____________________________________________________
 
 - TTGO T-Beam V1.0 , V1.1, V1.2 (also variations with SX1262 and SX1268 LoRa Modules).
 
+- T-Deck Plus (and also regular T-Deck with/without GPS).
+
 - HELTEC V2, V3 , Wireless Stick, Wireless Stick Lite, HT-CT62, Wireless Tracker, Wireless Paper.
 
 - QRP Labs LightGateway 1.0.
@@ -54,6 +56,12 @@ ____________________________________________________
 
 ## Timeline (Versions):
 
+- 2025.03.03 T-Beam Supreme board added and more BlackList rules added.
+- 2025.02.28 Heltec Wireless Paper with Epaper working. Thanks SzymonPriv for pointing to the right library.
+- 2025.02.25 Objects Rules update, GPS Boards: Satellites on Screen, Wx Height Correction from GPS Data.
+- 2025.01.22 Added LILYGO T-DECK PLUS (and DIY+GPS version) board support.
+- 2025.01.11 Added HELTEC V3.2 board support.
+- 2025.01.07 TROY_LoRa_APRS board added. GMT in quarter hour fix and Beacon fix for TNC.
 - 2025.01.02 Callsign Black List added.
 - 2024.12.30 Fixed missing validation for correct Digipeater mode when not connected to APRS-IS.
 - 2024.12.06 APRS-IS connnection and passcode validation added.
@@ -62,7 +70,7 @@ ____________________________________________________
 - 2024.10.25 Added QRP Labs LightGateway 1.0 support.
 - 2024.10.21 Boards with GPS can now send Real-GPS Beacon (also posible: GPS ambiguity of ~ 1 km).
 - 2024.10.14 Received Packets in WebUI show real Local Time (NTP with GMT offset).
-- 2024.10.08 New EcoMode for Remote Digipeaters without WiFi/WiFiAP, Screen, Leds (Example: LILYGO LoRa32 uses only 24mA, with WifiAP and all was 150mA). APRS Message/Queries can start/stop this mode too.
+- 2024.10.08 New EcoMode for Remote Digipeaters without WiFi/WiFiAP, Screen, Leds (Example: LILYGO LoRa32 uses only 24mA, with WifiAP 150mA). APRS Message/Queries can start/stop this mode too.
 - 2024.10.06 Cross Frequency Digipeater Rules added.
 - 2024.09.23 Libraries Update for SDK3
 - 2024.09.23 Added Enconded Telemetry for Battery (+ External Voltage) in Station GPS Beacon Packet. 
