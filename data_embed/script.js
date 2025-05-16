@@ -138,7 +138,7 @@ function loadSettings(settings) {
     document.getElementById("beacon.gpsAmbiguity").checked              = settings.beacon.gpsAmbiguity;
 
     // Black List
-    document.getElementById("blackList").value                          = settings.blackList;
+    document.getElementById("blacklist").value                          = settings.blacklist;
 
     // Digi
     document.getElementById("digi.mode").value                          = settings.digi.mode;
@@ -222,6 +222,10 @@ function loadSettings(settings) {
 
     document.getElementById("other.lowPowerMode").checked               = settings.other.lowPowerMode;
     document.getElementById("other.lowVoltageCutOff").value             = settings.other.lowVoltageCutOff || 0
+
+    // Management over APRS
+    document.getElementById("remoteManagement.managers").value          = settings.remoteManagement.managers;
+    document.getElementById("remoteManagement.rfOnly").checked          = settings.remoteManagement.rfOnly;
 
     updateImage();
     refreshSpeedStandard();

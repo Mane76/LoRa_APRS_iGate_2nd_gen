@@ -86,6 +86,10 @@
     "ntp": {
         "gmtCorrection": 0.0
     },
+    "remoteManagement": {
+        "managers": "",
+        "rfOnly": true
+    },        
     "other": {
         "rememberStationTime": 30,
         "lowPowerMode": false,
@@ -95,5 +99,5 @@
         "rebootModeTime": 6
     },
     "personalNote": "",
-    "blackList": ""
+    "blacklist": ""
 }
