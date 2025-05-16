@@ -5,6 +5,7 @@
 #include "display.h"
 #include "utils.h"
 
+
 extern Configuration               Config;
 extern uint32_t                    lastBeaconTx;
 extern std::vector<ReceivedPacket> receivedPackets;
@@ -206,7 +207,7 @@ namespace WEB_Utils {
 
         Config.personalNote                 = request->getParam("personalNote", true)->value();
 
-        Config.blackList                    = request->getParam("blackList", true)->value();
+        Config.blacklist                    = request->getParam("blacklist", true)->value();
 
         Config.webadmin.active              = request->hasParam("webadmin.active", true);
         if (Config.webadmin.active) {
@@ -215,6 +216,9 @@ namespace WEB_Utils {
         }
 
         Config.ntp.gmtCorrection            = request->getParam("ntp.gmtCorrection", true)->value().toFloat();
+
+        Config.remoteManagement.managers    = request->getParam("remoteManagement.managers", true)->value();
+        Config.remoteManagement.rfOnly      = request->getParam("remoteManagement.rfOnly", true);
 
         Config.writeFile();
 

@@ -26,13 +26,11 @@ ___________________________________________________________________*/
 #include <WiFi.h>
 #include <vector>
 #include "configuration.h"
-#include "battery_utils.h"
 #include "aprs_is_utils.h"
 #include "station_utils.h"
 #include "battery_utils.h"
 #include "board_pinout.h"
 #include "syslog_utils.h"
-#include "query_utils.h"
 #include "power_utils.h"
 #include "lora_utils.h"
 #include "wifi_utils.h"
@@ -48,7 +46,8 @@ ___________________________________________________________________*/
     #include "A7670_utils.h"
 #endif
 
-String              versionDate             = "2025.03.03";
+
+String              versionDate             = "2025.03.20";
 Configuration       Config;
 WiFiClient          espClient;
 #ifdef HAS_GPS
@@ -78,6 +77,7 @@ std::vector<ReceivedPacket> receivedPackets;
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine;
 //#define STARTUP_DELAY 5 //min
 
+
 void setup() {
     Serial.begin(115200);
     POWER_Utils::setup();
@@ -85,7 +85,8 @@ void setup() {
     LoRa_Utils::setup();
     Utils::validateFreqs();
     GPS_Utils::setup();
-    STATION_Utils::loadBlackList();
+    STATION_Utils::loadBlacklist();
+    STATION_Utils::loadManagers();
 
     #ifdef STARTUP_DELAY    // (TEST) just to wait for WiFi init of Routers
         displayShow("", "  STARTUP DELAY ...", "", "", 0);
