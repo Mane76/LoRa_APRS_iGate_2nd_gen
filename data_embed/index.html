@@ -80,7 +80,7 @@
                         <small>(Local Time is NTP-Time adjusted with your GMT Offset)</small>
                     </div>
                 </div>
-                <hr />
+                <hr>
             </div>
         
             <div class="container" id="configuration">
@@ -259,7 +259,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -316,7 +316,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -458,7 +458,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -571,7 +571,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -612,7 +612,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -646,7 +646,9 @@
                                             name="digi.mode"
                                             id="digi.mode"
                                         >
-                                            <option value="0">off</option>
+                                            <option value="0">
+                                                OFF
+                                            </option>
                                             <option value="2">
                                                 WIDE1 (fill-in) Digi
                                             </option>
@@ -655,25 +657,35 @@
                                             </option>
                                         </select>
                                     </div>
-                                    <div class="col-12 mt-5">
-                                        <div class="form-check form-switch">
-                                            <input
-                                                type="checkbox"
-                                                name="digi.ecoMode"
-                                                id="digi.ecoMode"
-                                                class="form-check-input"
-                                            />
-                                            <label
-                                                for="digi.ecoMode"
-                                                class="form-label"
-                                                >Eco Mode<small> This will disable WiFi, Display, Leds and lower CPU Speed for Low Power Digipeater. (<strong>Caution:</strong> Active means No WebUI Configuration, so <strong>ONLY</strong> activate this for Remote Digipeater)</small></label
-                                            >
-                                        </div>
+                                    <div class="col-12 mt-3">
+                                        <label
+                                            for="digi.ecoMode"
+                                            class="form-label"
+                                            >Eco Mode
+                                            <small
+                                                >(Requires Digipeating enabled and APRS-IS connection disabled).</small
+                                            ></label
+                                        >
+                                        <select
+                                            class="form-select form-select"
+                                            name="digi.ecoMode"
+                                            id="digi.ecoMode"
+                                        >
+                                            <option value="0">
+                                                OFF (Normal Mode - WiFiAP enabled)
+                                            </option>
+                                            <option value="1">
+                                                Ultra Eco Mode (Sleep till Packet Rx (WiFiAP/WebUI & Display disabled))
+                                            </option>
+                                            <option value="2">
+                                                OFF (Normal Mode - WiFiAP disabled)
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -908,7 +920,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1009,7 +1021,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1202,7 +1214,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1236,9 +1248,9 @@
                                             <label
                                                 for="wxsensor.active"
                                                 class="form-label"
-                                                ><b>Activate Wx Telemetry</b>
+                                                >Activate Wx Telemetry
                                                 <small
-                                                    >Requires a BME/BMP280, BME680 or Si7021 sensor.</small
+                                                    >(Requires a BME/BMP280, BME680 or Si7021 sensor).</small
                                                 ></label
                                             >
                                         </div>
@@ -1287,7 +1299,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1359,7 +1371,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1444,7 +1456,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1511,7 +1523,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1587,7 +1599,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1637,7 +1649,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1706,7 +1718,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1765,7 +1777,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1814,7 +1826,7 @@
                                 </div>
                             </div>
                         </div>
-                        <hr />
+                        <hr>
 
                         <div class="row my-5 d-flex align-items-top">
                             <div class="col-lg-3 col-sm-12">
@@ -1858,46 +1870,6 @@
                                             >
                                         </div>
                                     </div>
-                                    <div class="col-12">
-                                        <div class="form-check form-switch">
-                                            <div class="form-text">
-                                                WiFi disabled. Sleep mode. Best for solar Digi with SX126X.
-                                            </div>
-                                            <input
-                                                type="checkbox"
-                                                name="other.lowPowerMode"
-                                                id="other.lowPowerMode"
-                                                class="form-check-input"
-                                            />
-                                            <label
-                                                for="other.lowPowerMode"
-                                                class="form-label"
-                                                >Low power mode (only for HT-CT62)</label
-                                            >
-                                        </div>
-                                    </div>
-                                    <div class="col-12 mt-3">
-                                        <label
-                                            for="other.lowVoltageCutOff"
-                                            class="form-label"
-                                            >Low voltage cut off <small>(Deep sleep below specific voltage)</small></label
-                                        >
-                                        <input
-                                            type="text"
-                                            name="other.lowVoltageCutOff"
-                                            id="other.lowVoltageCutOff"
-                                            placeholder="0"
-                                            min="0"
-                                            step="0.01"
-                                            class="form-control"
-                                        />
-                                        <span class="input-group-text"
-                                                >Volts</span
-                                        >
-                                        <div class="form-text">
-                                            MCU will deep sleep when below provided battery voltage to save power. Set to <strong>0</strong> if you don't want this option. <u>Please calibrate your voltage reading first!</u>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1920,7 +1892,7 @@
                                 d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.408 5.89c.681 0 1.138.47 1.187 1.107h1.147v-.11c-.053-1.187-1.024-2-2.343-2-1.604 0-2.518 1.05-2.518 2.751v.747c0 1.7.906 2.73 2.518 2.73 1.314 0 2.285-.792 2.343-1.939v-.114H6.595c-.049.615-.497 1.05-1.187 1.05-.84 0-1.318-.62-1.318-1.727v-.742c0-1.112.488-1.754 1.318-1.754Zm5.404 0c.68 0 1.138.47 1.186 1.107h1.147v-.11c-.053-1.187-1.024-2-2.342-2-1.604 0-2.518 1.05-2.518 2.751v.747c0 1.7.905 2.73 2.518 2.73 1.314 0 2.285-.792 2.342-1.939v-.114h-1.147c-.048.615-.496 1.05-1.186 1.05-.84 0-1.319-.62-1.319-1.727v-.742c0-1.112.488-1.754 1.319-1.754Z"
                             />
                         </svg>
-                        2023-24
+                        2023-25
                         <b
                             ><a href="https://github.com/richonguzman"
                                 >CA2RXU</a

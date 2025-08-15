@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <WiFi.h>
 #include "configuration.h"
 #include "station_utils.h"
@@ -116,7 +134,7 @@ namespace DIGI_Utils {
         }
     }
 
-    void processLoRaPacket(const String& packet) {        
+    void processLoRaPacket(const String& packet) {
         if (packet.indexOf("NOGATE") == -1) {
             bool thirdPartyPacket = false;
             String temp, Sender;
@@ -133,7 +151,7 @@ namespace DIGI_Utils {
                 if (!thirdPartyPacket && !Utils::checkValidCallsign(Sender)) {
                     return;
                 }
-                if (STATION_Utils::check25SegBuffer(Sender, temp.substring(temp.indexOf(":") + 2)) || Config.lowPowerMode) {
+                if (STATION_Utils::check25SegBuffer(Sender, temp.substring(temp.indexOf(":") + 2))) {
                     STATION_Utils::updateLastHeard(Sender);
                     Utils::typeOfPacket(temp, 2);    // Digi
                     bool queryMessage = false;
@@ -148,25 +166,13 @@ namespace DIGI_Utils {
                     if (!queryMessage) {
                         String loraPacket = generateDigipeatedPacket(packet.substring(3), thirdPartyPacket);
                         if (loraPacket != "") {
-                            if (Config.lowPowerMode) {
-                                LoRa_Utils::sendNewPacket(loraPacket);
-                            } else {
-                                STATION_Utils::addToOutputPacketBuffer(loraPacket);
-                            }
-                            displayToggle(true);
+                            STATION_Utils::addToOutputPacketBuffer(loraPacket);
+                            if (Config.digi.ecoMode != 1) displayToggle(true);
                             lastScreenOn = millis();
                         }
                     }
                 }
             }
-        }
-    }
-
-    void checkEcoMode() {
-        if (Config.digi.ecoMode) {
-            Config.display.alwaysOn     = false;
-            Config.display.timeout      = 0;
-            setCpuFrequencyMhz(10);
         }
     }
 

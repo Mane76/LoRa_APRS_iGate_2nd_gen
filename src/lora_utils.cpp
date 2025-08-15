@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <RadioLib.h>
 #include <WiFi.h>
 #include "configuration.h"
@@ -22,7 +40,7 @@ bool transmitFlag    = true;
     SX1262 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN);
 #endif
 #ifdef HAS_SX1268
-    #if defined(LIGHTGATEWAY_1_0)
+    #if defined(LIGHTGATEWAY_1_0) || defined(LIGHTGATEWAY_PLUS_1_0)
         SPIClass loraSPI(FSPI);
         SX1268 radio = new Module(RADIO_CS_PIN, RADIO_DIO1_PIN, RADIO_RST_PIN, RADIO_BUSY_PIN, loraSPI); 
     #else
@@ -50,7 +68,7 @@ namespace LoRa_Utils {
     }
 
     void setup() {
-        #ifdef LIGHTGATEWAY_1_0
+        #if defined (LIGHTGATEWAY_1_0) || defined(LIGHTGATEWAY_PLUS_1_0)
             pinMode(RADIO_VCC_PIN,OUTPUT);
             digitalWrite(RADIO_VCC_PIN,HIGH);
             loraSPI.begin(RADIO_SCLK_PIN, RADIO_MISO_PIN, RADIO_MOSI_PIN, RADIO_CS_PIN);
@@ -69,11 +87,7 @@ namespace LoRa_Utils {
             while (true);
         }
         #if defined(HAS_SX1262) || defined(HAS_SX1268) || defined(HAS_LLCC68)
-            if (!Config.lowPowerMode) {
-                radio.setDio1Action(setFlag);
-            } else {
-                radio.setDIOMapping(1, RADIOLIB_SX126X_IRQ_RX_DONE);
-            }
+            radio.setDio1Action(setFlag);
         #endif
         #if defined(HAS_SX1278) || defined(HAS_SX1276)
             radio.setDio0Action(setFlag, RISING);
@@ -85,7 +99,7 @@ namespace LoRa_Utils {
         radio.setCRC(true);
         radio.autoLDRO();
 
-        #if (defined(RADIO_RXEN) && defined(RADIO_TXEN)) || defined(LIGHTGATEWAY_1_0)   // QRP Labs LightGateway has 400M22S (SX1268)
+        #if (defined(RADIO_RXEN) && defined(RADIO_TXEN))    // QRP Labs LightGateway has 400M22S (SX1268)
             radio.setRfSwitchPins(RADIO_RXEN, RADIO_TXEN);
         #endif
 
@@ -134,7 +148,7 @@ namespace LoRa_Utils {
         }
         
         #ifdef INTERNAL_LED_PIN
-            if (!Config.digi.ecoMode) digitalWrite(INTERNAL_LED_PIN, HIGH);
+            if (Config.digi.ecoMode != 1) digitalWrite(INTERNAL_LED_PIN, HIGH);     // disabled in Ultra Eco Mode
         #endif
         int state = radio.transmit("\x3c\xff\x01" + newPacket);
         transmitFlag = true;
@@ -149,36 +163,29 @@ namespace LoRa_Utils {
             Utils::println(String(state));
         }
         #ifdef INTERNAL_LED_PIN
-            if (!Config.digi.ecoMode) digitalWrite(INTERNAL_LED_PIN, LOW);
+            if (Config.digi.ecoMode != 1) digitalWrite(INTERNAL_LED_PIN, LOW);      // disabled in Ultra Eco Mode
         #endif
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq) {
             changeFreqRx();
         }
     }
 
-    /*String packetSanitization(const String& packet) {
-        String sanitizedPacket = packet;
-        if (packet.indexOf("\0") > 0) {
-            sanitizedPacket.replace("\0", "");
+    String receivePacketFromSleep() {
+        String packet = "";
+        int state = radio.readData(packet);
+        if (state == RADIOLIB_ERR_NONE) {
+            Utils::println("<--- LoRa Packet Rx : " + packet.substring(3));
+        } else {
+            packet = "";
         }
-        if (packet.indexOf("\r") > 0) {
-            sanitizedPacket.replace("\r", "");
-        }
-        if (packet.indexOf("\n") > 0) {
-            sanitizedPacket.replace("\n", "");
-        }
-        return sanitizedPacket;
-    }*/
-
-    void startReceive() {
-        radio.startReceive();
+        return packet;
     }
 
     String receivePacket() {
         String packet = "";
-        if (operationDone || Config.lowPowerMode) {
+        if (operationDone) {
             operationDone = false;
-            if (transmitFlag && !Config.lowPowerMode) {
+            if (transmitFlag) {
                 radio.startReceive();
                 transmitFlag = false;
             } else {
@@ -194,7 +201,7 @@ namespace LoRa_Utils {
                             Utils::println("<--- LoRa Packet Rx : " + packet.substring(3));
                             Utils::println("(RSSI:" + String(rssi) + " / SNR:" + String(snr) + " / FreqErr:" + String(freqError) + ")");
 
-                            if (!Config.lowPowerMode && !Config.digi.ecoMode) {
+                            if (Config.digi.ecoMode == 0) {
                                 if (receivedPackets.size() >= 10) {
                                     receivedPackets.erase(receivedPackets.begin());
                                 }
@@ -211,7 +218,7 @@ namespace LoRa_Utils {
                             }
                         } else {
                             packet = "";
-                        }                        
+                        }
                         lastRxTime = millis();
                         return packet;
                     }
@@ -232,6 +239,10 @@ namespace LoRa_Utils {
             }
         }
         return packet;
+    }
+
+    void wakeRadio() {
+        radio.startReceive();
     }
 
     void sleepRadio() {

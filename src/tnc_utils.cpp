@@ -1,8 +1,26 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <WiFi.h>
-#include "kiss_utils.h"
-#include "kiss_protocol.h"
 #include "configuration.h"
 #include "station_utils.h"
+#include "kiss_protocol.h"
+#include "kiss_utils.h"
 #include "utils.h"
 
 
@@ -24,7 +42,7 @@ String inputSerialBuffer = "";
 namespace TNC_Utils {
     
     void setup() {
-        if (Config.tnc.enableServer && !Config.digi.ecoMode) {
+        if (Config.tnc.enableServer && Config.digi.ecoMode == 0) {
             tncServer.stop();
             tncServer.begin();
         }
@@ -47,7 +65,7 @@ namespace TNC_Utils {
     void handleInputData(char character, int bufferIndex) {
         String* data = (bufferIndex == -1) ? &inputSerialBuffer : &inputServerBuffer[bufferIndex];
         if (data->length() == 0 && character != (char)FEND) return;
-        
+
         data->concat(character);
 
         if (character == (char)FEND && data->length() > 3) {
@@ -128,7 +146,7 @@ namespace TNC_Utils {
     }
 
     void loop() {
-        if (!Config.digi.ecoMode) {
+        if (Config.digi.ecoMode == 0) {
             if (Config.tnc.enableServer) {
                 checkNewClients();
                 readFromClients();

@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <WiFi.h>
 #include "configuration.h"
 #include "board_pinout.h"
@@ -24,7 +42,7 @@ uint32_t    lastBackupDigiTime  = millis();
 namespace WIFI_Utils {
 
     void checkWiFi() {
-        if (!Config.digi.ecoMode) {
+        if (Config.digi.ecoMode == 0) {
             if (backUpDigiMode) {
                 uint32_t WiFiCheck = millis() - lastBackupDigiTime;
                 if (WiFi.status() != WL_CONNECTED && WiFiCheck >= 15 * 60 * 1000) {
@@ -154,7 +172,7 @@ namespace WIFI_Utils {
     }
 
     void setup() {
-        if (!Config.digi.ecoMode) startWiFi();
+        if (Config.digi.ecoMode == 0) startWiFi();
         btStop();
     }
 

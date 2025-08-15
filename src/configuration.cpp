@@ -1,11 +1,33 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <ArduinoJson.h>
 #include <SPIFFS.h>
 #include "configuration.h"
+#include "board_pinout.h"
 #include "display.h"
 
 
+bool shouldSleepStop = true;
+
+
 void Configuration::writeFile() {
-    Serial.println("Saving config..");
+    Serial.println("Saving config...");
 
     StaticJsonDocument<2560> data;
     File configFile = SPIFFS.open("/igate_conf.json", "w");
@@ -45,6 +67,9 @@ void Configuration::writeFile() {
 
     data["digi"]["mode"]                        = digi.mode;
     data["digi"]["ecoMode"]                     = digi.ecoMode;
+    #if defined(HAS_A7670)
+        if (digi.ecoMode == 1) data["digi"]["ecoMode"] = 2;
+    #endif
 
     data["lora"]["rxFreq"]                      = loramodule.rxFreq;
     data["lora"]["txFreq"]                      = loramodule.txFreq;
@@ -94,9 +119,6 @@ void Configuration::writeFile() {
 
     data["other"]["backupDigiMode"]             = backupDigiMode;
 
-    data["other"]["lowPowerMode"]               = lowPowerMode;
-    data["other"]["lowVoltageCutOff"]           = lowVoltageCutOff;
-
     data["personalNote"]                        = personalNote;
 
     data["blacklist"]                           = blacklist;
@@ -115,6 +137,7 @@ void Configuration::writeFile() {
     configFile.close();
 
     Serial.println("Config saved");
+    delay(200);
 }
 
 bool Configuration::readFile() {
@@ -167,7 +190,12 @@ bool Configuration::readFile() {
         aprs_is.objectsToRF             = data["aprs_is"]["objectsToRF"] | false;
 
         digi.mode                       = data["digi"]["mode"] | 0;
-        digi.ecoMode                    = data["digi"]["ecoMode"] | false;
+        digi.ecoMode                    = data["digi"]["ecoMode"] | 0;
+        if (digi.ecoMode == 1) shouldSleepStop = false;
+
+        #if defined(HAS_A7670)
+            if (digi.ecoMode == 1) digi.ecoMode = 2;
+        #endif
 
         loramodule.txFreq               = data["lora"]["txFreq"] | 433775000;
         loramodule.rxFreq               = data["lora"]["rxFreq"] | 433775000;
@@ -215,9 +243,6 @@ bool Configuration::readFile() {
         webadmin.password               = data["webadmin"]["password"] | "";
 
         ntp.gmtCorrection               = data["ntp"]["gmtCorrection"] | 0.0;
-
-        lowPowerMode                    = data["other"]["lowPowerMode"] | false;
-        lowVoltageCutOff                = data["other"]["lowVoltageCutOff"] | 0;
 
         backupDigiMode                  = data["other"]["backupDigiMode"] | false;
 
@@ -274,7 +299,7 @@ void Configuration::init() {
     beacon.gpsAmbiguity             = false;
 
     digi.mode                       = 0;
-    digi.ecoMode                    = false;
+    digi.ecoMode                    = 0;
 
     tnc.enableServer                = false;
     tnc.enableSerial                = false;
@@ -326,9 +351,6 @@ void Configuration::init() {
     battery.voltageDividerR2        = 27.0;
 
     battery.sendVoltageAsTelemetry  = false;
-
-    lowPowerMode                    = false;
-    lowVoltageCutOff                = 0;
 
     backupDigiMode                  = false;
 
