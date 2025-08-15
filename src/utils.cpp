@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <TinyGPS++.h>
 #include <WiFi.h>
 #include "configuration.h"
@@ -76,7 +94,7 @@ namespace Utils {
     }
 
     String getLocalIP() {
-        if (Config.digi.ecoMode) {
+        if (Config.digi.ecoMode == 1 || Config.digi.ecoMode == 2) {
             return "** WiFi AP  Killed **";
         } else if (!WiFiConnected) {
             return "IP :  192.168.4.1";
@@ -88,12 +106,19 @@ namespace Utils {
     }
 
     void setupDisplay() {
-        displaySetup();
+        if (Config.digi.ecoMode != 1) displaySetup();
         #ifdef INTERNAL_LED_PIN
             digitalWrite(INTERNAL_LED_PIN,HIGH);
         #endif
         Serial.println("\nStarting Station: " + Config.callsign + "   Version: " + versionDate);
-        Serial.println((Config.digi.ecoMode) ? "(DigiEcoMode: ON)" : "(DigiEcoMode: OFF)");
+        Serial.print("(DigiEcoMode: ");
+        if (Config.digi.ecoMode == 0) {
+            Serial.println("OFF)");
+        } else if (Config.digi.ecoMode == 1) {
+            Serial.println("ON)");
+        } else {
+            Serial.println("ON / Only Serial Output)");
+        }
         displayShow(" LoRa APRS", "", "", "   ( iGATE & DIGI )", "", "" , "  CA2RXU  " + versionDate, 4000);
         #ifdef INTERNAL_LED_PIN
             digitalWrite(INTERNAL_LED_PIN,LOW);
@@ -182,7 +207,7 @@ namespace Utils {
     void checkBeaconInterval() {
         uint32_t lastTx = millis() - lastBeaconTx;
         if (lastBeaconTx == 0 || lastTx >= Config.beacon.interval * 60 * 1000) {
-            beaconUpdate = true;    
+            beaconUpdate = true;
         }
 
         #ifdef HAS_GPS
@@ -200,7 +225,6 @@ namespace Utils {
                 !Config.wxsensor.active && 
                 (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage) &&
                 (lastBeaconTx > 0)) {
-                //(!Config.digi.ecoMode || lastBeaconTx > 0)) {
                 sendInitialTelemetryPackets();
             }
 
@@ -211,7 +235,7 @@ namespace Utils {
             beaconPacket            = iGateBeaconPacket;
             secondaryBeaconPacket   = iGateLoRaBeaconPacket;
             #ifdef HAS_GPS
-                if (Config.beacon.gpsActive && !Config.digi.ecoMode) {
+                if (Config.beacon.gpsActive && Config.digi.ecoMode == 0) {
                     GPS_Utils::getData();
                     if (gps.location.isUpdated() && gps.location.lat() != 0.0 && gps.location.lng() != 0.0) {
                         GPS_Utils::generateBeaconFirstPart();
@@ -223,7 +247,7 @@ namespace Utils {
             #endif
 
             if (Config.wxsensor.active) {
-                const char* sensorData = (wxModuleType == 0) ? ".../...g...t..." : WX_Utils::readDataSensor().c_str();
+                String sensorData = (wxModuleType == 0) ? ".../...g...t..." : WX_Utils::readDataSensor();
                 beaconPacket            += sensorData;
                 secondaryBeaconPacket   += sensorData;
             }

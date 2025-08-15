@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #ifndef CONFIGURATION_H_
 #define CONFIGURATION_H_
 
@@ -47,7 +65,7 @@ public:
 class DIGI {
 public:
     int     mode;
-    bool    ecoMode;
+    int     ecoMode;        // 0 = Not Active | 1 = Ultra EcoMode | 2 = Not Active (WiFi OFF, Serial ON)
 };
 
 class LoraModule {
@@ -132,8 +150,6 @@ class Configuration {
 public:
     String                  callsign;
     int                     rememberStationTime;
-    bool                    lowPowerMode;
-    double                  lowVoltageCutOff;
     bool                    backupDigiMode;
     bool                    rebootMode;
     int                     rebootModeTime;
@@ -154,7 +170,7 @@ public:
     WEBADMIN                webadmin;
     NTP                     ntp;    
     REMOTE_MANAGEMENT       remoteManagement;
-  
+
     void init();
     void writeFile();
     Configuration();

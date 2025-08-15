@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <Arduino.h>
 #include "battery_utils.h"
 #include "configuration.h"
@@ -110,7 +128,7 @@ namespace BATTERY_Utils {
                 #endif
             #endif
 
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 20; i++) {
                 #if defined(ESP32_DIY_LoRa) || defined(ESP32_DIY_LoRa_915) || defined(ESP32_DIY_1W_LoRa) || defined(ESP32_DIY_1W_LoRa_915)
                     sample = 0;
                 #else
@@ -129,7 +147,7 @@ namespace BATTERY_Utils {
                     #endif
                 #endif
                 sampleSum += sample;
-                delayMicroseconds(50); 
+                delay(3); 
             }
 
             #ifdef ADC_CTRL
@@ -157,7 +175,12 @@ namespace BATTERY_Utils {
                         return (2 * (sampleSum/100) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
                     }
                 #else
-                    return (2 * (sampleSum/100) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
+                    #ifdef LIGHTGATEWAY_PLUS_1_0
+                        double inputDivider = (1.0 / (560.0 + 100.0)) * 100.0;  // The voltage divider is a 560k + 100k resistor in series, 100k on the low side.
+                        return (((sampleSum/100) * adcReadingTransformation) / inputDivider) + 0.41;
+                    #else
+                        return (2 * (sampleSum/100) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
+                    #endif
                 #endif
             #endif
             // return mapVoltage(voltage, 3.34, 4.71, 3.0, 4.2); // mapped voltage
@@ -196,15 +219,6 @@ namespace BATTERY_Utils {
         return extVoltage; // raw voltage without mapping
 
         // return mapVoltage(voltage, 5.05, 6.32, 4.5, 5.5); // mapped voltage
-    }
-
-    void checkIfShouldSleep() {
-        if (lastBatteryCheck == 0 || millis() - lastBatteryCheck >= 15 * 60 * 1000) {
-            lastBatteryCheck = millis();            
-            if (checkInternalVoltage() < Config.lowVoltageCutOff) {
-                ESP.deepSleep(1800000000); // 30 min sleep (60s = 60e6)
-            }
-        }
     }
 
     void startupBatteryHealth() {
@@ -255,9 +269,7 @@ namespace BATTERY_Utils {
         String telemetry = "|";
         telemetry += generateEncodedTelemetryBytes(telemetryCounter, true, 0);
         telemetryCounter++;
-        if (telemetryCounter == 1000) {
-            telemetryCounter = 0;
-        }
+        if (telemetryCounter == 1000) telemetryCounter = 0;
         if (Config.battery.sendInternalVoltage) telemetry += generateEncodedTelemetryBytes(checkInternalVoltage(), false, 0);
         if (Config.battery.sendExternalVoltage) telemetry += generateEncodedTelemetryBytes(checkExternalVoltage(), false, 1);
         telemetry += "|";

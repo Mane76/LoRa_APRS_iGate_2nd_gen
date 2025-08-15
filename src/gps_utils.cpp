@@ -1,3 +1,21 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <TinyGPS++.h>
 #include <WiFi.h>
 #include "configuration.h"
@@ -101,7 +119,7 @@ namespace GPS_Utils {
         }
         generateBeaconFirstPart();
         String encodedGPS       = encodeGPS(Config.beacon.latitude, Config.beacon.longitude, Config.beacon.overlay, Config.beacon.symbol);
-        iGateBeaconPacket       += encodedGPS;        
+        iGateBeaconPacket       += encodedGPS;
         iGateLoRaBeaconPacket   += encodedGPS;
     }
 
@@ -225,7 +243,7 @@ namespace GPS_Utils {
 
     void setup() {
         #ifdef HAS_GPS
-            if (Config.beacon.gpsActive) {
+            if (Config.beacon.gpsActive && Config.digi.ecoMode != 1) {
                 gpsSerial.begin(GPS_BAUD, SERIAL_8N1, GPS_TX, GPS_RX);
             }
         #endif

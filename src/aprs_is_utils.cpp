@@ -1,7 +1,26 @@
+/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+ * 
+ * This file is part of LoRa APRS iGate.
+ * 
+ * LoRa APRS iGate is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or 
+ * (at your option) any later version.
+ * 
+ * LoRa APRS iGate is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include <WiFi.h>
 #include "configuration.h"
 #include "aprs_is_utils.h"
 #include "station_utils.h"
+#include "board_pinout.h"
 #include "syslog_utils.h"
 #include "query_utils.h"
 #include "A7670_utils.h"
@@ -27,7 +46,7 @@ uint32_t    lastRxTime      = millis();
 bool        passcodeValid   = false;
 
 #ifdef HAS_A7670
-    extern bool                 stationBeacon;
+    extern bool             stationBeacon;
 #endif
 
 
@@ -59,7 +78,7 @@ namespace APRS_IS_Utils {
             aprsAuth += Config.callsign;
             aprsAuth += " pass ";
             aprsAuth += Config.aprs_is.passcode;
-            aprsAuth += " vers CA2RXU_iGate 2.3 filter ";
+            aprsAuth += " vers CA2RXU_iGate 3.0 filter ";
             aprsAuth += Config.aprs_is.filter;
             upload(aprsAuth);
         }
@@ -70,11 +89,11 @@ namespace APRS_IS_Utils {
         if (WiFi.status() == WL_CONNECTED) {
             wifiState = "OK";
         } else {
-            if (backUpDigiMode || Config.digi.ecoMode) {
+            if (backUpDigiMode || Config.digi.ecoMode == 1 || Config.digi.ecoMode == 2) {
                 wifiState = "--";
             } else {
                 wifiState = "AP";
-            }            
+            }
             if (!Config.display.alwaysOn && Config.display.timeout != 0) {
                 displayToggle(true);
             }
@@ -117,15 +136,15 @@ namespace APRS_IS_Utils {
     }
 
     String buildPacketToUpload(const String& packet) {
-        String buildedPacket = packet.substring(3, packet.indexOf(":"));
-        if (!(Config.aprs_is.active && Config.digi.mode == 0)) { // Check if NOT only IGate
-            buildedPacket += ",qAR,";
+        String packetToUpload = packet.substring(3, packet.indexOf(":"));
+        if (Config.aprs_is.active && passcodeValid && Config.aprs_is.messagesToRF) {
+            packetToUpload += ",qAR,";
         } else {
-            buildedPacket += ",qAO,";
+            packetToUpload += ",qAO,";
         }
-        buildedPacket += Config.callsign;
-        buildedPacket += checkForStartingBytes(packet.substring(packet.indexOf(":")));
-        return buildedPacket;
+        packetToUpload += Config.callsign;
+        packetToUpload += checkForStartingBytes(packet.substring(packet.indexOf(":")));
+        return packetToUpload;
     }
 
     bool processReceivedLoRaMessage(const String& sender, const String& packet, bool thirdParty) {
@@ -135,7 +154,7 @@ namespace APRS_IS_Utils {
             ackMessage.concat(packet.substring(packet.indexOf("{") + 1));
             ackMessage.trim();
             //Serial.println(ackMessage);
-            
+
             String addToBuffer = Config.callsign;
             addToBuffer += ">APLRG1";
             if (!thirdParty) addToBuffer += ",RFONLY";

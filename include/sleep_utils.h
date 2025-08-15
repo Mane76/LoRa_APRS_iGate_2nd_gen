@@ -16,22 +16,18 @@
  * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef BOARD_PINOUT_H_
-#define BOARD_PINOUT_H_
+#ifndef SLEEP_UTILS_H_
+#define SLEEP_UTILS_H_
 
-    //  LoRa Radio
-    #define HAS_SX1268
-    #define HAS_1W_LORA
-    #define RADIO_SCLK_PIN          8
-    #define RADIO_MISO_PIN          9
-    #define RADIO_MOSI_PIN          10
-    #define RADIO_CS_PIN            5
-    #define RADIO_RST_PIN           4
-    #define RADIO_DIO1_PIN          2
-    #define RADIO_BUSY_PIN          3
-    #define RADIO_RXEN              6
-    #define RADIO_TXEN              7
-    #define RADIO_WAKEUP_PIN        RADIO_DIO1_PIN
-    #define GPIO_WAKEUP_PIN         GPIO_NUM_2
+#include <Arduino.h>
+
+namespace SLEEP_Utils {
+    
+    void setup();
+    void checkWakeUpFlag();
+    void startSleeping();
+    void checkSerial();
+
+}
 
 #endif
