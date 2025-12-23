@@ -45,10 +45,13 @@ public:
     String  overlay;
     String  symbol;
     String  path;    
-    bool    sendViaRF;
     bool    sendViaAPRSIS;
+    bool    sendViaRF;
+    int     beaconFreq;
+    bool    statusActive;
+    String  statusPacket;
     bool    gpsActive;
-    bool    gpsAmbiguity;
+    int     ambiguityLevel;
 };
 
 class APRS_IS {
@@ -65,18 +68,21 @@ public:
 class DIGI {
 public:
     int     mode;
-    int     ecoMode;        // 0 = Not Active | 1 = Ultra EcoMode | 2 = Not Active (WiFi OFF, Serial ON)
+    int     ecoMode;        // 0 = Not Active | 1 = Ultra EcoMode | 2 = Not Active (WiFi OFF, Serial ON)  
 };
 
 class LoraModule {
 public:
-    long    txFreq;
-    long    rxFreq;
-    bool    txActive;
     bool    rxActive;
-    int     spreadingFactor;
-    long    signalBandwidth;
-    int     codingRate4;
+    long    rxFreq;
+    int     rxSpreadingFactor;
+    int     rxCodingRate4;
+    long    rxSignalBandwidth;    
+    bool    txActive;
+    long    txFreq;
+    int     txSpreadingFactor;
+    int     txCodingRate4;
+    long    txSignalBandwidth;
     int     power;
 };
 
@@ -96,6 +102,7 @@ public:
     int     externalVoltagePin;
     bool    monitorExternalVoltage;
     float   externalSleepVoltage;
+    bool    useExternalI2CSensor;
     float   voltageDividerR1;
     float   voltageDividerR2;
     bool    sendVoltageAsTelemetry;
@@ -113,6 +120,7 @@ public:
     bool    active;
     String  server;
     int     port;
+    bool    logBeaconOverTCPIP;
 };
 
 class TNC {
@@ -120,6 +128,7 @@ public:
     bool    enableServer;
     bool    enableSerial;
     bool    acceptOwn;
+    bool    aprsBridgeActive;
 };
 
 class OTA {
@@ -137,6 +146,7 @@ public:
 
 class NTP {
 public:
+    String  server;
     float   gmtCorrection;
 };
 
@@ -146,6 +156,17 @@ public:
     bool    rfOnly;
 };
 
+class MQTT {
+public:
+    bool    active;
+    String  server;
+    String  topic;
+    String  username;
+    String  password;
+    int     port;
+    bool    beaconOverMqtt;
+};
+
 class Configuration {
 public:
     String                  callsign;
@@ -153,6 +174,7 @@ public:
     bool                    backupDigiMode;
     bool                    rebootMode;
     int                     rebootModeTime;
+    int                     startupDelay;
     String                  personalNote;
     String                  blacklist;
     std::vector<WiFi_AP>    wifiAPs;
@@ -170,9 +192,10 @@ public:
     WEBADMIN                webadmin;
     NTP                     ntp;    
     REMOTE_MANAGEMENT       remoteManagement;
+    MQTT                    mqtt;
 
-    void init();
-    void writeFile();
+    void setDefaultValues();
+    bool writeFile();
     Configuration();
 
 private:

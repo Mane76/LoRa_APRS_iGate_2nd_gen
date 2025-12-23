@@ -42,6 +42,7 @@ float newHum, newTemp, newPress, newGas;
 
 
 Adafruit_BME280     bme280;
+Adafruit_AHTX0      aht20; 
 #if defined(HELTEC_V3) || defined(HELTEC_V3_2)
 Adafruit_BMP280     bmp280(&Wire1);
 Adafruit_Si7021     si7021  = Adafruit_Si7021();
@@ -71,6 +72,7 @@ namespace WX_Utils {
                 #endif
                 err = Wire.endTransmission();
             #endif
+            delay(5);
             if (err == 0) {
                 //Serial.println(addr); //this shows any connected board to I2C
                 if (addr == 0x76 || addr == 0x77) { // BME or BMP
@@ -118,15 +120,19 @@ namespace WX_Utils {
                             Serial.println("BMP280 sensor found");
                             wxModuleType    = 2;
                             wxModuleFound   = true;
+                            if (aht20.begin()) {
+                                Serial.println("AHT20 sensor found");
+                                if (wxModuleType == 2) wxModuleType = 6;
+                            }
                         }
                     }
-                } else if (wxModuleAddress == 0x40) {
+                } else if (wxModuleAddress == 0x40 && Config.battery.useExternalI2CSensor == false) {
                     if(si7021.begin()) {
                         Serial.println("Si7021 sensor found");
                         wxModuleType    = 4;
                         wxModuleFound   = true;
                     }
-                } 
+                }
                 #ifdef LIGHTGATEWAY_PLUS_1_0
                 else if (wxModuleAddress == 0x70) {
                     if (shtc3.begin()) {
@@ -264,15 +270,27 @@ namespace WX_Utils {
                 newPress    = 0;
                 break;
             case 5: // SHTC3
-                #ifdef LIGHTGATEWAY_PLUS_1_0
-                    sensors_event_t humidity, temp;
-                    shtc3.getEvent(&humidity, &temp);
-                    newTemp     = temp.temperature;
-                    newHum      = humidity.relative_humidity;
-                    newPress    = 0;
-                #endif
+                {
+                    #ifdef LIGHTGATEWAY_PLUS_1_0
+                        sensors_event_t humidity, temp;
+                        shtc3.getEvent(&humidity, &temp);
+                        newTemp     = temp.temperature;
+                        newHum      = humidity.relative_humidity;
+                        newPress    = 0;
+                    #endif
+                }
                 break;
-        }    
+            case 6: // BMP280 + AHT20
+                {
+                    bmp280.takeForcedMeasurement();
+                    newTemp     = bmp280.readTemperature();
+                    newPress    = (bmp280.readPressure() / 100.0F);
+                    sensors_event_t humidity, temp;
+                    aht20.getEvent(&humidity, &temp);
+                    newHum      = humidity.relative_humidity;
+                }
+                break;
+        }
 
         if (isnan(newTemp) || isnan(newHum) || isnan(newPress)) {
             Serial.println("BME/BMP/Si7021 Module data failed");
@@ -280,16 +298,16 @@ namespace WX_Utils {
             return ".../...g...t...";
         } else {
             String tempStr = generateTempString(((newTemp + Config.wxsensor.temperatureCorrection) * 1.8) + 32);
-            
+
             String humStr;
-            if (wxModuleType == 1 || wxModuleType == 3 || wxModuleType == 4 || wxModuleType == 5) {
+            if (wxModuleType == 1 || wxModuleType == 3 || wxModuleType == 4 || wxModuleType == 5 || wxModuleType == 6) {
                 humStr  = generateHumString(newHum);
             } else if (wxModuleType == 2) {
                 humStr  = "..";
             }
-            
+
             String presStr = (wxModuleType == 4 || wxModuleType == 5) 
-                ? "....." 
+                ? "....."
                 : generatePresString(newPress + getAltitudeCorrection() / CORRECTION_FACTOR);
 
             fifthLine = "BME-> ";

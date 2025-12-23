@@ -16,6 +16,7 @@
  * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <APRSPacketLib.h> 
 #include <WiFi.h>
 #include "configuration.h"
 #include "aprs_is_utils.h"
@@ -25,12 +26,13 @@
 #include "query_utils.h"
 #include "A7670_utils.h"
 #include "digi_utils.h"
+#include "tnc_utils.h"
 #include "display.h"
 #include "utils.h"
 
 
 extern Configuration        Config;
-extern WiFiClient           espClient;
+extern WiFiClient           aprsIsClient;
 extern uint32_t             lastScreenOn;
 extern String               firstLine;
 extern String               secondLine;
@@ -41,6 +43,7 @@ extern String               sixthLine;
 extern String               seventhLine;
 extern bool                 modemLoggedToAPRSIS;
 extern bool                 backUpDigiMode;
+extern String               versionNumber;
 
 uint32_t    lastRxTime      = millis();
 bool        passcodeValid   = false;
@@ -53,17 +56,17 @@ bool        passcodeValid   = false;
 namespace APRS_IS_Utils {
 
     void upload(const String& line) {
-        espClient.print(line + "\r\n");
+        aprsIsClient.print(line + "\r\n");
     }
 
     void connect() {
         Serial.print("Connecting to APRS-IS ...     ");
         uint8_t count = 0;
-        while (!espClient.connect(Config.aprs_is.server.c_str(), Config.aprs_is.port) && count < 20) {
+        while (!aprsIsClient.connect(Config.aprs_is.server.c_str(), Config.aprs_is.port) && count < 20) {
             Serial.println("Didn't connect with server...");
             delay(1000);
-            espClient.stop();
-            espClient.flush();
+            aprsIsClient.stop();
+            aprsIsClient.flush();
             Serial.println("Run client.stop");
             Serial.println("Trying to connect with Server: " + String(Config.aprs_is.server) + " AprsServerPort: " + String(Config.aprs_is.port));
             count++;
@@ -78,7 +81,9 @@ namespace APRS_IS_Utils {
             aprsAuth += Config.callsign;
             aprsAuth += " pass ";
             aprsAuth += Config.aprs_is.passcode;
-            aprsAuth += " vers CA2RXU_iGate 3.0 filter ";
+            aprsAuth += " vers CA2RXUiGate ";
+            aprsAuth += versionNumber;
+            aprsAuth += " filter ";
             aprsAuth += Config.aprs_is.filter;
             upload(aprsAuth);
         }
@@ -110,7 +115,7 @@ namespace APRS_IS_Utils {
                     aprsisState = "--";
                 }
             #else
-                if (espClient.connected()) {
+                if (aprsIsClient.connected()) {
                     aprsisState = "OK";
                 } else {
                     aprsisState = "--";
@@ -192,7 +197,7 @@ namespace APRS_IS_Utils {
     }
 
     void processLoRaPacket(const String& packet) {
-        if (passcodeValid && (espClient.connected() || modemLoggedToAPRSIS)) {
+        if (passcodeValid && (aprsIsClient.connected() || modemLoggedToAPRSIS)) {
             if (packet.indexOf("NOGATE") == -1 && packet.indexOf("RFONLY") == -1) {
                 int firstColonIndex = packet.indexOf(":");
                 if (firstColonIndex > 5 && firstColonIndex < (packet.length() - 1) && packet[firstColonIndex + 1] != '}' && packet.indexOf("TCPIP") == -1) {
@@ -232,12 +237,7 @@ namespace APRS_IS_Utils {
     String buildPacketToTx(const String& aprsisPacket, uint8_t packetType) {
         String packet = aprsisPacket;
         packet.trim();
-        String outputPacket = Config.callsign;
-        outputPacket += ">APLRG1";
-        if (Config.beacon.path != "") {
-            outputPacket += ",";
-            outputPacket += Config.beacon.path;
-        }
+        String outputPacket = APRSPacketLib::generateBasePacket(Config.callsign, "APLRG1", Config.beacon.path);
         outputPacket += ":}";
         outputPacket += packet.substring(0, packet.indexOf(",")); // Callsign>Tocall
         outputPacket.concat(",TCPIP,");
@@ -278,8 +278,9 @@ namespace APRS_IS_Utils {
         if (!passcodeValid && packet.indexOf(Config.callsign) != -1) {
             if (packet.indexOf("unverified") != -1 ) {
                 Serial.println("\n****APRS PASSCODE NOT VALID****\n");
-                displayShow(firstLine, "", "    APRS PASSCODE", "    NOT VALID !!!", "", "", "", 0);
-                while (1) {};
+                displayShow(firstLine, "", "    APRS PASSCODE", "    NOT VALID !!!", "", "", "", 3000);
+                aprsIsClient.stop();
+                Config.aprs_is.active = false;
             } else if (packet.indexOf("verified") != -1 ) {
                 passcodeValid = true;
             }
@@ -364,6 +365,10 @@ namespace APRS_IS_Utils {
                     Serial.println(" ---> Rejected (Time): No Tx");
                 }
             }
+            if (Config.tnc.aprsBridgeActive) {
+                if (Config.tnc.enableServer) TNC_Utils::sendToClients(packet);  // Send received packet to TNC KISS
+                if (Config.tnc.enableSerial) TNC_Utils::sendToSerial(packet);   // Send received packet to Serial KISS
+            }
         }
     }
 
@@ -371,9 +376,9 @@ namespace APRS_IS_Utils {
         #ifdef HAS_A7670
             A7670_Utils::listenAPRSIS();
         #else
-            if (espClient.connected()) {
-                if (espClient.available()) {
-                    String aprsisPacket = espClient.readStringUntil('\r');
+            if (aprsIsClient.connected()) {
+                if (aprsIsClient.available()) {
+                    String aprsisPacket = aprsIsClient.readStringUntil('\r');
                     aprsisPacket.trim();    // Serial.println(aprsisPacket);
                     processAPRSISPacket(aprsisPacket);
                     lastRxTime = millis();
@@ -383,7 +388,7 @@ namespace APRS_IS_Utils {
     }
 
     void firstConnection() {
-        if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !espClient.connected()) {
+        if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !aprsIsClient.connected()) {
             connect();
             while (!passcodeValid) {
                 listenAPRSIS();

@@ -16,7 +16,7 @@
  * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <Arduino.h>
+#include <Adafruit_INA219.h>
 #include "battery_utils.h"
 #include "configuration.h"
 #include "board_pinout.h"
@@ -30,13 +30,17 @@ extern  uint32_t                        lastBatteryCheck;
 bool    shouldSleepLowVoltage           = false;
 
 float   adcReadingTransformation        = (3.3/4095);
+int     adcReadings                     = 20;
 float   voltageDividerCorrection        = 0.288;
 float   readingCorrection               = 0.125;
 float   multiplyCorrection              = 0.035;
 
 float   voltageDividerTransformation    = 0.0;
 
-int     telemetryCounter                = random(1,999);
+uint8_t externalI2CSensorAddress        = 0x00;
+int     externalI2CSensorType           = 0; // 0 = None | 1 = INA219
+
+Adafruit_INA219     ina219;
 
 
 #ifdef HAS_ADC_CALIBRATION
@@ -98,6 +102,30 @@ namespace BATTERY_Utils {
         #endif
     }
 
+    void getI2CVoltageSensorAddress() {
+        uint8_t err, addr;
+        for(addr = 1; addr < 0x7F; addr++) {
+            #if defined(HELTEC_V3) || defined(HELTEC_V3_2) || defined(HELTEC_WSL_V3) || defined(HELTEC_WSL_V3_DISPLAY)
+                Wire1.beginTransmission(addr);
+                err = Wire1.endTransmission();
+            #else
+                Wire.beginTransmission(addr);
+                err = Wire.endTransmission();
+            #endif
+            delay(5);
+            if (err == 0) {
+                if (addr == 0x40) { // INA219
+                    externalI2CSensorAddress = addr;
+                }
+            }
+        }
+    }
+
+    bool detectINA219(uint8_t addr) {
+        ina219 = Adafruit_INA219(addr);
+        return ina219.begin();
+    }
+
     void setup() {
         if ((Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) && Config.battery.voltageDividerR2 != 0) voltageDividerTransformation = (Config.battery.voltageDividerR1 + Config.battery.voltageDividerR2) / Config.battery.voltageDividerR2;
 
@@ -107,6 +135,14 @@ namespace BATTERY_Utils {
                 adcCalibration();
             }
         #endif
+
+        getI2CVoltageSensorAddress();
+        if (externalI2CSensorAddress != 0x00) {
+            if (detectINA219(externalI2CSensorAddress)) {
+                Serial.println("INA219 sensor found");
+                externalI2CSensorType = 1;  // INA219
+            }
+        }
     }
 
     float checkInternalVoltage() { 
@@ -117,69 +153,58 @@ namespace BATTERY_Utils {
                 return 0.0;
             }
         #else
-            int sample;
-            int sampleSum = 0;
+            
             #ifdef ADC_CTRL
-                #if defined(HELTEC_WIRELESS_TRACKER) || defined(HELTEC_V3_2)
-                    digitalWrite(ADC_CTRL, HIGH);
-                #endif
-                #if defined(HELTEC_V3) || defined(HELTEC_V2) || defined(HELTEC_WSL_V3) || defined(HELTEC_WP)
-                    digitalWrite(ADC_CTRL, LOW);
-                #endif
+                POWER_Utils::adc_ctrl_ON();
             #endif
 
-            for (int i = 0; i < 20; i++) {
+            int sampleSum = 0;
+            for (int i = 0; i < adcReadings; i++) {
                 #if defined(ESP32_DIY_LoRa) || defined(ESP32_DIY_LoRa_915) || defined(ESP32_DIY_1W_LoRa) || defined(ESP32_DIY_1W_LoRa_915)
-                    sample = 0;
+                    sampleSum = 0;
                 #else
                     #ifdef HAS_ADC_CALIBRATION
                         if (calibrationEnable){
-                            sample = adc1_get_raw(InternalBattery_ADC_Channel);
+                            sampleSum += adc1_get_raw(InternalBattery_ADC_Channel);
                         } else {
-                            sample = analogRead(BATTERY_PIN);
+                            sampleSum += analogRead(BATTERY_PIN);
                         }
                     #else
                         #ifdef BATTERY_PIN
-                            sample = analogRead(BATTERY_PIN);
+                            sampleSum += analogRead(BATTERY_PIN);
                         #else
-                            sample = 0;
+                            sampleSum += 0;
                         #endif
                     #endif
                 #endif
-                sampleSum += sample;
                 delay(3); 
             }
 
             #ifdef ADC_CTRL
-                #if defined(HELTEC_WIRELESS_TRACKER) || defined(HELTEC_V3_2)
-                    digitalWrite(ADC_CTRL, LOW);
-                #endif
-                #if defined(HELTEC_V3) || defined(HELTEC_V2) || defined(HELTEC_WSL_V3) || defined(HELTEC_WP)
-                    digitalWrite(ADC_CTRL, HIGH);
-                #endif
+                POWER_Utils::adc_ctrl_OFF();
 
-                #ifdef HELTEC_WP
+                #ifdef HELTEC_WP_V1
                 double inputDivider = (1.0 / (10.0 + 10.0)) * 10.0;  // The voltage divider is a 10k + 10k resistor in series
                 #else
                 double inputDivider = (1.0 / (390.0 + 100.0)) * 100.0;  // The voltage divider is a 390k + 100k resistor in series, 100k on the low side.
                 #endif
-                return (((sampleSum/100) * adcReadingTransformation) / inputDivider) + 0.285; // Yes, this offset is excessive, but the ADC on the ESP32s3 is quite inaccurate and noisy. Adjust to own measurements.
+                return (((sampleSum/adcReadings) * adcReadingTransformation) / inputDivider) + 0.285; // Yes, this offset is excessive, but the ADC on the ESP32s3 is quite inaccurate and noisy. Adjust to own measurements.
             #else
                 #ifdef HAS_ADC_CALIBRATION
                     if (calibrationEnable){
-                        float voltage = esp_adc_cal_raw_to_voltage(sampleSum / 100, &adc_chars);
+                        float voltage = esp_adc_cal_raw_to_voltage(sampleSum / adcReadings, &adc_chars);
                         voltage *= 2;       // for 100K/100K voltage divider
                         voltage /= 1000;
                         return voltage;
                     } else {
-                        return (2 * (sampleSum/100) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
+                        return (2 * (sampleSum/adcReadings) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
                     }
                 #else
                     #ifdef LIGHTGATEWAY_PLUS_1_0
                         double inputDivider = (1.0 / (560.0 + 100.0)) * 100.0;  // The voltage divider is a 560k + 100k resistor in series, 100k on the low side.
-                        return (((sampleSum/100) * adcReadingTransformation) / inputDivider) + 0.41;
+                        return (((sampleSum/adcReadings) * adcReadingTransformation) / inputDivider) + 0.41;
                     #else
-                        return (2 * (sampleSum/100) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
+                        return (2 * (sampleSum/adcReadings) * adcReadingTransformation) + voltageDividerCorrection;  // raw voltage without mapping
                     #endif
                 #endif
             #endif
@@ -188,37 +213,49 @@ namespace BATTERY_Utils {
     }
 
     float checkExternalVoltage() {
-        int sample;
-        int sampleSum = 0;
-        for (int i = 0; i < 100; i++) {
-            #ifdef HAS_ADC_CALIBRATION
-                if (calibrationEnable){
-                    sample = adc1_get_raw(ExternalVoltage_ADC_Channel);
-                } else {
+        if (externalI2CSensorType == 0) {
+            int sample;
+            int sampleSum = 0;
+            for (int i = 0; i < 100; i++) {
+                #ifdef HAS_ADC_CALIBRATION
+                    if (calibrationEnable){
+                        sample = adc1_get_raw(ExternalVoltage_ADC_Channel);
+                    } else {
+                        sample = analogRead(Config.battery.externalVoltagePin);
+                    }
+                #else
                     sample = analogRead(Config.battery.externalVoltagePin);
+                #endif
+                sampleSum += sample;
+                delayMicroseconds(50);
+            }
+
+            float extVoltage;
+            #ifdef HAS_ADC_CALIBRATION
+                if (calibrationEnable) {
+                    extVoltage = esp_adc_cal_raw_to_voltage(sampleSum / 100.0, &adc_chars) * voltageDividerTransformation; // in mV
+                    extVoltage /= 1000.0;
+                } else {
+                    extVoltage = ((((sampleSum/100.0)* adcReadingTransformation) + readingCorrection) * voltageDividerTransformation) - multiplyCorrection;
                 }
             #else
-                sample = analogRead(Config.battery.externalVoltagePin);
+                extVoltage = ((((sampleSum/100.0)* adcReadingTransformation) + readingCorrection) * voltageDividerTransformation) - multiplyCorrection;
             #endif
-            sampleSum += sample;
-            delayMicroseconds(50);
-        }
+            
+            return extVoltage; // raw voltage without mapping
 
-        float extVoltage;
-        #ifdef HAS_ADC_CALIBRATION
-            if (calibrationEnable){
-                extVoltage = esp_adc_cal_raw_to_voltage(sampleSum / 100, &adc_chars) * voltageDividerTransformation; // in mV
-                extVoltage /= 1000;
-            } else {
-                extVoltage = ((((sampleSum/100)* adcReadingTransformation) + readingCorrection) * voltageDividerTransformation) - multiplyCorrection;
+            // return mapVoltage(voltage, 5.05, 6.32, 4.5, 5.5); // mapped voltage
+        } else if (externalI2CSensorType == 1) { // INA219
+            int sampleSum = 0;
+            for (int i = 0; i < 100; i++) {
+                sampleSum += ina219.getBusVoltage_V() * 1000.0;
+                delayMicroseconds(50);
             }
-        #else
-            extVoltage = ((((sampleSum/100)* adcReadingTransformation) + readingCorrection) * voltageDividerTransformation) - multiplyCorrection;
-        #endif
-        
-        return extVoltage; // raw voltage without mapping
-
-        // return mapVoltage(voltage, 5.05, 6.32, 4.5, 5.5); // mapped voltage
+            float extVoltage = sampleSum/100.0;
+            return extVoltage/1000.0;
+        } else {
+            return 0.0;
+        }
     }
 
     void startupBatteryHealth() {
@@ -227,7 +264,7 @@ namespace BATTERY_Utils {
                 shouldSleepLowVoltage = true;
             }
         #endif
-        #ifndef HELTEC_WP
+        #ifndef HELTEC_WP_V1
             if (Config.battery.monitorExternalVoltage && checkExternalVoltage() < Config.battery.externalSleepVoltage + 0.1) {
                 shouldSleepLowVoltage = true;
             }
@@ -235,45 +272,6 @@ namespace BATTERY_Utils {
         if (shouldSleepLowVoltage) {
             Utils::checkSleepByLowBatteryVoltage(0);
         }
-    }
-
-    String generateEncodedTelemetryBytes(float value, bool firstBytes, byte voltageType) {  // 0 = internal battery(0-4,2V) , 1 = external battery(0-15V)
-        String encodedBytes;
-        int tempValue;
-
-        if (firstBytes) {
-            tempValue = value;
-        } else {
-            switch (voltageType) {
-                case 0:
-                    tempValue = value * 100;           // Internal voltage calculation
-                    break;
-                case 1:
-                    tempValue = (value * 100) / 2;     // External voltage calculation
-                    break;
-                default:
-                    tempValue = value;
-                    break;
-            }
-        }
-
-        int firstByte   = tempValue / 91;
-        tempValue       -= firstByte * 91;
-
-        encodedBytes    = char(firstByte + 33);
-        encodedBytes    += char(tempValue + 33);
-        return encodedBytes;
-    }
-
-    String generateEncodedTelemetry() {
-        String telemetry = "|";
-        telemetry += generateEncodedTelemetryBytes(telemetryCounter, true, 0);
-        telemetryCounter++;
-        if (telemetryCounter == 1000) telemetryCounter = 0;
-        if (Config.battery.sendInternalVoltage) telemetry += generateEncodedTelemetryBytes(checkInternalVoltage(), false, 0);
-        if (Config.battery.sendExternalVoltage) telemetry += generateEncodedTelemetryBytes(checkExternalVoltage(), false, 1);
-        telemetry += "|";
-        return telemetry;
     }
 
 }

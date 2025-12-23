@@ -30,6 +30,7 @@
 
 extern Configuration    Config;
 extern uint32_t         lastRxTime;
+extern bool             packetIsBeacon;
 
 extern std::vector<ReceivedPacket> receivedPackets;
 
@@ -92,15 +93,30 @@ namespace LoRa_Utils {
         #if defined(HAS_SX1278) || defined(HAS_SX1276)
             radio.setDio0Action(setFlag, RISING);
         #endif
-        radio.setSpreadingFactor(Config.loramodule.spreadingFactor);
-        float signalBandwidth = Config.loramodule.signalBandwidth/1000;
-        radio.setBandwidth(signalBandwidth);
-        radio.setCodingRate(Config.loramodule.codingRate4);
+
+        /*#ifdef SX126X_DIO3_TCXO_VOLTAGE
+            if (radio.setTCXO(float(SX126X_DIO3_TCXO_VOLTAGE)) == RADIOLIB_ERR_NONE) {
+                Utils::println("Set LoRa Module TCXO Voltage to:" + String(SX126X_DIO3_TCXO_VOLTAGE));
+            } else {
+                Utils::println("Set LoRa Module TCXO Voltage failed! State: " + String(state));
+                while (true);
+        }
+         #endif*/
+         
+        radio.setSpreadingFactor(Config.loramodule.rxSpreadingFactor);
+        radio.setCodingRate(Config.loramodule.rxCodingRate4);
+        float signalBandwidth = Config.loramodule.rxSignalBandwidth/1000;
+        radio.setBandwidth(signalBandwidth);        
         radio.setCRC(true);
 
         #if (defined(RADIO_RXEN) && defined(RADIO_TXEN))    // QRP Labs LightGateway has 400M22S (SX1268)
             radio.setRfSwitchPins(RADIO_RXEN, RADIO_TXEN);
         #endif
+
+        /*#ifdef SX126X_DIO2_AS_RF_SWITCH
+        radio.setRfSwitchPins(RADIO_RXEN, RADIOLIB_NC);
+        radio.setDio2AsRfSwitch(true);
+        #endif*/
 
         #ifdef HAS_1W_LORA  // Ebyte E22 400M30S (SX1268) / 900M30S (SX1262) / Ebyte E220 400M30S (LLCC68)
             state = radio.setOutputPower(Config.loramodule.power); // max value 20dB for 1W modules as they have Low Noise Amp
@@ -119,6 +135,13 @@ namespace LoRa_Utils {
             radio.setRxBoostedGainMode(true);
         #endif
 
+        #if defined(HAS_TCXO) && !defined(HAS_1W_LORA)
+            radio.setDio2AsRfSwitch();
+        #endif
+        #ifdef HAS_TCXO
+            radio.setTCXO(1.8);
+        #endif
+
         if (state == RADIOLIB_ERR_NONE) {
             Utils::println("init : LoRa Module    ...     done!");
         } else {
@@ -128,22 +151,30 @@ namespace LoRa_Utils {
     }
 
     void changeFreqTx() {
-        delay(500);
+        delay(300);
         float freq = (float)Config.loramodule.txFreq / 1000000;
         radio.setFrequency(freq);
+        radio.setSpreadingFactor(Config.loramodule.txSpreadingFactor);
+        radio.setCodingRate(Config.loramodule.txCodingRate4);
+        radio.setBandwidth(Config.loramodule.txSignalBandwidth);
     }
 
     void changeFreqRx() {
-        delay(500);
+        delay(300);
         float freq = (float)Config.loramodule.rxFreq / 1000000;
         radio.setFrequency(freq);
+        radio.setSpreadingFactor(Config.loramodule.rxSpreadingFactor);
+        radio.setCodingRate(Config.loramodule.rxCodingRate4);
+        radio.setBandwidth(Config.loramodule.rxSignalBandwidth);
     }
 
     void sendNewPacket(const String& newPacket) {
         if (!Config.loramodule.txActive) return;
 
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq) {
-            changeFreqTx();
+            if (!packetIsBeacon || (packetIsBeacon && Config.beacon.beaconFreq == 1)) {
+                changeFreqTx();
+            }
         }
         
         #ifdef INTERNAL_LED_PIN
@@ -165,7 +196,9 @@ namespace LoRa_Utils {
             if (Config.digi.ecoMode != 1) digitalWrite(INTERNAL_LED_PIN, LOW);      // disabled in Ultra Eco Mode
         #endif
         if (Config.loramodule.txFreq != Config.loramodule.rxFreq) {
-            changeFreqRx();
+            if (!packetIsBeacon || (packetIsBeacon && Config.beacon.beaconFreq == 1)) {
+                changeFreqRx();
+            }
         }
     }
 
@@ -193,7 +226,7 @@ namespace LoRa_Utils {
                     if (packet != "") {
 
                         String sender   = packet.substring(3, packet.indexOf(">"));
-                        if (packet.substring(0,3) == "\x3c\xff\x01" && !STATION_Utils::isBlacklisted(sender)){   // avoid processing BlackListed stations
+                        if (packet.substring(0,3) == "\x3c\xff\x01" && !STATION_Utils::isBlacklisted(sender)) {     // avoid processing BlackListed stations
                             rssi        = radio.getRSSI();
                             snr         = radio.getSNR();
                             freqError   = radio.getFrequencyError();
