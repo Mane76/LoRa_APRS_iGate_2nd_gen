@@ -18,30 +18,40 @@
         "symbol": "&",
         "path": "WIDE1-1",
         "sendViaAPRSIS": true,
-        "sendViaRF": false
+        "sendViaRF": false,
+        "beaconFreq": 1,
+        "statusActive": false,
+        "statusPacket": "",
+        "gpsActive": false,
+        "ambiguityLevel": 0
     },
     "aprs_is": {
         "active": true,
-        "passcode": "XYZVW",
-        "server": "euro.aprs2.net",
-        "port": 14580,
-        "filter": "m/30 -t/t",
         "messagesToRF": false,
-        "objectsToRF": false
+        "objectsToRF": false,
+        "server": "euro.aprs2.net",
+        "passcode": "XYZVW",        
+        "port": 14580,
+        "filter": "m/30 -t/t"        
     },
+    "personalNote": "",
+    "blacklist": "",
     "digi": {
         "mode": 0,
         "ecoMode": 0
     },
     "lora": {
-        "txFreq": 433775000,
+        "rxActive": true,
         "rxFreq": 433775000,
-        "spreadingFactor": 12,
-        "signalBandwidth": 125000,
-        "codingRate4": 5,
-        "power": 20,
+        "rxSpreadingFactor": 12,
+        "rxCodingRate4": 5,
+        "rxSignalBandwidth": 125000,
         "txActive": false,
-        "rxActive": true
+        "txFreq": 433775000,
+        "txSpreadingFactor": 12,
+        "txCodingRate4": 5,
+        "txSignalBandwidth": 125000,
+        "power": 20
     },
     "display": {
         "alwaysOn": true,
@@ -53,11 +63,12 @@
         "monitorInternalVoltage": false,
         "internalSleepVoltage": 2.9,
         "sendExternalVoltage": false,
-        "externalVoltagePin": 34,
         "monitorExternalVoltage": false,
         "externalSleepVoltage": 10.9,
+        "useExternalI2CSensor": false,
         "voltageDividerR1": 100.0,
         "voltageDividerR2": 27.0,
+        "externalVoltagePin": 34,
         "sendVoltageAsTelemetry": false
 	},
     "wxsensor": {
@@ -68,12 +79,23 @@
     "syslog": {
         "active": false,
         "server": "lora.link9.net",
-        "port": 1514
+        "port": 1514,
+        "logBeaconOverTCPIP": false
     },
     "tnc": {
         "enableServer": false,
         "enableSerial": false,
-        "acceptOwn": false
+        "acceptOwn": false,
+        "aprsBrigdeActive": false
+    },
+    "mqtt": {
+        "active": false,
+        "server": "",
+        "topic": "",
+        "username": "",
+        "password": "",
+        "port": 1883,
+        "beaconOverMqtt": false
     },
     "ota": {
         "username": "",
@@ -83,19 +105,19 @@
         "username": "admin",
         "password": ""
     },
-    "ntp": {
-        "gmtCorrection": 0.0
-    },
     "remoteManagement": {
         "managers": "",
         "rfOnly": true
-    },        
+    },
+    "ntp": {
+        "server": "pool.ntp.org",
+        "gmtCorrection": 0.0
+    },
     "other": {
         "rememberStationTime": 30,
         "backupDigiMode": false,
         "rebootMode": false,
-        "rebootModeTime": 6
-    },
-    "personalNote": "",
-    "blacklist": ""
+        "rebootModeTime": 6,
+        "startupDelay": 0
+    }
 }

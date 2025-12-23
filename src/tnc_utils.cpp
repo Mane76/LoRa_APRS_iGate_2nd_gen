@@ -17,14 +17,19 @@
  */
 
 #include <WiFi.h>
+#include "ESPmDNS.h"
 #include "configuration.h"
 #include "station_utils.h"
 #include "kiss_protocol.h"
+#include "aprs_is_utils.h"
 #include "kiss_utils.h"
+#include "tnc_utils.h"
 #include "utils.h"
 
 
-extern Configuration        Config;
+extern Configuration    Config;
+extern WiFiClient       aprsIsClient;
+extern bool             passcodeValid;
 
 #define MAX_CLIENTS 4
 #define INPUT_BUFFER_SIZE (2 + MAX_CLIENTS)
@@ -45,6 +50,17 @@ namespace TNC_Utils {
         if (Config.tnc.enableServer && Config.digi.ecoMode == 0) {
             tncServer.stop();
             tncServer.begin();
+            String host = "igate-" + Config.callsign;
+            if (!MDNS.begin(host.c_str())) {
+                Serial.println("Error Starting mDNS");
+                tncServer.stop();
+                return;
+            }
+            if (!MDNS.addService("tnc", "tcp", TNC_PORT)) {
+                Serial.println("Error: Could not add mDNS service");
+            }
+            Serial.println("TNC server started successfully");
+            Serial.println("mDNS Host: " + host + ".local");
         }
     }
 
@@ -81,7 +97,8 @@ namespace TNC_Utils {
                 String sender = frame.substring(0,frame.indexOf(">"));
 
                 if (Config.tnc.acceptOwn || sender != Config.callsign) {
-                    STATION_Utils::addToOutputPacketBuffer(frame);
+                    if (Config.loramodule.txActive) STATION_Utils::addToOutputPacketBuffer(frame);
+                    if (Config.tnc.aprsBridgeActive && Config.aprs_is.active && passcodeValid && aprsIsClient.connected()) APRS_IS_Utils::upload(frame);
                 } else {
                     Utils::println("Ignored own frame from KISS");
                 }
@@ -118,8 +135,8 @@ namespace TNC_Utils {
         }
     }
 
-    void sendToClients(const String& packet) {
-        String cleanPacket = packet.substring(3);
+    void sendToClients(const String& packet, bool stripBytes) {
+        String cleanPacket = stripBytes ? packet.substring(3): packet;
 
         const String kissEncoded = encodeKISS(cleanPacket);
 
@@ -139,8 +156,8 @@ namespace TNC_Utils {
         Utils::println(cleanPacket);
     }
 
-    void sendToSerial(const String& packet) {
-        String cleanPacket = packet.substring(3);
+    void sendToSerial(const String& packet, bool stripBytes) {
+        String cleanPacket = stripBytes ? packet.substring(3): packet;
         Serial.print(encodeKISS(cleanPacket));
         Serial.flush();
     }

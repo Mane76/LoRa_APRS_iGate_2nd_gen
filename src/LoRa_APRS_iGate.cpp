@@ -33,7 +33,7 @@
                 ╚═╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝
 
 
-                       Ricardo Guzman - CA2RXU 
+                       Ricardo Guzman - CA2RXU
            https://github.com/richonguzman/LoRa_APRS_iGate
              (donations : http://paypal.me/richonguzman)
 ___________________________________________________________________*/
@@ -51,6 +51,7 @@ ___________________________________________________________________*/
 #include "syslog_utils.h"
 #include "power_utils.h"
 #include "sleep_utils.h"
+#include "mqtt_utils.h"
 #include "lora_utils.h"
 #include "wifi_utils.h"
 #include "digi_utils.h"
@@ -66,9 +67,11 @@ ___________________________________________________________________*/
 #endif
 
 
-String              versionDate             = "2025-08-04m";
+String              versionDate             = "2025-12-22m";
+String              versionNumber           = "3.1.6.2";
 Configuration       Config;
-WiFiClient          espClient;
+WiFiClient          aprsIsClient;
+WiFiClient          mqttClient;
 #ifdef HAS_GPS
     HardwareSerial  gpsSerial(1);
     TinyGPSPlus     gps;
@@ -94,7 +97,6 @@ bool                modemLoggedToAPRSIS     = false;
 std::vector<ReceivedPacket> receivedPackets;
 
 String firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, seventhLine;
-//#define STARTUP_DELAY 5 //min
 
 
 void setup() {
@@ -105,12 +107,7 @@ void setup() {
     Utils::validateFreqs();
     GPS_Utils::setup();
     STATION_Utils::loadBlacklistAndManagers();
-
-    #ifdef STARTUP_DELAY    // (TEST) just to wait for WiFi init of Routers
-        displayShow("", "  STARTUP DELAY ...", "", "", 0);
-        delay(STARTUP_DELAY * 60 * 1000);
-    #endif
-
+    Utils::startupDelay();
     SLEEP_Utils::setup();
     WIFI_Utils::setup();
     NTP_Utils::setup();
@@ -118,6 +115,7 @@ void setup() {
     WX_Utils::setup();
     WEB_Utils::setup();
     TNC_Utils::setup();
+    MQTT_Utils::setup();
     #ifdef HAS_A7670
         A7670_Utils::setup();
     #endif
@@ -166,11 +164,13 @@ void loop() {
             if (Config.aprs_is.active && !modemLoggedToAPRSIS) A7670_Utils::APRS_IS_connect();
         #else
             WIFI_Utils::checkWiFi();
-            if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !espClient.connected()) APRS_IS_Utils::connect();
+            if (Config.aprs_is.active && (WiFi.status() == WL_CONNECTED) && !aprsIsClient.connected()) APRS_IS_Utils::connect();
+            if (Config.mqtt.active && (WiFi.status() == WL_CONNECTED) && !mqttClient.connected()) MQTT_Utils::connect();
         #endif
 
         NTP_Utils::update();
         TNC_Utils::loop();
+        MQTT_Utils::loop();
 
         Utils::checkDisplayInterval();
         Utils::checkBeaconInterval();
@@ -183,7 +183,7 @@ void loop() {
         }
 
         if (packet != "") {
-            if (Config.aprs_is.active) { // If APRSIS enabled
+            if (Config.aprs_is.active) {    // If APRSIS enabled
                 APRS_IS_Utils::processLoRaPacket(packet); // Send received packet to APRSIS
             }
 
@@ -192,17 +192,12 @@ void loop() {
                 DIGI_Utils::processLoRaPacket(packet); // Send received packet to Digi
             }
 
-            if (Config.tnc.enableServer) { // If TNC server enabled
-                TNC_Utils::sendToClients(packet); // Send received packet to TNC KISS
-            }
-            if (Config.tnc.enableSerial) { // If Serial KISS enabled
-                TNC_Utils::sendToSerial(packet); // Send received packet to Serial KISS
-            }
+            if (Config.tnc.enableServer) TNC_Utils::sendToClients(packet, true);    // Send received packet to TNC KISS
+            if (Config.tnc.enableSerial) TNC_Utils::sendToSerial(packet, true);     // Send received packet to Serial KISS
+            if (Config.mqtt.active) MQTT_Utils::sendToMqtt(packet);                 // Send received packet to MQTT
         }
 
-        if (Config.aprs_is.active) {
-            APRS_IS_Utils::listenAPRSIS(); // listen received packet from APRSIS
-        }
+        if (Config.aprs_is.active) APRS_IS_Utils::listenAPRSIS();           // listen received packet from APRSIS
 
         STATION_Utils::processOutputPacketBuffer();
 

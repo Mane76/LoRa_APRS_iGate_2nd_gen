@@ -21,6 +21,7 @@
 
     //  LoRa Radio
     #define HAS_SX1262
+    #define HAS_TCXO
     #define RADIO_SCLK_PIN          5
     #define RADIO_MISO_PIN          3
     #define RADIO_MOSI_PIN          6
@@ -30,6 +31,9 @@
     #define RADIO_BUSY_PIN          34
     #define RADIO_WAKEUP_PIN        RADIO_DIO1_PIN
     #define GPIO_WAKEUP_PIN         GPIO_SEL_33
+
+    //  I2C
+    #define USE_WIRE_WITH_OLED_PINS
 
     //  Display
     #define HAS_DISPLAY

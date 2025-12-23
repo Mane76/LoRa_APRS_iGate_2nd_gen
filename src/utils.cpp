@@ -16,8 +16,10 @@
  * along with LoRa APRS iGate. If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <APRSPacketLib.h>
 #include <TinyGPS++.h>
 #include <WiFi.h>
+#include "telemetry_utils.h"
 #include "configuration.h"
 #include "station_utils.h"
 #include "battery_utils.h"
@@ -34,7 +36,6 @@
 
 
 extern Configuration        Config;
-extern WiFiClient           espClient;
 extern TinyGPSPlus          gps;
 extern String               versionDate;
 extern String               firstLine;
@@ -71,24 +72,20 @@ String      secondaryBeaconPacket;
 namespace Utils {
 
     void processStatus() {
-        String status = Config.callsign;
-        status.concat(">APLRG1");
-        if (Config.beacon.path.indexOf("WIDE") == 0) {
-            status.concat(",");
-            status.concat(Config.beacon.path);
-        }
+        String status = APRSPacketLib::generateBasePacket(Config.callsign, "APLRG1", Config.beacon.path);
+
         if (WiFi.status() == WL_CONNECTED && Config.aprs_is.active && Config.beacon.sendViaAPRSIS) {
             delay(1000);
-            status.concat(",qAC:>https://github.com/richonguzman/LoRa_APRS_iGate ");
-            status.concat(versionDate);
+            status.concat(",qAC:>");
+            status.concat(Config.beacon.statusPacket);
             APRS_IS_Utils::upload(status);
             SYSLOG_Utils::log(2, status, 0, 0.0, 0);   // APRSIS TX
             statusAfterBoot = false;
         }
         if (statusAfterBoot && !Config.beacon.sendViaAPRSIS && Config.beacon.sendViaRF) {
-            status.concat(":>https://github.com/richonguzman/LoRa_APRS_iGate ");
-            status.concat(versionDate);
-            STATION_Utils::addToOutputPacketBuffer(status);
+            status.concat(":>");
+            status.concat(Config.beacon.statusPacket);
+            STATION_Utils::addToOutputPacketBuffer(status, true);   // treated also as beacon on Tx Freq
             statusAfterBoot = false;
         }
     }
@@ -127,81 +124,10 @@ namespace Utils {
         seventhLine = "     listening...";
     }
 
-    void activeStations() {
+    void showActiveStations() {
         char buffer[30]; // Adjust size as needed
         sprintf(buffer, "Stations (%dmin) = %2d", Config.rememberStationTime, lastHeardStations.size());
         fourthLine = buffer;
-    }
-
-    void sendInitialTelemetryPackets() {
-        char sender[10];                                                    // 9 characters + null terminator
-        snprintf(sender, sizeof(sender), "%-9s", Config.callsign.c_str());  // Left-align with spaces
-
-        String baseAPRSISTelemetryPacket = Config.callsign;
-        baseAPRSISTelemetryPacket += ">APLRG1,TCPIP,qAC::";
-        baseAPRSISTelemetryPacket += sender;
-        baseAPRSISTelemetryPacket += ":";
-
-        String baseRFTelemetryPacket = Config.callsign;
-        baseRFTelemetryPacket += ">APLRG1";
-        if (Config.beacon.path.indexOf("WIDE") != -1) {
-            baseRFTelemetryPacket += ",";
-            baseRFTelemetryPacket += Config.beacon.path;
-        }
-        baseRFTelemetryPacket += "::";
-        baseRFTelemetryPacket += sender;
-        baseRFTelemetryPacket += ":";
-
-        String telemetryPacket1 = "EQNS.";
-        if (Config.battery.sendInternalVoltage) {
-            telemetryPacket1 += "0,0.01,0";
-        }
-        if (Config.battery.sendExternalVoltage) {
-            telemetryPacket1 += String(Config.battery.sendInternalVoltage ? ",0,0.02,0" : "0,0.02,0");
-        }
-
-        String telemetryPacket2 = "UNIT.";
-        if (Config.battery.sendInternalVoltage) {
-            telemetryPacket2 += "VDC";
-        }
-        if (Config.battery.sendExternalVoltage) {
-            telemetryPacket2 += String(Config.battery.sendInternalVoltage ? ",VDC" : "VDC");
-        }
-
-        String telemetryPacket3 = "PARM.";
-        if (Config.battery.sendInternalVoltage) {
-            telemetryPacket3 += "V_Batt";
-        }
-        if (Config.battery.sendExternalVoltage) {
-            telemetryPacket3 += String(Config.battery.sendInternalVoltage ? ",V_Ext" : "V_Ext");
-        }
-
-        if (Config.beacon.sendViaAPRSIS) {
-            #ifdef HAS_A7670
-                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket1);
-                delay(300);
-                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket2);
-                delay(300);
-                A7670_Utils::uploadToAPRSIS(baseAPRSISTelemetryPacket + telemetryPacket3);
-                delay(300);
-            #else
-                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket1);
-                delay(300);
-                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket2);
-                delay(300);
-                APRS_IS_Utils::upload(baseAPRSISTelemetryPacket + telemetryPacket3);
-                delay(300);
-            #endif
-            delay(300);
-        } else if (Config.beacon.sendViaRF) {
-            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket1);
-            delay(3000);
-            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket2);
-            delay(3000);
-            LoRa_Utils::sendNewPacket(baseRFTelemetryPacket + telemetryPacket3);
-            delay(3000);
-        }
-        sendStartTelemetry = false;
     }
 
     void checkBeaconInterval() {
@@ -225,12 +151,12 @@ namespace Utils {
                 !Config.wxsensor.active && 
                 (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage) &&
                 (lastBeaconTx > 0)) {
-                sendInitialTelemetryPackets();
+                TELEMETRY_Utils::sendEquationsUnitsParameters();
             }
 
             STATION_Utils::deleteNotHeard();
 
-            activeStations();
+            showActiveStations();
 
             beaconPacket            = iGateBeaconPacket;
             secondaryBeaconPacket   = iGateLoRaBeaconPacket;
@@ -238,10 +164,18 @@ namespace Utils {
                 if (Config.beacon.gpsActive && Config.digi.ecoMode == 0) {
                     GPS_Utils::getData();
                     if (gps.location.isUpdated() && gps.location.lat() != 0.0 && gps.location.lng() != 0.0) {
-                        GPS_Utils::generateBeaconFirstPart();
-                        String encodedGPS = GPS_Utils::encodeGPS(gps.location.lat(), gps.location.lng(), Config.beacon.overlay, Config.beacon.symbol);
-                        beaconPacket = iGateBeaconPacket + encodedGPS;
-                        secondaryBeaconPacket = iGateLoRaBeaconPacket + encodedGPS;
+                        String basePacket   = APRSPacketLib::generateBasePacket(Config.callsign, "APLRG1", Config.beacon.path);
+                        String encodedGPS   = APRSPacketLib::encodeGPSIntoBase91(gps.location.lat(),gps.location.lng(), 0, 0, Config.beacon.symbol, false, 0, true, Config.beacon.ambiguityLevel);
+
+                        beaconPacket    = basePacket;
+                        beaconPacket    += ",qAC:!";
+                        beaconPacket    += Config.beacon.overlay;
+                        beaconPacket    += encodedGPS;
+
+                        secondaryBeaconPacket   = basePacket;
+                        secondaryBeaconPacket   += ":=";
+                        secondaryBeaconPacket   += Config.beacon.overlay;
+                        secondaryBeaconPacket   += encodedGPS;
                     }
                 }
             #endif
@@ -281,7 +215,7 @@ namespace Utils {
                 }
             #endif
 
-            #ifndef HELTEC_WP
+            #ifndef HELTEC_WP_V1
                 if (Config.battery.sendExternalVoltage || Config.battery.monitorExternalVoltage) {
                     float externalVoltage       = BATTERY_Utils::checkExternalVoltage();
                     if (Config.battery.monitorExternalVoltage && externalVoltage < Config.battery.externalSleepVoltage) {
@@ -309,7 +243,7 @@ namespace Utils {
             #endif
 
             if (Config.battery.sendVoltageAsTelemetry && !Config.wxsensor.active && (Config.battery.sendInternalVoltage || Config.battery.sendExternalVoltage)){
-                String encodedTelemetry = BATTERY_Utils::generateEncodedTelemetry();
+                String encodedTelemetry = TELEMETRY_Utils::generateEncodedTelemetry();
                 beaconPacket += encodedTelemetry;
                 secondaryBeaconPacket += encodedTelemetry;
             }
@@ -323,13 +257,14 @@ namespace Utils {
                 #else
                     APRS_IS_Utils::upload(beaconPacket);
                 #endif
+                if (Config.syslog.logBeaconOverTCPIP) SYSLOG_Utils::log(1, "tcp" + beaconPacket, 0, 0.0, 0);   // APRSIS TX
             }
 
             if (Config.beacon.sendViaRF || backUpDigiMode) {
                 Utils::println("-- Sending Beacon to RF --");
                 displayShow(firstLine, secondLine, thirdLine, fourthLine, fifthLine, sixthLine, "SENDING DIGI BEACON", 0);
                 seventhLine = "     listening...";
-                STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket);
+                STATION_Utils::addToOutputPacketBuffer(secondaryBeaconPacket, true);
             }
 
             lastBeaconTx = millis();
@@ -337,7 +272,7 @@ namespace Utils {
             beaconUpdate = false;
         }
 
-        if (statusAfterBoot) {
+        if (statusAfterBoot && Config.beacon.statusActive && !Config.beacon.statusPacket.isEmpty()) {
             processStatus();
         }
     }
@@ -354,6 +289,7 @@ namespace Utils {
             Serial.println("Tx Freq less than 125kHz from Rx Freq ---> NOT VALID");
             displayShow("Tx Freq is less than ", "125kHz from Rx Freq", "device will autofix", "and then reboot", 1000);
             Config.loramodule.txFreq = Config.loramodule.rxFreq; // Inform about that but then change the TX QRG to RX QRG and reset the device
+            Config.beacon.beaconFreq = 1;   // return to LoRa Tx Beacon Freq
             Config.writeFile();
             ESP.restart();
         }
@@ -471,6 +407,7 @@ namespace Utils {
             cleanCallsign = callsign.substring(0, callsign.indexOf("-"));
             String ssid = callsign.substring(callsign.indexOf("-") + 1);
             if (ssid.indexOf("-") != -1 || ssid.length() > 2) return false;
+            if (ssid.length() == 2 && ssid[0] == '0') return false;
             for (int i = 0; i < ssid.length(); i++) {
                 if (!isAlphaNumeric(ssid[i])) return false;
             }
@@ -504,6 +441,13 @@ namespace Utils {
             }
         }
         return true;
+    }
+
+    void startupDelay() {
+        if (Config.startupDelay > 0) {
+            displayShow("", "  STARTUP DELAY ...", "", "", 0);
+            delay(Config.startupDelay * 60 * 1000);
+        }
     }
 
 }

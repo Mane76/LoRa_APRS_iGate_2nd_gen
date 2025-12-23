@@ -44,7 +44,16 @@
         #ifdef HAS_EPAPER
             #include <heltec-eink-modules.h>
             #include "Fonts/FreeSansBold9pt7b.h"
-            EInkDisplay_WirelessPaperV1_1 display;
+            #ifdef HELTEC_WP_V1
+                EInkDisplay_WirelessPaperV1_1 display;
+            #endif
+            #ifdef HELTEC_WP_V1_2
+                EInkDisplay_WirelessPaperV1_2 display;
+            #endif
+            #ifdef HELTEC_VM_E290
+                EInkDisplay_VisionMasterE290 display;
+            #endif
+
             String lastEpaperText;
         #else
             #include <Adafruit_GFX.h>
@@ -83,14 +92,22 @@ void displaySetup() {
             tft.setTextFont(0);
             tft.fillScreen(TFT_BLACK);
             #if defined(TTGO_T_DECK_GPS) || defined(TTGO_T_DECK_PLUS)
-                sprite.createSprite(320,240);
+                sprite.createSprite(320, 240);
             #else
-                sprite.createSprite(160,80);
+                sprite.createSprite(160, 80);
             #endif
         #else
             #ifdef HAS_EPAPER
                 display.landscape();
                 display.printCenter("LoRa APRS iGate Initialising...");
+                if (Config.display.turn180) {
+                    #if defined(HELTEC_VM_E290) || defined(HELTEC_WP_V1)
+                        display.setRotation(3);
+                    #endif
+                    #if defined(HELTEC_WP_V1_2)
+                        display.setRotation(1);
+                    #endif
+                }
                 display.update();
             #else
                 #ifdef OLED_DISPLAY_HAS_RST_PIN
@@ -101,7 +118,7 @@ void displaySetup() {
                 #endif
 
                 #if defined(TTGO_T_Beam_S3_SUPREME_V3)
-                    if (!display.begin(0x3c, false)) {
+                    if (display.begin(0x3c, false)) {
                         displayFound = true;
                         if (Config.display.turn180) display.setRotation(2);
                         display.clearDisplay();
@@ -152,7 +169,6 @@ void displayToggle(bool toggle) {
                 digitalWrite(TFT_BL, LOW);
             #else
                 #ifdef HAS_EPAPER
-                    display.printCenter("Enabled EPAPER Display...");
                     display.update();
                 #else
                     #if defined(TTGO_T_Beam_S3_SUPREME_V3)
@@ -190,7 +206,7 @@ void displayShow(const String& header, const String& line1, const String& line2,
                 sprite.drawString(*lines[i], 3, (lineSpacing * (2 + i)) - 2);
             }
 
-            sprite.pushSprite(0,0);
+            sprite.pushSprite(0, 0);
         #else
             #ifdef HAS_EPAPER
                 display.clearMemory();
@@ -255,7 +271,7 @@ void displayShow(const String& header, const String& line1, const String& line2,
                 sprite.drawString(*lines[i], 3, (lineSpacing * (2 + i)) - 2);
             }
 
-            sprite.pushSprite(0,0);
+            sprite.pushSprite(0, 0);
         #else
             #ifdef HAS_EPAPER
                 lastEpaperText = header + line1 + line2 + line3 + line4 + line5 + line6;

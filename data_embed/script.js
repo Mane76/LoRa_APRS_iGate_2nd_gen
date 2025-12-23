@@ -49,27 +49,6 @@ function fetchSettings() {
         });
 }
 
-const alwaysOnCheckbox = document.querySelector(
-    'input[name="display.alwaysOn"]'
-);
-const timeoutInput = document.querySelector('input[name="display.timeout"]');
-
-alwaysOnCheckbox.addEventListener("change", function () {
-    timeoutInput.disabled = this.checked;
-});
-
-// timeoutInput.addEventListener("change", function () {
-//     alwaysOnCheckbox.disabled = this.value !== "";
-// });
-
-const logCheckbox = document.querySelector('input[name="syslog.active"]');
-const serverField = document.querySelector('input[name="syslog.server"]');
-const portField = document.querySelector('input[name="syslog.port"]');
-
-logCheckbox.addEventListener("change", function () {
-    serverField.disabled = !this.checked;
-    portField.disabled = !this.checked;
-});
 
 function loadSettings(settings) {
     currentSettings = settings;
@@ -116,6 +95,7 @@ function loadSettings(settings) {
         networksContainer.appendChild(networkElement);
         networkCount++;
     });
+    document.getElementById("startupDelay").value                       = settings.startupDelay;
 
     // APRS-IS
     document.getElementById("aprs_is.active").checked                   = settings.aprs_is.active;
@@ -125,6 +105,13 @@ function loadSettings(settings) {
     document.getElementById("aprs_is.port").value                       = settings.aprs_is.port;
     document.getElementById("aprs_is.filter").value                     = settings.aprs_is.filter;
     document.getElementById("aprs_is.passcode").value                   = settings.aprs_is.passcode;
+    APRSISCheckbox.checked      = settings.aprs_is.active;
+    APRSISGateMessages.disabled = !APRSISCheckbox.checked;
+    APRSISGateObjects.disabled  = !APRSISCheckbox.checked;
+    APRSISServer.disabled       = !APRSISCheckbox.checked;
+    APRSISPort.disabled         = !APRSISCheckbox.checked;
+    APRSISPasscode.disabled     = !APRSISCheckbox.checked;
+    APRSISFilter.disabled       = !APRSISCheckbox.checked;
 
     // Beacon
     document.getElementById("beacon.latitude").value                    = settings.beacon.latitude;
@@ -132,74 +119,120 @@ function loadSettings(settings) {
     document.getElementById("beacon.interval").value                    = settings.beacon.interval;
     document.getElementById("other.rememberStationTime").value          = settings.other.rememberStationTime;   
     document.getElementById("beacon.sendViaAPRSIS").checked             = settings.beacon.sendViaAPRSIS;
+
     document.getElementById("beacon.sendViaRF").checked                 = settings.beacon.sendViaRF;
+    document.getElementById("beacon.beaconFreq").value                  = settings.beacon.beaconFreq;
+    BeaconingViaRFCheckbox.checked  = settings.beacon.sendViaRF;
+    BeaconingFrequency.disabled     = !BeaconingViaRFCheckbox.checked;
+
+    document.getElementById("beacon.statusActive").checked              = settings.beacon.statusActive;
+    document.getElementById("beacon.statusPacket").value                = settings.beacon.statusPacket;
+    StatusCheckbox.checked  = settings.beacon.statusActive;
+    StatusPacket.disabled   = !StatusCheckbox.checked;
 
     document.getElementById("beacon.gpsActive").checked                 = settings.beacon.gpsActive;
-    document.getElementById("beacon.gpsAmbiguity").checked              = settings.beacon.gpsAmbiguity;
+    document.getElementById("beacon.ambiguityLevel").value              = settings.beacon.ambiguityLevel;
 
     // Black List
     document.getElementById("blacklist").value                          = settings.blacklist;
 
     // Digi
     document.getElementById("digi.mode").value                          = settings.digi.mode;
-    document.getElementById("digi.ecoMode").checked                     = settings.digi.ecoMode;
+    document.getElementById("digi.ecoMode").value                       = settings.digi.ecoMode;
 
     // LoRa
-    document.getElementById("lora.txFreq").value                        = settings.lora.txFreq;
-    document.getElementById("lora.rxFreq").value                        = settings.lora.rxFreq;
-    document.getElementById("lora.txActive").checked                    = settings.lora.txActive;
     document.getElementById("lora.rxActive").checked                    = settings.lora.rxActive;
-    document.getElementById("lora.spreadingFactor").value               = settings.lora.spreadingFactor;
-    document.getElementById("lora.signalBandwidth").value               = settings.lora.signalBandwidth;
-    document.getElementById("lora.codingRate4").value                   = settings.lora.codingRate4;
+    document.getElementById("lora.rxFreq").value                        = settings.lora.rxFreq;
+    document.getElementById("lora.rxSpreadingFactor").value             = settings.lora.rxSpreadingFactor;
+    document.getElementById("lora.rxCodingRate4").value                 = settings.lora.rxCodingRate4;
+    document.getElementById("lora.rxSignalBandwidth").value             = settings.lora.rxSignalBandwidth;
+    document.getElementById("lora.txActive").checked                    = settings.lora.txActive;
+    document.getElementById("lora.txFreq").value                        = settings.lora.txFreq;
+    document.getElementById("lora.txSpreadingFactor").value             = settings.lora.txSpreadingFactor;
+    document.getElementById("lora.txCodingRate4").value                 = settings.lora.txCodingRate4;
+    document.getElementById("lora.txSignalBandwidth").value             = settings.lora.txSignalBandwidth;    
     document.getElementById("lora.power").value                         = settings.lora.power;
 
     // Display
     document.getElementById("display.alwaysOn").checked                 = settings.display.alwaysOn;
     document.getElementById("display.turn180").checked                  = settings.display.turn180;
     document.getElementById("display.timeout").value                    = settings.display.timeout;
-
-    if (settings.display.alwaysOn) {
-        timeoutInput.disabled = true;
-    }
+    DisplayAlwaysOnCheckbox.checked = settings.display.alwaysOn;
+    DisplayTimeout.disabled         = DisplayAlwaysOnCheckbox.checked;
 
     // BATTERY
     document.getElementById("battery.sendInternalVoltage").checked      = settings.battery.sendInternalVoltage;
     document.getElementById("battery.monitorInternalVoltage").checked   = settings.battery.monitorInternalVoltage;
     document.getElementById("battery.internalSleepVoltage").value       = settings.battery.internalSleepVoltage.toFixed(1);
+    MonitorInternalVoltageCheckbox.checked  = settings.battery.monitorInternalVoltage;
+    MonitorInternalSleepVoltage.disabled    = !MonitorInternalVoltageCheckbox.checked;
+
     document.getElementById("battery.sendExternalVoltage").checked      = settings.battery.sendExternalVoltage;
+    document.getElementById("battery.useExternalI2CSensor").checked     = settings.battery.useExternalI2CSensor;
     document.getElementById("battery.externalVoltagePin").value         = settings.battery.externalVoltagePin;
     document.getElementById("battery.voltageDividerR1").value           = settings.battery.voltageDividerR1.toFixed(1);
     document.getElementById("battery.voltageDividerR2").value           = settings.battery.voltageDividerR2.toFixed(1);
+    SendExternalVoltageCheckbox.checked     = settings.battery.sendExternalVoltage;
+    UseExternalI2CSensorCheckbox.disabled   = !SendExternalVoltageCheckbox.checked;
+    ExternalVoltagePin.disabled             = !SendExternalVoltageCheckbox.checked || UseExternalI2CSensorCheckbox.checked;
+    ExternalVoltageDividerR1.disabled       = !SendExternalVoltageCheckbox.checked || UseExternalI2CSensorCheckbox.checked;
+    ExternalVoltageDividerR2.disabled       = !SendExternalVoltageCheckbox.checked || UseExternalI2CSensorCheckbox.checked;
+
+
     document.getElementById("battery.monitorExternalVoltage").checked   = settings.battery.monitorExternalVoltage;
     document.getElementById("battery.externalSleepVoltage").value       = settings.battery.externalSleepVoltage.toFixed(1);
+    MonitorExternalVoltageCheckbox.checked  = settings.battery.monitorExternalVoltage;
+    MonitorExternalSleepVoltage.disabled    = !MonitorExternalVoltageCheckbox.checked;
+
     document.getElementById("battery.sendVoltageAsTelemetry").checked   = settings.battery.sendVoltageAsTelemetry;
-    
+
     // TELEMETRY WX SENSOR
     document.getElementById("wxsensor.active").checked                  = settings.wxsensor.active;
     document.getElementById("wxsensor.heightCorrection").value          = settings.wxsensor.heightCorrection;
     document.getElementById("wxsensor.temperatureCorrection").value     = settings.wxsensor.temperatureCorrection.toFixed(1);
+    TelemetryCheckbox.checked           = settings.wxsensor.active;
+    TelemetryHeightCorrection.disabled  = !TelemetryCheckbox.checked;
+    TelemetryTempCorrection.disabled    = !TelemetryCheckbox.checked;
     
     // SYSLOG
     document.getElementById("syslog.active").checked                    = settings.syslog.active;
     document.getElementById("syslog.server").value                      = settings.syslog.server;
     document.getElementById("syslog.port").value                        = settings.syslog.port;
-
-    if (settings.syslog.active) {
-        serverField.disabled = false;
-        portField.disabled = false;
-    }
-
+    document.getElementById("syslog.logBeaconOverTCPIP").checked        = settings.syslog.logBeaconOverTCPIP;
+    SyslogCheckbox.checked          = settings.syslog.active;
+    SyslogServer.disabled           = !SyslogCheckbox.checked;
+    SyslogPort.disabled             = !SyslogCheckbox.checked;
+    SyslogBeaconOverTCPIP.disabled  = !SyslogCheckbox.checked;
+    
     // TNC
     if (settings.tnc) {
         document.getElementById("tnc.enableServer").checked             = settings.tnc.enableServer;
         document.getElementById("tnc.enableSerial").checked             = settings.tnc.enableSerial;
         document.getElementById("tnc.acceptOwn").checked                = settings.tnc.acceptOwn;
+        document.getElementById("tnc.aprsBridgeActive").checked         = settings.tnc.aprsBridgeActive;
     }
+
+    // MQTT
+    document.getElementById("mqtt.active").checked                      = settings.mqtt.active;
+    document.getElementById("mqtt.server").value                        = settings.mqtt.server;
+    document.getElementById("mqtt.topic").value                         = settings.mqtt.topic;
+    document.getElementById("mqtt.username").value                      = settings.mqtt.username;
+    document.getElementById("mqtt.password").value                      = settings.mqtt.password;
+    document.getElementById("mqtt.port").value                          = settings.mqtt.port;
+    document.getElementById("mqtt.beaconOverMqtt").checked              = settings.mqtt.beaconOverMqtt;
+    MqttCheckbox.checked        = settings.mqtt.active;
+    MqttServer.disabled         = !MqttCheckbox.checked;
+    MqttTopic.disabled          = !MqttCheckbox.checked;
+    MqttUsername.disabled       = !MqttCheckbox.checked;
+    MqttPassword.disabled       = !MqttCheckbox.checked;
+    MqttPort.disabled           = !MqttCheckbox.checked;
+    MqttBeaconOverMqtt.disabled = !MqttCheckbox.checked;
 
     // Reboot
     document.getElementById("other.rebootMode").checked                 = settings.other.rebootMode;
     document.getElementById("other.rebootModeTime").value               = settings.other.rebootModeTime;
+    RebootModeCheckbox.checked  = settings.other.rebootMode;
+    RebootModeTime.disabled     = !RebootModeCheckbox.check;
 
     // WiFi Auto AP
     document.getElementById("wifi.autoAP.password").value               = settings.wifi.autoAP.password;
@@ -213,20 +246,22 @@ function loadSettings(settings) {
     document.getElementById("webadmin.active").checked                  = settings.webadmin.active;
     document.getElementById("webadmin.username").value                  = settings.webadmin.username;
     document.getElementById("webadmin.password").value                  = settings.webadmin.password;
-
-    // NTP
-    document.getElementById("ntp.gmtCorrection").value                  = settings.ntp.gmtCorrection;
-
-    // Experimental
-    document.getElementById("other.backupDigiMode").checked             = settings.other.backupDigiMode;
+    WebadminCheckbox.checked    = settings.webadmin.active;
+    WebadminUsername.disabled   = !WebadminCheckbox.check;
+    WebadminPassword.disabled   = !WebadminCheckbox.check;
 
     // Management over APRS
     document.getElementById("remoteManagement.managers").value          = settings.remoteManagement.managers;
     document.getElementById("remoteManagement.rfOnly").checked          = settings.remoteManagement.rfOnly;
 
+    // NTP
+    document.getElementById("ntp.server").value                         = settings.ntp.server;
+    document.getElementById("ntp.gmtCorrection").value                  = settings.ntp.gmtCorrection;
+
+    // Experimental
+    document.getElementById("other.backupDigiMode").checked             = settings.other.backupDigiMode;
+
     updateImage();
-    refreshSpeedStandard();
-    toggleFields();
 }
 
 function showToast(message) {
@@ -253,8 +288,6 @@ document.getElementById('reboot').addEventListener('click', function (e) {
     showToast("Your device will be rebooted in a while");
 });
 
-const wxsensorCheckbox = document.querySelector("input[name='wxsensor.active']");
-
 function updateImage() {
     const value = document.getElementById("beacon.overlay").value + document.getElementById("beacon.symbol").value;
 
@@ -280,69 +313,126 @@ function updateImage() {
     }
 }
 
-function toggleFields() {
-    const sendExternalVoltageCheckbox = document.querySelector(
-        'input[name="battery.sendExternalVoltage"]'
-    );
-    const externalVoltagePinInput = document.querySelector(
-        'input[name="battery.externalVoltagePin"]'
-    );
-
-    externalVoltagePinInput.disabled = !sendExternalVoltageCheckbox.checked;
-    voltageDividerR1.disabled = !sendExternalVoltageCheckbox.checked;
-    voltageDividerR2.disabled = !sendExternalVoltageCheckbox.checked;
-
-    const WebadminCheckbox = document.querySelector(
-        'input[name="webadmin.active"]'
-    );
-
-    const WebadminUsername = document.querySelector(
-        'input[name="webadmin.username"]'
-    );
-
-    const WebadminPassword = document.querySelector(
-        'input[name="webadmin.password"]'
-    );
-    WebadminUsername.disabled = !WebadminCheckbox.checked;
-    WebadminPassword.disabled = !WebadminCheckbox.checked;
-}
-
-const sendExternalVoltageCheckbox = document.querySelector(
-    'input[name="battery.sendExternalVoltage"]'
-);
-const externalVoltagePinInput = document.querySelector(
-    'input[name="battery.externalVoltagePin"]'
-);
-
-const voltageDividerR1 = document.querySelector(
-    'input[name="battery.voltageDividerR1"]'
-);
-
-const voltageDividerR2 = document.querySelector(
-    'input[name="battery.voltageDividerR2"]'
-);
-
-sendExternalVoltageCheckbox.addEventListener("change", function () {
-    externalVoltagePinInput.disabled = !this.checked;
-    voltageDividerR1.disabled = !this.checked;
-    voltageDividerR2.disabled = !this.checked;
+// Beaconing Switches
+const BeaconingViaRFCheckbox    = document.querySelector('input[name="beacon.sendViaRF"]');
+const BeaconingFrequency        = document.querySelector('select[name="beacon.beaconFreq"]');
+BeaconingViaRFCheckbox.addEventListener("change", function() {
+    BeaconingFrequency.disabled = !this.checked;
 });
 
-const WebadminCheckbox = document.querySelector(
-    'input[name="webadmin.active"]'
-);
+// Status Switch
+const StatusCheckbox            = document.querySelector('input[name="beacon.statusActive"]');
+const StatusPacket              = document.querySelector('input[name="beacon.statusPacket"]');
+StatusCheckbox.addEventListener("change", function() {
+    StatusPacket.disabled       = !this.checked;
+});
 
-const WebadminUsername = document.querySelector(
-    'input[name="webadmin.username"]'
-);
+// APRS-IS Switches
+const APRSISCheckbox            = document.querySelector('input[name="aprs_is.active"]');
+const APRSISGateMessages        = document.querySelector('input[name="aprs_is.messagesToRF"]');
+const APRSISGateObjects         = document.querySelector('input[name="aprs_is.objectsToRF"]');
+const APRSISServer              = document.querySelector('input[name="aprs_is.server"]');
+const APRSISPort                = document.querySelector('input[name="aprs_is.port"]');
+const APRSISPasscode            = document.querySelector('input[name="aprs_is.passcode"]');
+const APRSISFilter              = document.querySelector('input[name="aprs_is.filter"]');
+APRSISCheckbox.addEventListener("change", function() {
+    APRSISGateMessages.disabled = !this.checked;
+    APRSISGateObjects.disabled  = !this.checked;
+    APRSISServer.disabled       = !this.checked;
+    APRSISPort.disabled         = !this.checked;
+    APRSISPasscode.disabled     = !this.checked;
+    APRSISFilter.disabled       = !this.checked;
+});
 
-const WebadminPassword = document.querySelector(
-    'input[name="webadmin.password"]'
-);
+// Display Switches
+const DisplayAlwaysOnCheckbox   = document.querySelector('input[name="display.alwaysOn"]');
+const DisplayTimeout            = document.querySelector('input[name="display.timeout"]');
+DisplayAlwaysOnCheckbox.addEventListener("change", function () {
+    DisplayTimeout.disabled     = this.checked;
+});
+
+// Battery Switches
+const MonitorInternalVoltageCheckbox        = document.querySelector('input[name="battery.monitorInternalVoltage"]');
+const MonitorInternalSleepVoltage           = document.querySelector('input[name="battery.internalSleepVoltage"]');
+MonitorInternalVoltageCheckbox.addEventListener("change", function () {
+    MonitorInternalSleepVoltage.disabled    = !this.checked;
+});
+const MonitorExternalVoltageCheckbox        = document.querySelector('input[name="battery.monitorExternalVoltage"]');
+const MonitorExternalSleepVoltage           = document.querySelector('input[name="battery.externalSleepVoltage"]');
+MonitorExternalVoltageCheckbox.addEventListener("change", function () {
+    MonitorExternalSleepVoltage.disabled    = !this.checked;
+});
+const SendExternalVoltageCheckbox           = document.querySelector('input[name="battery.sendExternalVoltage"]');
+const UseExternalI2CSensorCheckbox          = document.querySelector('input[name="battery.useExternalI2CSensor"]');
+const ExternalVoltagePin                    = document.querySelector('input[name="battery.externalVoltagePin"]');
+const ExternalVoltageDividerR1              = document.querySelector('input[name="battery.voltageDividerR1"]');
+const ExternalVoltageDividerR2              = document.querySelector('input[name="battery.voltageDividerR2"]');
+SendExternalVoltageCheckbox.addEventListener("change", function () {
+    UseExternalI2CSensorCheckbox.disabled   = !this.checked;
+    ExternalVoltagePin.disabled             = !this.checked || UseExternalI2CSensorCheckbox.checked;
+    ExternalVoltageDividerR1.disabled       = !this.checked || UseExternalI2CSensorCheckbox.checked;
+    ExternalVoltageDividerR2.disabled       = !this.checked || UseExternalI2CSensorCheckbox.checked;
+});
+
+UseExternalI2CSensorCheckbox.addEventListener("change", function () {
+    ExternalVoltagePin.disabled             = this.checked;
+    ExternalVoltageDividerR1.disabled       = this.checked;
+    ExternalVoltageDividerR2.disabled       = this.checked;
+});
+
+// Telemetry Switches
+const TelemetryCheckbox                 = document.querySelector('input[name="wxsensor.active"]');
+const TelemetryHeightCorrection         = document.querySelector('input[name="wxsensor.heightCorrection"]');
+const TelemetryTempCorrection           = document.querySelector('input[name="wxsensor.temperatureCorrection"]');
+TelemetryCheckbox.addEventListener("change", function () {
+    TelemetryHeightCorrection.disabled  = !this.checked;
+    TelemetryTempCorrection.disabled    = !this.checked;
+});
+
+// Syslog Switches
+const SyslogCheckbox                = document.querySelector('input[name="syslog.active"]');
+const SyslogServer                  = document.querySelector('input[name="syslog.server"]');
+const SyslogPort                    = document.querySelector('input[name="syslog.port"]');
+const SyslogBeaconOverTCPIP         = document.querySelector('input[name="syslog.logBeaconOverTCPIP"]');
+SyslogCheckbox.addEventListener("change", function () {
+    SyslogServer.disabled           = !this.checked;
+    SyslogPort.disabled             = !this.checked;
+    SyslogBeaconOverTCPIP.disabled  = !this.checked
+});
+
+// MQTT Switches
+const MqttCheckbox              = document.querySelector('input[name="mqtt.active"]');
+const MqttServer                = document.querySelector('input[name="mqtt.server"]');
+const MqttTopic                 = document.querySelector('input[name="mqtt.topic"]');
+const MqttUsername              = document.querySelector('input[name="mqtt.username"]');
+const MqttPassword              = document.querySelector('input[name="mqtt.password"]');
+const MqttPort                  = document.querySelector('input[name="mqtt.port"]');
+const MqttBeaconOverMqtt        = document.querySelector('input[name="mqtt.beaconOverMqtt"]');
+MqttCheckbox.addEventListener("change", function () {
+    MqttServer.disabled         = !this.checked;
+    MqttTopic.disabled          = !this.checked;
+    MqttUsername.disabled       = !this.checked;
+    MqttPassword.disabled       = !this.checked;
+    MqttPort.disabled           = !this.checked;
+    MqttBeaconOverMqtt.disabled = !this.checked;
+});
+
+// Reboot Switches
+const RebootModeCheckbox        = document.querySelector('input[name="other.rebootMode"]');
+const RebootModeTime            = document.querySelector('input[name="other.rebootModeTime"]');
+RebootModeCheckbox.addEventListener("change", function() {
+    RebootModeTime.disabled     = !this.checked;
+});
+
+// Web Admin Switches
+const WebadminCheckbox          = document.querySelector('input[name="webadmin.active"]');
+const WebadminUsername          = document.querySelector('input[name="webadmin.username"]');
+const WebadminPassword          = document.querySelector('input[name="webadmin.password"]');
 WebadminCheckbox.addEventListener("change", function () {
-    WebadminUsername.disabled = !this.checked;
-    WebadminPassword.disabled = !this.checked;
+    WebadminUsername.disabled   = !this.checked;
+    WebadminPassword.disabled   = !this.checked;
 });
+
 
 document.querySelector(".new button").addEventListener("click", function () {
     const networksContainer = document.querySelector(".list-networks");
@@ -391,65 +481,6 @@ document
         updateImage();
     });
 
-const speedStandards = {
-    300: [125, 5, 12],
-    244: [125, 6, 12],
-    209: [125, 7, 12],
-    183: [125, 8, 12],
-    610: [125, 8, 10],
-    1200: [125, 7, 9],
-};
-
-function refreshSpeedStandard() {
-    const bw = Number(document.getElementById("lora.signalBandwidth").value);
-    const cr4 = Number(document.getElementById("lora.codingRate4").value);
-    const sf = Number(document.getElementById("lora.spreadingFactor").value);
-
-    let found = false;
-
-    for (const speed in speedStandards) {
-        const standard = speedStandards[speed];
-
-        if (standard[0] !== bw / 1000) continue;
-        if (standard[1] !== cr4) continue;
-        if (standard[2] !== sf) continue;
-
-        document.getElementById("action.speed").value = speed;
-        found = true;
-
-        break;
-    }
-
-    if (!found) {
-        document.getElementById("action.speed").value = "";
-    }
-}
-
-document
-    .getElementById("lora.signalBandwidth")
-    .addEventListener("focusout", refreshSpeedStandard);
-document
-    .getElementById("lora.codingRate4")
-    .addEventListener("focusout", refreshSpeedStandard);
-document
-    .getElementById("lora.spreadingFactor")
-    .addEventListener("focusout", refreshSpeedStandard);
-
-document.getElementById("action.speed").addEventListener("change", function () {
-    const speed = document.getElementById("action.speed").value;
-
-    if (speed !== "") {
-        const value = speedStandards[Number(speed)];
-
-        const bw = value[0];
-        const cr4 = value[1];
-        const sf = value[2];
-
-        document.getElementById("lora.signalBandwidth").value = bw * 1000;
-        document.getElementById("lora.codingRate4").value = cr4;
-        document.getElementById("lora.spreadingFactor").value = sf;
-    }
-});
 
 const form = document.querySelector("form");
 
