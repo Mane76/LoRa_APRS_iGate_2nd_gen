@@ -118,7 +118,7 @@ function loadSettings(settings) {
     document.getElementById("beacon.latitude").value                    = settings.beacon.latitude;
     document.getElementById("beacon.longitude").value                   = settings.beacon.longitude;
     document.getElementById("beacon.interval").value                    = settings.beacon.interval;
-    document.getElementById("other.rememberStationTime").value          = settings.other.rememberStationTime;   
+    document.getElementById("other.rememberStationTime").value          = settings.other.rememberStationTime;
     document.getElementById("beacon.sendViaAPRSIS").checked             = settings.beacon.sendViaAPRSIS;
 
     document.getElementById("beacon.sendViaRF").checked                 = settings.beacon.sendViaRF;
@@ -148,12 +148,26 @@ function loadSettings(settings) {
     document.getElementById("lora.rxSpreadingFactor").value             = settings.lora.rxSpreadingFactor;
     document.getElementById("lora.rxCodingRate4").value                 = settings.lora.rxCodingRate4;
     document.getElementById("lora.rxSignalBandwidth").value             = settings.lora.rxSignalBandwidth;
+    LoRaRxCheckbox.checked = settings.lora.rxActive;
+    LoRaRxFreq.disabled             = !LoRaRxCheckbox.checked;
+    LoRaRxSpreadingFactor.disabled  = !LoRaRxCheckbox.checked;
+    LoRaRxCodingRate.disabled       = !LoRaRxCheckbox.checked;
+    LoRaRxSignalBandwidth.disabled  = !LoRaRxCheckbox.checked;
+
     document.getElementById("lora.txActive").checked                    = settings.lora.txActive;
     document.getElementById("lora.txFreq").value                        = settings.lora.txFreq;
     document.getElementById("lora.txSpreadingFactor").value             = settings.lora.txSpreadingFactor;
     document.getElementById("lora.txCodingRate4").value                 = settings.lora.txCodingRate4;
-    document.getElementById("lora.txSignalBandwidth").value             = settings.lora.txSignalBandwidth;    
+    document.getElementById("lora.txSignalBandwidth").value             = settings.lora.txSignalBandwidth;
     document.getElementById("lora.power").value                         = settings.lora.power;
+    document.getElementById("lora.cadActive").checked                   = settings.lora.cadActive;
+    LoRaTxCheckbox.checked = settings.lora.txActive;
+    LoRaTxFreq.disabled             = !LoRaTxCheckbox.checked;
+    LoRaTxSpreadingFactor.disabled  = !LoRaTxCheckbox.checked;
+    LoRaTxCodingRate.disabled       = !LoRaTxCheckbox.checked;
+    LoRaTxSignalBandwidth.disabled  = !LoRaTxCheckbox.checked;
+    LoRaPower.disabled              = !LoRaTxCheckbox.checked;
+    LoRaCadActive.disabled          = !LoRaTxCheckbox.checked;
 
     // Display
     document.getElementById("display.alwaysOn").checked                 = settings.display.alwaysOn;
@@ -195,7 +209,7 @@ function loadSettings(settings) {
     TelemetryCheckbox.checked           = settings.wxsensor.active;
     TelemetryHeightCorrection.disabled  = !TelemetryCheckbox.checked;
     TelemetryTempCorrection.disabled    = !TelemetryCheckbox.checked;
-    
+
     // SYSLOG
     document.getElementById("syslog.active").checked                    = settings.syslog.active;
     document.getElementById("syslog.server").value                      = settings.syslog.server;
@@ -205,7 +219,7 @@ function loadSettings(settings) {
     SyslogServer.disabled           = !SyslogCheckbox.checked;
     SyslogPort.disabled             = !SyslogCheckbox.checked;
     SyslogBeaconOverTCPIP.disabled  = !SyslogCheckbox.checked;
-    
+
     // TNC
     if (settings.tnc) {
         document.getElementById("tnc.enableServer").checked             = settings.tnc.enableServer;
@@ -390,6 +404,36 @@ TelemetryCheckbox.addEventListener("change", function () {
     TelemetryTempCorrection.disabled    = !this.checked;
 });
 
+// LoRa Rx Switch
+const LoRaRxCheckbox                = document.querySelector('input[name="lora.rxActive"]');
+const LoRaRxFreq                    = document.querySelector('[name="lora.rxFreq"]');
+const LoRaRxSpreadingFactor         = document.querySelector('[name="lora.rxSpreadingFactor"]');
+const LoRaRxCodingRate              = document.querySelector('[name="lora.rxCodingRate4"]');
+const LoRaRxSignalBandwidth         = document.querySelector('[name="lora.rxSignalBandwidth"]');
+LoRaRxCheckbox.addEventListener("change", function () {
+    LoRaRxFreq.disabled             = !this.checked;
+    LoRaRxSpreadingFactor.disabled  = !this.checked;
+    LoRaRxCodingRate.disabled       = !this.checked;
+    LoRaRxSignalBandwidth.disabled  = !this.checked;
+});
+
+// LoRa Tx Switch
+const LoRaTxCheckbox                = document.querySelector('input[name="lora.txActive"]');
+const LoRaTxFreq                    = document.querySelector('[name="lora.txFreq"]');
+const LoRaTxSpreadingFactor         = document.querySelector('[name="lora.txSpreadingFactor"]');
+const LoRaTxCodingRate              = document.querySelector('[name="lora.txCodingRate4"]');
+const LoRaTxSignalBandwidth         = document.querySelector('[name="lora.txSignalBandwidth"]');
+const LoRaPower                     = document.querySelector('[name="lora.power"]');
+const LoRaCadActive                 = document.querySelector('[name="lora.cadActive"]');
+LoRaTxCheckbox.addEventListener("change", function () {
+    LoRaTxFreq.disabled             = !this.checked;
+    LoRaTxSpreadingFactor.disabled  = !this.checked;
+    LoRaTxCodingRate.disabled       = !this.checked;
+    LoRaTxSignalBandwidth.disabled  = !this.checked;
+    LoRaPower.disabled              = !this.checked;
+    LoRaCadActive.disabled          = !this.checked;
+});
+
 // Syslog Switches
 const SyslogCheckbox                = document.querySelector('input[name="syslog.active"]');
 const SyslogServer                  = document.querySelector('input[name="syslog.server"]');
@@ -559,7 +603,7 @@ function loadReceivedPackets(packets) {
 
         packets.forEach((packet) => {
             const element = document.createElement("tr");
-        
+
             element.innerHTML = `
                         <td>${packet.rxTime}</td>
                         <td>${packet.packet}</td>
@@ -592,8 +636,169 @@ document.querySelector('a[href="/received-packets"]').addEventListener('click', 
 
     document.getElementById('received-packets').classList.remove('d-none');
     document.getElementById('configuration').classList.add('d-none');
-    
+
     document.querySelector('button[type=submit]').remove();
 
     fetchReceivedPackets();
 })
+
+
+/* ---------- Stations Map (Leaflet, CDN) ---------- */
+
+let mapInstance    = null;
+let mapMarkers     = null;
+let mapTimer       = null;
+let mapTileErrShown = false;
+let iGateLatLng    = null;
+let mapAutoFitDone = false;
+
+function setMapMessage(text) {
+    const el = document.getElementById("map");
+    if (el) {
+        el.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--msh-text-dim,#8b949e);text-align:center;padding:20px;">${text}</div>`;
+    }
+}
+
+function loadMapStations(stations) {
+    if (!mapMarkers) return;
+
+    mapMarkers.clearLayers();
+
+    let drawn = 0;
+    (stations || []).forEach((s) => {
+        if (s.lat === 0 && s.lon === 0) return;     // descartar estaciones sin fix
+
+        const popup = `<b>${s.callsign}</b>`
+            + (s.lastHeard ? `<br>Last: ${s.lastHeard}` : "")
+            + `<br>RSSI ${s.RSSI} / SNR ${s.SNR}`
+            + `<br>Packets: ${s.count}`;
+
+        L.circleMarker([s.lat, s.lon], {
+            radius: 6,
+            color: "#1d6fe0",        // borde
+            weight: 2,
+            fillColor: "#3b8cff",    // relleno
+            fillOpacity: 0.9
+        }).bindPopup(popup).addTo(mapMarkers);
+        drawn++;
+    });
+
+    if (!mapAutoFitDone && drawn > 0) {             // auto-fit la 1ª vez que hay estaciones tras abrir
+        fitMapToStations();
+        mapAutoFitDone = true;
+    }
+}
+
+// Encuadra el mapa para que entren todas las estaciones (+ el iGate). 100% navegador.
+function fitMapToStations() {
+    if (!mapInstance) return false;
+
+    const pts = [];
+    if (mapMarkers) {
+        mapMarkers.eachLayer((layer) => {
+            if (layer.getLatLng) pts.push(layer.getLatLng());
+        });
+    }
+    if (iGateLatLng) pts.push(iGateLatLng);
+
+    if (!pts.length) return false;
+    mapInstance.fitBounds(L.latLngBounds(pts), { padding: [30, 30], maxZoom: 14 });
+    return true;
+}
+
+function fetchMapStations() {
+    fetch("/stations.json")
+    .then((response) => response.json())
+    .then((stations) => {
+        loadMapStations(stations);
+    })
+    .catch((err) => {
+        console.error(err);
+
+        console.error(`Failed to load stations`);
+    });
+}
+
+window.showMap = function () {
+    if (typeof L === "undefined") {                 // sin internet el CDN de Leaflet no cargó
+        setMapMessage("Map unavailable &mdash; no internet connection.<br>The map needs internet to load (OpenStreetMap).");
+        return;
+    }
+
+    mapAutoFitDone = false;                          // re-encuadrar en cada apertura del Map
+
+    if (!mapInstance) {
+        mapInstance = L.map("map");
+
+        const tiles = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            attribution: "&copy; OpenStreetMap"
+        }).addTo(mapInstance);
+
+        tiles.on("tileerror", function () {         // tiles no cargan (sin salida a internet)
+            if (!mapTileErrShown) {
+                mapTileErrShown = true;
+                if (window.showToast) showToast("Map tiles could not load — check internet connection.");
+            }
+        });
+
+        mapMarkers = L.layerGroup().addTo(mapInstance);
+
+        const FitControl = L.Control.extend({       // botón "Fit All Stations" (control nativo de Leaflet)
+            options: { position: "topright" },
+            onAdd: function () {
+                const btn = L.DomUtil.create("button", "");
+                btn.type = "button";
+                btn.title = "Fit all stations";
+                btn.textContent = "Fit All Stations";
+                btn.style.cssText = "background:#fff;color:#333;border:2px solid rgba(0,0,0,.2);border-radius:4px;padding:5px 9px;cursor:pointer;font:600 12px sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3);";
+                L.DomEvent.on(btn, "click", (e) => {
+                    L.DomEvent.stop(e);
+                    fitMapToStations();
+                });
+                return btn;
+            }
+        });
+        mapInstance.addControl(new FitControl());
+
+        fetch("/configuration.json")                // centrar y marcar el iGate
+        .then((response) => response.json())
+        .then((config) => {
+            const lat = (config.beacon && config.beacon.latitude)  || 0;
+            const lon = (config.beacon && config.beacon.longitude) || 0;
+            const callsign = config.callsign || "iGate";
+            mapInstance.setView([lat, lon], (lat || lon) ? 12 : 2);
+
+            if (lat || lon) {                       // rombo rojo en la posición del iGate
+                iGateLatLng = L.latLng(lat, lon);   // guardar para incluirlo en el auto-fit
+                const iGateIcon = L.divIcon({
+                    className: "igate-marker",
+                    html: '<div style="width:14px;height:14px;background:#e23b3b;border:2px solid #fff;transform:rotate(45deg);box-shadow:0 0 4px rgba(0,0,0,.6);"></div>',
+                    iconSize: [18, 18],
+                    iconAnchor: [9, 9]
+                });
+                L.marker([lat, lon], { icon: iGateIcon })
+                    .bindPopup(`<b>${callsign}</b><br>This station`)
+                    .addTo(mapInstance);        // directo al mapa: no se borra en los refrescos
+            }
+        })
+        .catch(() => {
+            mapInstance.setView([0, 0], 2);
+        });
+    }
+
+    setTimeout(function () {                         // el div estuvo oculto: recalcular tamaño
+        if (mapInstance) mapInstance.invalidateSize();
+    }, 0);
+
+    fetchMapStations();
+
+    if (mapTimer) clearInterval(mapTimer);
+
+    mapTimer = setInterval(function () {            // refrescar solo si la sección está visible
+        const section = document.getElementById("sec-maps");
+        if (section && section.classList.contains("active")) {
+            fetchMapStations();
+        }
+    }, 15000);
+}
