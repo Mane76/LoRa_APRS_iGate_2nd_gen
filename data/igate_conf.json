@@ -50,7 +50,7 @@
         "txActive": false,
         "txFreq": 433775000,
         "txSpreadingFactor": 12,
-        "txCodingRate4": 9,
+        "txCodingRate4": 5,
         "txSignalBandwidth": 125000,
         "power": 20,
         "cadActive": true
