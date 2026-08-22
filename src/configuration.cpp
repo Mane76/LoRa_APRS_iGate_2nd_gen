@@ -1,4 +1,4 @@
-/* Copyright (C) 2025 Ricardo Guzman - CA2RXU
+/* Copyright (C) 2026 Ricardo Guzman - CA2RXU
  *
  * This file is part of LoRa APRS iGate.
  *
@@ -106,6 +106,7 @@ bool Configuration::writeFile() {
         data["lora"]["txCodingRate4"]               = loramodule.txCodingRate4;
         data["lora"]["txSignalBandwidth"]           = loramodule.txSignalBandwidth;
         data["lora"]["power"]                       = loramodule.power;
+        data["lora"]["cadActive"]                   = loramodule.cadActive;
 
         int rxSpreadingFactor = loramodule.rxSpreadingFactor;
         int txSpreadingFactor = loramodule.txSpreadingFactor;
@@ -290,7 +291,6 @@ bool Configuration::readFile() {
         #endif
         digi.backupDigiMode             = data["digi"]["backupDigiMode"] | false;
 
-
         if (data["lora"]["rxActive"].isNull() ||
             data["lora"]["rxFreq"].isNull() ||
             data["lora"]["rxSpreadingFactor"].isNull() ||
@@ -301,7 +301,8 @@ bool Configuration::readFile() {
             data["lora"]["txSpreadingFactor"].isNull() ||
             data["lora"]["txCodingRate4"].isNull() ||
             data["lora"]["txSignalBandwidth"].isNull() ||
-            data["lora"]["power"].isNull()) needsRewrite = true;
+            data["lora"]["power"].isNull() ||
+            data["lora"]["cadActive"].isNull()) needsRewrite = true;
         loramodule.rxActive             = data["lora"]["rxActive"] | true;
         loramodule.rxFreq               = data["lora"]["rxFreq"] | 433775000;
         loramodule.rxSpreadingFactor    = data["lora"]["rxSpreadingFactor"] | 12;
@@ -313,6 +314,7 @@ bool Configuration::readFile() {
         loramodule.txCodingRate4        = data["lora"]["txCodingRate4"] | 5;
         loramodule.txSignalBandwidth    = data["lora"]["txSignalBandwidth"] | 125000;
         loramodule.power                = data["lora"]["power"] | 20;
+        loramodule.cadActive            = data["lora"]["cadActive"] | true;
 
         if (data["display"]["alwaysOn"].isNull() ||
             data["display"]["timeout"].isNull() ||
@@ -503,6 +505,7 @@ void Configuration::setDefaultValues() {
     loramodule.txCodingRate4        = 5;
     loramodule.txSignalBandwidth    = 125000;
     loramodule.power                = 20;
+    loramodule.cadActive            = true;
 
     display.alwaysOn                = true;
     display.timeout                 = 4;
@@ -567,14 +570,17 @@ void Configuration::setDefaultValues() {
 
 void Configuration::setup() {
     if (!SPIFFS.begin(false)) {
-        Serial.println("SPIFFS Mount Failed");
-        return;
-    } else {
-        Serial.println("SPIFFS Mounted");
-    }
+        Serial.println("SPIFFS Mount Failed, formatting...");
 
-    bool exists = SPIFFS.exists("/igate_conf.json");
-    if (!exists) {
+        if (!SPIFFS.begin(true)) {
+            Serial.println("SPIFFS Format Failed");
+            return;
+        }
+    }
+    Serial.println("SPIFFS Ready");
+
+    if (!SPIFFS.exists("/igate_conf.json")) {
+        Serial.println("Config not found, creating default...");
         setDefaultValues();
         writeFile();
         delay(1000);

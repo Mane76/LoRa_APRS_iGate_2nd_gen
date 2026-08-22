@@ -20,23 +20,32 @@ ____________________________________________________
 This installs the original version from Ricardo with a few clicks, my fork can then be installed via OTA and the binaries matching your hardware in this repo.
 ____________________________________________________
 
+## New Web/UI
+
+| New Menu | Map |
+| --- | --- |
+| ![new menu](images/1.png) | ![map](images/2.png) |
+
+____________________________________________________
+
 ## You can support this project to continue to grow:
 
 [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/raw/main/images/github-sponsors.png">](https://github.com/sponsors/richonguzman)     [<img src="https://github.com/richonguzman/LoRa_APRS_Tracker/raw/main/images/paypalme.png">](http://paypal.me/richonguzman)
 
 ____________________________________________________
 
+
 ## SUPPORTED BOARDS (<a href="https://github.com/richonguzman/LoRa_APRS_iGate/wiki/Supported-Boards-and-Buying-Links" target="_blank">Buying links</a>).
 
 (NOTE: all boards with 433-868-915 MHz versions)
 
-- TTGO Lilygo LoRa32 T3S3 V1.2 and LoRa32 V2.1 (V1.6 is the same).
+- TTGO Lilygo LoRa32 LoRa32 V2.1 (V1.6 is the same) and T3S3 V1.2.
 
 - TTGO T-Beam V1.0 , V1.1, V1.2 (also variations with SX1262 and SX1268 LoRa Modules) and Supreme V3.
 
 - T-Deck Plus (and also regular T-Deck with/without GPS).
 
-- HELTEC V2, V3, V3.2, T114, Wireless Stick, Wireless Stick Lite V3/V3.2, HT-CT62, Wireless Tracker, Wireless Paper.
+- HELTEC V2, V3, V3.2, V4, T114, Wireless Stick, Wireless Stick Lite V3/V3.2, HT-CT62, Wireless Tracker, Wireless Paper.
 
 - RAK Wireless 4631 + 19007(or 19003)
 
@@ -52,9 +61,13 @@ ____________________________________________________
 
 - Wemos Lolin32 Oled + SX1278 DIY Version.
 
+- and many more...
+
 <br />
 
 # Timeline (Versions):
+- 2026-08-16 New UI (Web) and also Live View over a Map to see Rx stations.
+- 2026-08-10 CAD (Channel Activity Detection) and DIFS (Distributed Inter-Frame Space) added.
 - 2026-03-25 More Boards, SDK update, OTA fix, GPS process update.
 - 2026-02-26 9M2IBR ESP32 1W (400M30S) + GPS board added.
 - 2026-02-25 Code Improvements: reduced String comparisons and improved logic for faster code execution.
